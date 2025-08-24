@@ -6,6 +6,6 @@ export default defineConfig({
   // For GitHub Pages deploys, set BASE_PATH env to "/<repo-name>/"
   // Example in CI: BASE_PATH="/church-site-2/"
   // @ts-ignore process is provided by Node at build time
-  base: process.env.BASE_PATH || '/',
+  base: process.env.BASE_PATH || '/wilsonnguyen257.github.io',
   plugins: [react()],
 })

@@ -36,24 +36,10 @@ function saveEvents(events: Event[]) {
   localStorage.setItem("events", JSON.stringify(customEvents));
 }
 
-// Các hàm quản lý địa điểm và giờ đã lưu
-function getSavedLocations(): string[] {
-  const data = localStorage.getItem("savedLocations");
-  return data ? JSON.parse(data) : ["17 Stevens Rd, Vermont VIC 3133"];
-}
-
-function saveSavedLocations(locations: string[]) {
-  localStorage.setItem("savedLocations", JSON.stringify(locations));
-}
-
-function getSavedTimes(): string[] {
-  const data = localStorage.getItem("savedTimes");
-  return data ? JSON.parse(data) : ["5:00 PM"];
-}
-
-function saveSavedTimes(times: string[]) {
-  localStorage.setItem("savedTimes", JSON.stringify(times));
-}
+// Các hàm quản lý địa điểm và giờ đã lưu (đã bỏ vì chưa dùng đến)
+// Nếu cần tái sử dụng trong tương lai, có thể lấy từ localStorage với các key:
+//  - savedLocations (string[])
+//  - savedTimes (string[])
 
 type AdminEventsProps = { isAdmin?: boolean };
 

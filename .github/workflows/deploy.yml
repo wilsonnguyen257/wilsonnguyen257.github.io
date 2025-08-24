@@ -30,10 +30,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Set BASE_PATH for Vite
+        shell: bash
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY##*/}"
+          OWNER_NAME="${GITHUB_REPOSITORY%%/*}"
+          if [[ "$REPO_NAME" == "$OWNER_NAME.github.io" ]]; then
+            echo "BASE_PATH=/" >> $GITHUB_ENV
+          else
+            echo "BASE_PATH=/$REPO_NAME/" >> $GITHUB_ENV
+          fi
+
       - name: Build
-        env:
-          # Vite base path for GitHub Pages: "/<repo-name>/"
-          BASE_PATH: "/${{ github.event.repository.name }}/"
         run: npm run build
 
       - name: Upload artifact

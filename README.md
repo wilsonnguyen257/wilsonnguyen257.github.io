@@ -1,69 +1,114 @@
-# React + TypeScript + Vite
+# Vietnamese Catholic Church Website (React + TypeScript + Vite)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A multilingual church website with Vietnamese and English support, reflections and events, and light/dark theme toggle. Admin can manage content via dashboard. Language and theme preferences are persisted in localStorage.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Multilingual UI and content (vi/en) with smart fallback to Vietnamese.
+- Reflections list and detail pages with search, author filter, and sorting.
+- Events with localized date formatting.
+- Light/Dark theme toggle via context and Tailwind “class” strategy.
+- Admin dashboard for Events and Reflections with bilingual fields.
+- Optional auto-translation (mock dictionary) and text formatting utilities.
+- Clean, responsive UI built with Tailwind CSS.
 
-## Expanding the ESLint configuration
+## Tech Stack
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- React + TypeScript + Vite
+- Tailwind CSS (darkMode: 'class')
+- Context API for language (`src/contexts/LanguageContext.tsx`) and theme (`src/contexts/ThemeContext.tsx`)
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+Prerequisites:
+- Node.js 18+ recommended
+- npm
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Install dependencies:
+```bash
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Start dev server:
+```bash
+npm run dev
 ```
+
+Build production:
+```bash
+npm run build
+```
+
+Preview production build:
+```bash
+npm run preview
+```
+
+Lint:
+```bash
+npm run lint
+```
+
+## Project Structure
+
+- `src/contexts/LanguageContext.tsx` — language state, `t()` translator, vi/en resources, default `vi` with localStorage persistence.
+- `src/contexts/ThemeContext.tsx` — theme state, toggles `dark` class on `document.documentElement`, localStorage persistence.
+- `src/components/Navbar.tsx` — language and theme toggles.
+- `src/pages/Reflections.tsx` — search, author filter, sorting, dark-mode-friendly inputs.
+- `src/pages/ReflectionDetail.tsx` — bilingual rendering with language fallback.
+- `src/pages/AdminReflections.tsx`, `src/pages/AdminEvents.tsx` — bilingual forms, mock auto-translate, formatting helpers.
+- `tailwind.config.js` — `darkMode: 'class'` enabled.
+
+## Internationalization (i18n)
+
+Content types (Reflections, Events) use bilingual fields:
+```ts
+type Localized = { vi: string; en?: string };
+```
+When rendering: use `content[language] || content.vi` to ensure fallback.
+Dates format via `toLocaleDateString()` with `vi-VN` or `en-US` based on current language.
+
+## Theme
+
+- Tailwind dark mode is configured using the class strategy.
+- `ThemeProvider` stores preference and toggles the `dark` class.
+- Components use `dark:` utilities, e.g., inputs in `Reflections.tsx` use `dark:bg-slate-700 dark:text-white` and `dark:placeholder-slate-300`.
+
+## Admin Usage
+
+- Edit content via `AdminReflections` and `AdminEvents` only. Detail pages do not allow editing.
+- Each form provides Vietnamese and English fields. Auto-translation can be toggled on/off.
+- “Format” buttons clean pasted English text (normalize whitespace/punctuation).
+
+## Deployment
+
+Recommended: Netlify or Vercel — they install and build from your GitHub repo automatically.
+
+- Netlify: set build command `npm run build`, publish directory `dist/`.
+- Vercel: import the repo; framework Vite; it auto-detects build/output.
+- GitHub Pages: use an Action to build and publish `dist/` to `gh-pages` (don’t commit `dist/` to `main`).
+
+## Git & GitHub
+
+`.gitignore` already excludes `node_modules/` and `dist/`.
+
+Initial push:
+```bash
+git init
+git add .
+git commit -m "Initial commit: Multilingual church site"
+git branch -M main
+git remote add origin https://github.com/<YOUR_USERNAME>/church-site-2.git
+git push -u origin main
+```
+
+## Troubleshooting
+
+- PowerShell execution policy blocking scripts:
+  - Open PowerShell as Administrator and run: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+  - Or run `npm run dev` from a terminal that allows script execution.
+- After changing Tailwind config, restart dev server.
+
+## License
+
+MIT

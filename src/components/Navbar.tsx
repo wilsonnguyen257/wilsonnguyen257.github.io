@@ -1,0 +1,111 @@
+import { useState } from "react";
+import { NavLink, Link } from "react-router-dom";
+import { useLanguage } from "../contexts/LanguageContext";
+import { useTheme } from "../contexts/ThemeContext";
+
+const links = [
+  { to: "/", key: "nav.home" },
+  { to: "/about", key: "nav.about" },
+  { to: "/ministries", key: "nav.ministries" },
+  { to: "/events", key: "nav.events" },
+  { to: "/reflections", key: "nav.reflections" },
+  { to: "/give", key: "nav.give" },
+  { to: "/contact", key: "nav.contact" },
+];
+
+export default function Navbar() {
+  const { language, setLanguage, t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
+  const [open, setOpen] = useState(false);
+
+  const navItem = (to: string, key: string) => (
+    <NavLink
+      key={to}
+      to={to}
+      className={({ isActive }) =>
+        `rounded-xl px-3 py-2 text-sm font-medium ${
+          isActive
+            ? "bg-brand-600 text-white"
+            : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+        }`
+      }
+      onClick={() => setOpen(false)}
+    >
+      {t(key)}
+    </NavLink>
+  );
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-brand-200 bg-[var(--color-bg)] backdrop-blur">
+      <div className="container-xl flex h-[86px] items-center justify-between">
+        <Link to="/" className="flex items-center gap-3 h-full">
+          <img src="/logo.png" alt="Logo" className="bg-white border border-[var(--color-border)] shadow-md max-h-full max-w-[90px] p-1.5 rounded-full" />
+        </Link>
+
+        <nav className="hidden items-center gap-1 md:flex">
+          {links.map((link) => navItem(link.to, link.key))}
+          
+          {/* Theme Toggle */}
+          <div className="ml-4">
+            <button
+              onClick={toggleTheme}
+              className="px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 dark:border-slate-600"
+              aria-label="Toggle theme"
+            >
+              {theme === 'light' ? '🌙' : '☀️'}
+            </button>
+          </div>
+          
+          {/* Language Toggle */}
+          <div className="ml-2">
+            <button
+              onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
+              className="px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 dark:border-slate-600"
+              aria-label="Toggle language"
+            >
+              {language === 'vi' ? '🇺🇸 EN' : '🇻🇳 VI'}
+            </button>
+          </div>
+        </nav>
+
+        <button
+          className="md:hidden rounded-xl border border-[var(--color-border)] p-2"
+          onClick={() => setOpen((v) => !v)}
+          aria-label="Toggle Menu"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="h-6 w-6"
+          >
+            <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+          </svg>
+        </button>
+      </div>
+      {open && (
+        <div className="md:hidden border-t border-slate-200 dark:border-slate-800">
+          <div className="container-xl flex flex-col gap-1 py-2">
+            {links.map((l) => navItem(l.to, l.key))}
+            <div className="mt-2 space-y-2">
+              <button
+                onClick={toggleTheme}
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition"
+                aria-label="Toggle theme"
+              >
+                {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
+              </button>
+              <button
+                onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition"
+                aria-label="Toggle language"
+              >
+                {language === 'vi' ? '🇺🇸 EN' : '🇻🇳 VI'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+}

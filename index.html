@@ -9,6 +9,18 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- spa-github-pages companion script: restore path from 404.html redirect -->
+    <script>
+      (function(l){
+        try {
+          var params = new URLSearchParams(l.search);
+          var p = params.get('p');
+          if (p) {
+            window.history.replaceState(null, null, p + l.hash);
+          }
+        } catch (e) { /* no-op */ }
+      })(window.location);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -7,8 +7,6 @@ export default defineConfig(({ command }) => ({
   // Example in CI: BASE_PATH="/church-site-2/"
   // Use root base during local dev so the dev server runs at http://localhost:5173/
   // @ts-ignore process is provided by Node at build time
-  // Default to root '/' for production builds (suitable for user sites like https://<user>.github.io/)
-  // Override by setting BASE_PATH env when deploying to a subpath (project site), e.g. "/my-repo/"
-  base: command === 'serve' ? '/' : (process.env.BASE_PATH || '/'),
+  base: command === 'serve' ? '/' : (process.env.BASE_PATH || '/wilsonnguyen257.github.io'),
   plugins: [react()],
 }))

@@ -24,17 +24,7 @@ function getReflections(): Reflection[] {
 
 export default function Home() {
   const { t, language } = useLanguage();
-  // Determine the first event whose end-of-day has not passed
-  const now = new Date();
-  const firstUpcomingIndex = Array.isArray(EVENTS)
-    ? EVENTS.findIndex(ev => {
-        const endOfDay = new Date(ev.date);
-        endOfDay.setHours(23, 59, 59, 999);
-        return endOfDay.getTime() >= now.getTime();
-      })
-    : -1;
-  const startIndex = firstUpcomingIndex === -1 ? 0 : firstUpcomingIndex;
-  const upcomingEvents = Array.isArray(EVENTS) ? EVENTS.slice(startIndex, startIndex + 3) : [];
+  const upcomingEvents = Array.isArray(EVENTS) ? EVENTS.slice(0, 3) : [];
   const [latestReflections, setLatestReflections] = useState<Reflection[]>([]);
 
   useEffect(() => {
@@ -174,7 +164,7 @@ export default function Home() {
                 )}
                 <EventCountdown 
                   eventDate={upcomingEvents[0].date} 
-                  eventTime={upcomingEvents[0].time} 
+                  eventTime={upcomingEvents[0].time.replace(' PM', ':00')} 
                 />
               </div>
             </div>

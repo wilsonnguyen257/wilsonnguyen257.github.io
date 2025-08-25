@@ -24,7 +24,7 @@ export default function AdminDashboard() {
             placeholder="Mật khẩu admin"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="rounded-xl border border-slate-300 p-2 bg-white text-slate-900 placeholder-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400 dark:border-slate-700"
+            className="rounded-xl border border-slate-300 p-2"
           />
           <button className="btn btn-primary">Đăng nhập</button>
         </form>

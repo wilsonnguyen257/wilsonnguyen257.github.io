@@ -69,22 +69,41 @@ export default function Navbar() {
         </nav>
 
         <button
-          className="md:hidden rounded-xl border border-[var(--color-border)] p-2"
+          className="md:hidden rounded-xl border border-[var(--color-border)] p-3 min-w-[44px] min-h-[44px]"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle Menu"
+          aria-expanded={open}
+          aria-controls="mobile-menu"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="h-6 w-6"
-          >
-            <path d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-          </svg>
+          {open ? (
+            // X (close) icon
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              className="h-6 w-6 text-slate-700 dark:text-slate-200"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          ) : (
+            // Hamburger icon
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              className="h-6 w-6 text-slate-700 dark:text-slate-200"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          )}
         </button>
       </div>
       {open && (
-        <div className="md:hidden border-t border-slate-200 dark:border-slate-800">
+        <div id="mobile-menu" className="md:hidden border-t border-slate-200 dark:border-slate-800">
           <div className="container-xl flex flex-col gap-1 py-2">
             {links.map((l) => navItem(l.to, l.key))}
             <div className="mt-2 space-y-2">

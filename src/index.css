@@ -5,7 +5,12 @@
 
 /* App base styles */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
+}
+
+/* When dark mode is active via the `dark` class on html */
+.dark {
+  color-scheme: dark;
 }
 
 body {

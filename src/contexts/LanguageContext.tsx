@@ -49,6 +49,14 @@ const translations = {
     'events.no_upcoming': 'Không có sự kiện sắp tới.',
     'events.no_events': 'Chưa có sự kiện nào được tạo.',
     
+    // Countdown
+    'countdown.time_left': 'Thời gian còn lại:',
+    'countdown.days': 'Ngày',
+    'countdown.hours': 'Giờ',
+    'countdown.minutes': 'Phút',
+    'countdown.seconds': 'Giây',
+    'countdown.started': 'Sự kiện đã bắt đầu!',
+    
     // Reflections
     'reflections.title': 'Phúc Âm & Suy Niệm',
     'reflections.subtitle': 'Chia sẻ lời Chúa và những suy niệm tâm linh để nuôi dưỡng đời sống đức tin. Cùng nhau lắng nghe và sống theo lời Thiên Chúa.',
@@ -242,6 +250,14 @@ const translations = {
     'events.latest_event': 'Next event',
     'events.no_upcoming': 'No upcoming events.',
     'events.no_events': 'No events have been created yet.',
+    
+    // Countdown
+    'countdown.time_left': 'Time left:',
+    'countdown.days': 'Days',
+    'countdown.hours': 'Hours',
+    'countdown.minutes': 'Minutes',
+    'countdown.seconds': 'Seconds',
+    'countdown.started': 'The event has started!',
     
     // Reflections
     'reflections.title': 'Gospel & Reflections',

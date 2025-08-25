@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { EVENTS as DEFAULT_EVENTS } from "../data/events";
 
 export type Event = {
@@ -36,10 +36,30 @@ function saveEvents(events: Event[]) {
   localStorage.setItem("events", JSON.stringify(customEvents));
 }
 
-// Các hàm quản lý địa điểm và giờ đã lưu (đã bỏ vì chưa dùng đến)
-// Nếu cần tái sử dụng trong tương lai, có thể lấy từ localStorage với các key:
-//  - savedLocations (string[])
-//  - savedTimes (string[])
+// Lưu trữ và gợi ý địa điểm đã dùng
+const SAVED_LOCATIONS_KEY = 'savedLocations';
+
+function getSavedList(key: string): string[] {
+  try {
+    const raw = localStorage.getItem(key);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr.filter(Boolean) : [];
+  } catch {
+    return [];
+  }
+}
+
+function addToSavedList(key: string, value: string) {
+  if (!value) return;
+  const list = getSavedList(key);
+  // Deduplicate (case-insensitive)
+  const exists = list.some(v => v.toLowerCase() === value.toLowerCase());
+  if (!exists) {
+    localStorage.setItem(key, JSON.stringify([value, ...list].slice(0, 25)));
+  }
+}
+
+// (No preset times needed; using native time picker)
 
 type AdminEventsProps = { isAdmin?: boolean };
 
@@ -54,6 +74,59 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
   const [descriptionEn, setDescriptionEn] = useState("");
   const [autoTranslate, setAutoTranslate] = useState(true);
   const [editIdx, setEditIdx] = useState<number>(-1);
+
+  // Normalize various time inputs to canonical 'h:mm AM/PM'
+  function normalizeTime(input: string): string | null {
+    if (!input) return null;
+    let s = input.trim().toUpperCase().replace(/\s+/g, ' ');
+    // Common quick forms: 7, 7PM, 7:30, 0730, 19, 1930
+    // 1) If contains letters AM/PM, try to parse flexible forms
+    const ampmMatch = s.match(/^(\d{1,2})(?::?(\d{2}))?\s*(AM|PM)$/);
+    if (ampmMatch) {
+      let h = parseInt(ampmMatch[1], 10);
+      let m = ampmMatch[2] ? parseInt(ampmMatch[2], 10) : 0;
+      if (h < 1 || h > 12 || m < 0 || m > 59) return null;
+      return `${h}:${m.toString().padStart(2, '0')} ${ampmMatch[3]}`;
+    }
+    // 2) 24-hour "HH:MM" or "HHMM"
+    const hhmmColon = s.match(/^([01]?\d|2[0-3]):([0-5]\d)$/);
+    const hhmmPlain = s.match(/^([01]?\d|2[0-3])([0-5]\d)$/);
+    let hh: number | null = null;
+    let mm: number | null = null;
+    if (hhmmColon) {
+      hh = parseInt(hhmmColon[1], 10); mm = parseInt(hhmmColon[2], 10);
+    } else if (hhmmPlain) {
+      hh = parseInt(hhmmPlain[1], 10); mm = parseInt(hhmmPlain[2], 10);
+    }
+    if (hh !== null && mm !== null) {
+      const mer = hh >= 12 ? 'PM' : 'AM';
+      const h12 = ((hh + 11) % 12) + 1; // 0->12, 13->1, etc.
+      return `${h12}:${mm.toString().padStart(2, '0')} ${mer}`;
+    }
+    // 3) Bare hour like "7" or "19"
+    const bareHour = s.match(/^(\d{1,2})$/);
+    if (bareHour) {
+      const val = parseInt(bareHour[1], 10);
+      if (val <= 12) return `${val}:00 AM`;
+      if (val <= 23) {
+        const mer = val >= 12 ? 'PM' : 'AM';
+        const h12 = ((val + 11) % 12) + 1;
+        return `${h12}:00 ${mer}`;
+      }
+      return null;
+    }
+    return null;
+  }
+
+  // Build suggestion lists
+  const savedLocations = useMemo(() => getSavedList(SAVED_LOCATIONS_KEY), []);
+
+  const locationOptions = useMemo(() => {
+    const set = new Set<string>();
+    savedLocations.forEach(l => { if (l && l.trim()) set.add(l.trim()); });
+    return Array.from(set);
+  }, [savedLocations]);
+
 
   // Hàm làm sạch và format text từ nhiều nguồn
   function cleanAndFormatText(text: string): string {
@@ -117,6 +190,11 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    const normalized = normalizeTime(time);
+    if (!normalized) {
+      alert("Giờ không hợp lệ. Vui lòng nhập theo định dạng: h:mm AM/PM (ví dụ 9:30 AM)");
+      return;
+    }
     let newList: Event[];
     if (editIdx >= 0) {
       newList = events.map((ev, i) =>
@@ -125,7 +203,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
               ...ev, 
               name: { vi: nameVi, en: nameEn },
               date, 
-              time, 
+              time: normalized, 
               location, 
               description: descriptionVi || descriptionEn ? { vi: descriptionVi, en: descriptionEn } : undefined
             }
@@ -139,7 +217,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
           id: Date.now().toString(),
           name: { vi: nameVi, en: nameEn },
           date,
-          time,
+          time: normalized,
           location,
           description: descriptionVi || descriptionEn ? { vi: descriptionVi, en: descriptionEn } : undefined,
         },
@@ -147,6 +225,8 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
     }
     setEvents(newList);
     saveEvents(newList);
+    // persist commonly used values
+    addToSavedList(SAVED_LOCATIONS_KEY, location);
     setNameVi("");
     setNameEn("");
     setDate("");
@@ -246,7 +326,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
                     placeholder="VD: CHÚA NHẬT XXI THƯỜNG NIÊN NĂM C"
                     value={nameVi}
                     onChange={(e) => handleVietnameseInput(e.target.value, setNameVi, setNameEn)}
-                    className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700"
+                    className="w-full rounded-xl border border-slate-300 p-2 bg-white text-slate-900 placeholder-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400 dark:border-slate-700"
                     required
                   />
                 </div>
@@ -256,39 +336,45 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
                     placeholder="VD: 21st Sunday in Ordinary Time Year C"
                     value={nameEn}
                     onChange={(e) => handleEnglishInput(e.target.value, setNameEn)}
-                    className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700"
+                    className="w-full rounded-xl border border-slate-300 p-2 bg-white text-slate-900 placeholder-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400 dark:border-slate-700"
+                    required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Ngày</label>
                   <input
                     type="date"
-                    placeholder="Ngày"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="rounded-xl border border-slate-300 p-2 w-full"
+                    className="w-full rounded-xl border border-slate-300 p-2 bg-white text-slate-900 dark:bg-slate-800 dark:text-white"
                     required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Giờ</label>
                   <input
-                    placeholder="Giờ"
+                    type="time"
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
-                    className="rounded-xl border border-slate-300 p-2 w-full"
+                    className="w-full rounded-xl border border-slate-300 p-2 bg-white text-slate-900 dark:bg-slate-800 dark:text-white"
                     required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Địa điểm</label>
                   <input
-                    placeholder="Địa điểm"
+                    type="text"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="rounded-xl border border-slate-300 p-2 w-full"
+                    className="w-full rounded-xl border border-slate-300 p-2 bg-white text-slate-900 dark:bg-slate-800 dark:text-white"
+                    list="location-options"
                     required
                   />
+                  <datalist id="location-options">
+                    {locationOptions.map((l) => (
+                      <option key={l} value={l} />
+                    ))}
+                  </datalist>
                 </div>
               </div>
               <div className="grid md:grid-cols-2 gap-4">
@@ -298,7 +384,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
                     placeholder="VD: Phấn Đấu Qua Cửa Hẹp..."
                     value={descriptionVi}
                     onChange={(e) => handleVietnameseInput(e.target.value, setDescriptionVi, setDescriptionEn)}
-                    className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700"
+                    className="rounded-xl border border-slate-300 p-2 w-full bg-white text-slate-900 placeholder-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400 dark:border-slate-700"
                     rows={3}
                   />
                 </div>
@@ -309,7 +395,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
                       placeholder="VD: Strive Through the Narrow Gate..."
                       value={descriptionEn}
                       onChange={(e) => handleEnglishInput(e.target.value, setDescriptionEn)}
-                      className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700"
+                      className="rounded-xl border border-slate-300 p-2 w-full bg-white text-slate-900 placeholder-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:placeholder-slate-400 dark:border-slate-700"
                       rows={3}
                     />
                     <button

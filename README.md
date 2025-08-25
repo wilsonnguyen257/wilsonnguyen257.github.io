@@ -98,7 +98,7 @@ git init
 git add .
 git commit -m "Initial commit: Multilingual church site"
 git branch -M main
-git remote add origin https://github.com/<YOUR_USERNAME>/church-site-2.git
+git remote add origin https://github.com/<YOUR_USERNAME>/wilsonnguyen257.github.io
 git push -u origin main
 ```
 

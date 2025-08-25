@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type CountdownProps = {
   eventDate: string;
@@ -6,6 +7,7 @@ type CountdownProps = {
 };
 
 export default function EventCountdown({ eventDate, eventTime }: CountdownProps) {
+  const { language } = useLanguage();
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -41,10 +43,10 @@ export default function EventCountdown({ eventDate, eventTime }: CountdownProps)
   }, [eventDate, eventTime]);
 
   const timeBlocks = [
-    { label: 'Ngày', value: timeLeft.days },
-    { label: 'Giờ', value: timeLeft.hours },
-    { label: 'Phút', value: timeLeft.minutes },
-    { label: 'Giây', value: timeLeft.seconds }
+    { label: language === 'en' ? 'Days' : 'Ngày', value: timeLeft.days },
+    { label: language === 'en' ? 'Hours' : 'Giờ', value: timeLeft.hours },
+    { label: language === 'en' ? 'Minutes' : 'Phút', value: timeLeft.minutes },
+    { label: language === 'en' ? 'Seconds' : 'Giây', value: timeLeft.seconds }
   ];
 
   const allZeros = Object.values(timeLeft).every(value => value === 0);
@@ -54,7 +56,7 @@ export default function EventCountdown({ eventDate, eventTime }: CountdownProps)
       <div className="mt-4 text-center">
         <div className="bg-brand-50 rounded-lg p-4 dark:bg-slate-800">
           <p className="text-lg text-brand-600 dark:text-brand-400">
-            Sự kiện đã bắt đầu!
+            {language === 'en' ? 'The event has started!' : 'Sự kiện đã bắt đầu!'}
           </p>
         </div>
       </div>
@@ -63,7 +65,7 @@ export default function EventCountdown({ eventDate, eventTime }: CountdownProps)
 
   return (
     <div className="mt-4">
-      <p className="text-center mb-3 p-muted">Thời gian còn lại:</p>
+      <p className="text-center mb-3 p-muted">{language === 'en' ? 'Time remaining:' : 'Thời gian còn lại:'}</p>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {timeBlocks.map(({ label, value }) => (
           <div key={label} className="text-center">

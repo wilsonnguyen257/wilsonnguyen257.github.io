@@ -208,7 +208,7 @@ export default function AdminReflections({ isAdmin }: AdminReflectionsProps) {
                 placeholder="VD: Suy niệm Chúa Nhật XXI Thường Niên"
                 value={titleVi}
                 onChange={e => handleVietnameseInput(e.target.value, setTitleVi, setTitleEn)}
-                className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700"
+                className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
                 required
               />
             </div>
@@ -218,7 +218,7 @@ export default function AdminReflections({ isAdmin }: AdminReflectionsProps) {
                 placeholder="VD: Reflection on 21st Sunday in Ordinary Time"
                 value={titleEn}
                 onChange={e => handleEnglishInput(e.target.value, setTitleEn)}
-                className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700"
+                className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
               />
             </div>
             <div>
@@ -227,7 +227,7 @@ export default function AdminReflections({ isAdmin }: AdminReflectionsProps) {
                 type="date"
                 value={date}
                 onChange={e => setDate(e.target.value)}
-                className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700"
+                className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
               />
             </div>
           </div>
@@ -238,7 +238,7 @@ export default function AdminReflections({ isAdmin }: AdminReflectionsProps) {
               placeholder="VD: Linh mục Phêrô, Cộng đoàn"
               value={author}
               onChange={e => setAuthor(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700"
+              className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
             />
           </div>
           
@@ -249,7 +249,7 @@ export default function AdminReflections({ isAdmin }: AdminReflectionsProps) {
                 placeholder="Nhập nội dung bài suy niệm..."
                 value={contentVi}
                 onChange={e => handleVietnameseInput(e.target.value, setContentVi, setContentEn)}
-                className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700"
+                className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
                 rows={8}
                 required
               />
@@ -261,7 +261,7 @@ export default function AdminReflections({ isAdmin }: AdminReflectionsProps) {
                   placeholder="Enter reflection content..."
                   value={contentEn}
                   onChange={e => handleEnglishInput(e.target.value, setContentEn)}
-                  className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700"
+                  className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
                   rows={8}
                 />
                 <button

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { EVENTS as DEFAULT_EVENTS } from "../data/events";
 
 export type Event = {
@@ -115,8 +115,40 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
     return text; // Fallback
   }
 
+  function formatTimeForStorage(timeStr: string): string {
+    if (!timeStr) return '';
+    
+    // If already in 24h format (HH:MM), return as is
+    if (/^\d{2}:\d{2}$/.test(timeStr)) {
+      return timeStr;
+    }
+    
+    // Convert from 12h to 24h format
+    const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (match) {
+      let [_, hours, minutes, period = ''] = match;
+      period = period.toUpperCase();
+      
+      if (period) {
+        let hours24 = parseInt(hours, 10);
+        if (period === 'PM' && hours24 < 12) {
+          hours24 += 12;
+        } else if (period === 'AM' && hours24 === 12) {
+          hours24 = 0;
+        }
+        return `${hours24.toString().padStart(2, '0')}:${minutes}`;
+      }
+    }
+    
+    return timeStr; // Return as is if format is unexpected
+  }
+
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    
+    // Format time for storage (24h format)
+    const formattedTime = formatTimeForStorage(time);
+    
     let newList: Event[];
     if (editIdx >= 0) {
       newList = events.map((ev, i) =>
@@ -125,7 +157,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
               ...ev, 
               name: { vi: nameVi, en: nameEn },
               date, 
-              time, 
+              time: formattedTime, 
               location, 
               description: descriptionVi || descriptionEn ? { vi: descriptionVi, en: descriptionEn } : undefined
             }
@@ -139,7 +171,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
           id: Date.now().toString(),
           name: { vi: nameVi, en: nameEn },
           date,
-          time,
+          time: formattedTime,
           location,
           description: descriptionVi || descriptionEn ? { vi: descriptionVi, en: descriptionEn } : undefined,
         },
@@ -156,6 +188,30 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
     setDescriptionEn("");
   }
 
+  function formatTimeForInput(timeStr: string): string {
+    if (!timeStr) return '';
+    
+    // If already in 24h format (HH:MM), convert to 12h format for display
+    if (/^\d{2}:\d{2}$/.test(timeStr)) {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const hours12 = hours % 12 || 12;
+      return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
+    }
+    
+    // If already in 12h format, ensure it has leading zeros
+    const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+    if (match) {
+      let [_, hours, minutes, period = ''] = match;
+      period = period.toUpperCase();
+      if (period) {
+        return `${hours.padStart(2, '0')}:${minutes} ${period}`;
+      }
+    }
+    
+    return timeStr; // Return as is if format is unexpected
+  }
+
   function handleEdit(idx: number) {
     const ev = events[idx];
     // Handle both old and new data structures
@@ -168,7 +224,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
     }
     
     setDate(ev.date);
-    setTime(ev.time);
+    setTime(formatTimeForInput(ev.time));
     setLocation(ev.location);
     
     if (typeof ev.description === 'string') {
@@ -246,7 +302,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
                     placeholder="VD: CHÚA NHẬT XXI THƯỜNG NIÊN NĂM C"
                     value={nameVi}
                     onChange={(e) => handleVietnameseInput(e.target.value, setNameVi, setNameEn)}
-                    className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700"
+                    className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
                     required
                   />
                 </div>
@@ -256,7 +312,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
                     placeholder="VD: 21st Sunday in Ordinary Time Year C"
                     value={nameEn}
                     onChange={(e) => handleEnglishInput(e.target.value, setNameEn)}
-                    className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700"
+                    className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
                   />
                 </div>
                 <div>
@@ -266,19 +322,22 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
                     placeholder="Ngày"
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
-                    className="rounded-xl border border-slate-300 p-2 w-full"
+                    className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
                     required
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Giờ</label>
                   <input
-                    placeholder="Giờ"
+                    type="time"
+                    placeholder="Chọn giờ"
                     value={time}
                     onChange={(e) => setTime(e.target.value)}
-                    className="rounded-xl border border-slate-300 p-2 w-full"
+                    className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
+                    step="300"
                     required
                   />
+                  <p className="text-xs text-slate-500 mt-1">Ví dụ: 2:30 PM</p>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Địa điểm</label>
@@ -286,7 +345,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
                     placeholder="Địa điểm"
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
-                    className="rounded-xl border border-slate-300 p-2 w-full"
+                    className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
                     required
                   />
                 </div>
@@ -298,7 +357,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
                     placeholder="VD: Phấn Đấu Qua Cửa Hẹp..."
                     value={descriptionVi}
                     onChange={(e) => handleVietnameseInput(e.target.value, setDescriptionVi, setDescriptionEn)}
-                    className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700"
+                    className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
                     rows={3}
                   />
                 </div>
@@ -309,7 +368,7 @@ export default function AdminEvents({ isAdmin }: AdminEventsProps) {
                       placeholder="VD: Strive Through the Narrow Gate..."
                       value={descriptionEn}
                       onChange={(e) => handleEnglishInput(e.target.value, setDescriptionEn)}
-                      className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700"
+                      className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
                       rows={3}
                     />
                     <button

@@ -409,7 +409,8 @@ interface LanguageProviderProps {
 export function LanguageProvider({ children }: LanguageProviderProps) {
   const [language, setLanguage] = useState<Language>(() => {
     const saved = localStorage.getItem('language');
-    return (saved as Language) || 'vi';
+    if (saved === 'vi' || saved === 'en') return saved;
+    return 'vi';
   });
 
   useEffect(() => {

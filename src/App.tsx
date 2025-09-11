@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Navbar from "./components/Navbar";
@@ -15,6 +15,7 @@ import ReflectionDetail from './pages/ReflectionDetail';
 import AdminReflections from './pages/AdminReflections';
 import AdminEvents from './pages/AdminEvents';
 import AdminDashboard from './pages/AdminDashboard';
+import ProtectedRoute from './components/ProtectedRoute';
 
 export default function App() {
   return (
@@ -32,9 +33,26 @@ export default function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/reflections" element={<Reflections />} />
               <Route path="/reflections/:id" element={<ReflectionDetail />} />
-              <Route path="/adminreflections" element={<AdminReflections />} />
-              <Route path="/adminevents" element={<AdminEvents />} />
-              <Route path="/admin" element={<AdminDashboard />} />
+              
+              {/* Protected Admin Routes */}
+              <Route path="/admin" element={
+                <ProtectedRoute>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }>
+                <Route index element={<Navigate to="reflections" replace />} />
+                <Route path="reflections" element={
+                  <ProtectedRoute>
+                    <AdminReflections />
+                  </ProtectedRoute>
+                } />
+                <Route path="events" element={
+                  <ProtectedRoute>
+                    <AdminEvents />
+                  </ProtectedRoute>
+                } />
+              </Route>
+              
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>

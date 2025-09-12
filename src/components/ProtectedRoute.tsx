@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ 
   children, 
-  redirectPath = '/' 
+  redirectPath = '/admin' 
 }: ProtectedRouteProps) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -23,12 +23,15 @@ export default function ProtectedRoute({
     const unsubscribe = auth.onAuthStateChanged((user) => {
       console.log('ProtectedRoute: Auth state changed, user:', user ? user.email : 'No user');
       if (!user) {
-        console.log('ProtectedRoute: No user, redirecting to:', redirectPath);
+        console.log('ProtectedRoute: No user');
         setIsAuthenticated(false);
-        navigate(redirectPath, { replace: true });
-      } else {
-        console.log('ProtectedRoute: User authenticated:', user.email);
+      } else if (user.email === import.meta.env.VITE_ADMIN_EMAIL) {
+        console.log('ProtectedRoute: Admin authenticated:', user.email);
         setIsAuthenticated(true);
+      } else {
+        console.log('ProtectedRoute: Non-admin user, redirecting to home');
+        setIsAuthenticated(false);
+        navigate('/', { replace: true });
       }
     });
 

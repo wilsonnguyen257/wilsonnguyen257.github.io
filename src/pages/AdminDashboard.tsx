@@ -16,19 +16,7 @@ export default function AdminDashboard() {
     console.log('AdminDashboard: Setting up auth state listener');
     const unsubscribe = onAuthStateChanged((user) => {
       console.log('AdminDashboard: Auth state changed, user:', user?.email);
-      
-      if (user && user.email === import.meta.env.VITE_ADMIN_EMAIL) {
-        console.log('AdminDashboard: User is admin');
-        setIsAdmin(true);
-      } else if (user) {
-        console.log('AdminDashboard: User is not admin');
-        setIsAdmin(false);
-        // Non-admin user, redirect to home
-        navigate('/');
-      } else {
-        console.log('AdminDashboard: No user');
-        setIsAdmin(false);
-      }
+      setIsAdmin(!!user && user.email === import.meta.env.VITE_ADMIN_EMAIL);
       setLoading(false);
     });
 

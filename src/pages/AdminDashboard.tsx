@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import AdminReflections from "./AdminReflections";
 import AdminEvents from "./AdminEvents";
+import AdminGallery from "./AdminGallery";
 import { useNavigate, useLocation } from "react-router-dom";
 import { login, logout, onAuthStateChanged } from "../lib/firebase";
 
@@ -10,7 +11,7 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState<'reflections' | 'events'>('reflections');
+  const [view, setView] = useState<'reflections' | 'events' | 'gallery'>('reflections');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -172,8 +173,14 @@ export default function AdminDashboard() {
         >
           Quản lý Sự kiện
         </button>
+        <button
+          onClick={() => setView('gallery')}
+          className={`btn ${view === 'gallery' ? 'btn-primary' : 'btn-outline'}`}
+        >
+          Quản lý Hình ảnh
+        </button>
       </div>
-      {view === 'reflections' ? <AdminReflections /> : <AdminEvents />}
+      {view === 'reflections' ? <AdminReflections /> : view === 'events' ? <AdminEvents /> : <AdminGallery />}
     </section>
   );
 }

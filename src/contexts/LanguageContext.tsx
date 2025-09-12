@@ -13,14 +13,19 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 // Translation data
 const translations = {
   vi: {
-    // Navigation
-    'nav.home': 'Trang chủ',
-    'nav.about': 'Giới thiệu',
-    'nav.ministries': 'Ban Ngành',
-    'nav.events': 'Sự kiện',
-    'nav.reflections': 'Phúc Âm',
-    'nav.give': 'Ủng Hộ',
-    'nav.contact': 'Liên hệ',
+  // Navigation
+  'nav.home': 'Trang chủ',
+  'nav.about': 'Giới thiệu',
+  'nav.ministries': 'Ban Ngành',
+  'nav.events': 'Sự kiện',
+  'nav.gallery': 'Hình ảnh',
+  'nav.reflections': 'Phúc Âm',
+  'nav.give': 'Ủng Hộ',
+  'nav.contact': 'Liên hệ',
+  // Gallery
+  'gallery.title': 'Thư Viện Hình Ảnh',
+  'gallery.subtitle': 'Xem lại những khoảnh khắc đẹp và hoạt động của cộng đoàn qua các hình ảnh được cập nhật thường xuyên.',
+  'gallery.empty': 'Chưa có hình ảnh nào được đăng tải.',
     
     // Homepage
     'home.title': 'Cộng Đoàn Công Giáo Việt Nam St. Timothy',
@@ -207,14 +212,19 @@ const translations = {
     'footer.contact': 'Liên hệ',
   },
   en: {
-    // Navigation
-    'nav.home': 'Home',
-    'nav.about': 'About',
-    'nav.ministries': 'Ministries',
-    'nav.events': 'Events',
-    'nav.reflections': 'Gospel',
-    'nav.give': 'Give',
-    'nav.contact': 'Contact',
+  // Navigation
+  'nav.home': 'Home',
+  'nav.about': 'About',
+  'nav.ministries': 'Ministries',
+  'nav.events': 'Events',
+  'nav.gallery': 'Gallery',
+  'nav.reflections': 'Gospel',
+  'nav.give': 'Give',
+  'nav.contact': 'Contact',
+  // Gallery
+  'gallery.title': 'Image Gallery',
+  'gallery.subtitle': 'Browse beautiful moments and community activities through regularly updated images.',
+  'gallery.empty': 'No images have been uploaded yet.',
     
     // Homepage
     'home.title': 'Vietnamese Catholic Community St. Timothy',

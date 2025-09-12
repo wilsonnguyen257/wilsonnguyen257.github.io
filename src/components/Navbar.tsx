@@ -8,6 +8,7 @@ const links = [
   { to: "/about", key: "nav.about" },
   { to: "/ministries", key: "nav.ministries" },
   { to: "/events", key: "nav.events" },
+  { to: "/gallery", key: "nav.gallery" },
   { to: "/reflections", key: "nav.reflections" },
   { to: "/give", key: "nav.give" },
   { to: "/contact", key: "nav.contact" },

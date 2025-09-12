@@ -277,8 +277,6 @@ const AdminEvents = () => {
     setError('');
   };
 
-  const UPLOAD_PRESET = 'church-gallery'; // or your chosen name
-
   if (loading) {
     return <div>{language === 'vi' ? 'Đang tải sự kiện...' : 'Loading events...'}</div>;
   }

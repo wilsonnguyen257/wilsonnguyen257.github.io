@@ -132,12 +132,12 @@ const AdminEvents = () => {
       const loadedEvents = getEvents();
       setEvents(loadedEvents);
       setFilteredEvents(loadedEvents);
-    } catch (err) {
+    } catch {
       setError(language === 'vi' ? 'Không thể tải sự kiện' : 'Failed to load events');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [language]);
   
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -491,7 +491,7 @@ const AdminEvents = () => {
       <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-slate-700">
         <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            {language === 'vi' ? 'Sự kiện sắp diễn ra' : 'Upcoming Events'}
+        {language === 'vi' ? 'Danh sách Sự Kiện' : 'Events List'}
           </h2>
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-600 dark:text-gray-300">{language === 'vi' ? 'Sắp xếp theo:' : 'Sort by:'}</span>
@@ -514,7 +514,7 @@ const AdminEvents = () => {
         </div>
         
         {filteredEvents.length === 0 ? (
-          <div className="p-6 text-gray-500 dark:text-gray-400">{language === 'vi' ? 'Không tìm thấy sự kiện nào' : 'No events found'}</div>
+          <div className="p-6 text-gray-500 dark:text-gray-400">{language === 'vi' ? 'Không có sự kiện nào' : 'No events found'}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
@@ -542,7 +542,7 @@ const AdminEvents = () => {
                   <tr key={event.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900 dark:text-white">
-                        {event.name.vi}
+            {event.name.vi}
                       </div>
                       {event.description?.vi && (
                         <div className="text-sm text-gray-500 dark:text-gray-300 mt-1">
@@ -554,7 +554,7 @@ const AdminEvents = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 dark:text-white">
-                        {event.name.en}
+              {event.name.en}
                       </div>
                       {event.description?.en && (
                         <div className="text-sm text-gray-500 dark:text-gray-300 mt-1">
@@ -566,7 +566,7 @@ const AdminEvents = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900 dark:text-white">
-                        {new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-AU')}
+              {new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-AU')}
                       </div>
                       <div className="text-sm text-gray-500 dark:text-gray-300">
                         {event.time}

@@ -13,6 +13,17 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 // Translation data
 const translations = {
   vi: {
+  // Admin
+  'admin.gallery.title': 'Quản lý Hình ảnh',
+  'admin.gallery.upload': 'Tải lên hình ảnh',
+  'admin.gallery.uploading': 'Đang tải lên...',
+  'admin.gallery.delete': 'Xóa',
+    'admin.login': 'Đăng nhập Admin',
+    'admin.dashboard': 'Quản trị Website',
+    'admin.logout': 'Đăng xuất',
+    'admin.manage_reflections': 'Quản lý Phúc Âm',
+    'admin.manage_events': 'Quản lý Sự kiện',
+    'admin.manage_gallery': 'Quản lý Hình ảnh',
   // Navigation
   'nav.home': 'Trang chủ',
   'nav.about': 'Giới thiệu',
@@ -212,6 +223,17 @@ const translations = {
     'footer.contact': 'Liên hệ',
   },
   en: {
+  // Admin
+  'admin.gallery.title': 'Manage Gallery',
+  'admin.gallery.upload': 'Upload Image',
+  'admin.gallery.uploading': 'Uploading...',
+  'admin.gallery.delete': 'Delete',
+    'admin.login': 'Admin Login',
+    'admin.dashboard': 'Website Admin',
+    'admin.logout': 'Logout',
+    'admin.manage_reflections': 'Manage Gospel',
+    'admin.manage_events': 'Manage Events',
+    'admin.manage_gallery': 'Manage Gallery',
   // Navigation
   'nav.home': 'Home',
   'nav.about': 'About',

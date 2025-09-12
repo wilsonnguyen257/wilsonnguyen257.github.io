@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useLanguage } from "../contexts/LanguageContext";
 import AdminReflections from "./AdminReflections";
 import AdminEvents from "./AdminEvents";
 import AdminGallery from "./AdminGallery";
@@ -6,6 +7,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { login, logout, onAuthStateChanged } from "../lib/firebase";
 
 export default function AdminDashboard() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
@@ -72,7 +74,7 @@ export default function AdminDashboard() {
     console.log('Rendering login form. isAdmin:', isAdmin, 'loading:', loading);
     return (
       <section className="container-xl py-12 max-w-md mx-auto">
-        <h1 className="h1 mb-4 text-center">Đăng nhập Admin</h1>
+        <h1 className="h1 mb-4 text-center">{t('admin.login')}</h1>
         <form onSubmit={handleLogin} className="card grid gap-4 p-6">
           <div className="mb-4 p-3 bg-blue-50 rounded-md">
             <p className="text-sm text-blue-700">
@@ -96,7 +98,7 @@ export default function AdminDashboard() {
               placeholder="Email của bạn"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-400"
               required
             />
           </div>
@@ -107,19 +109,18 @@ export default function AdminDashboard() {
             <input
               id="password"
               type="password"
-              placeholder="Mật khẩu"
+              placeholder="Mật khẩu của bạn"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
+              className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-slate-800 dark:border-slate-700 dark:text-white dark:placeholder-slate-400"
               required
             />
           </div>
-          <button 
-            type="submit" 
-            className="btn btn-primary w-full py-2 px-4 rounded-xl"
-            disabled={!email || !password}
+          <button
+            type="submit"
+            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:bg-blue-700 dark:hover:bg-blue-800 dark:focus:ring-blue-400"
           >
-            Đăng nhập
+            {t('login')}
           </button>
         </form>
       </section>
@@ -149,7 +150,7 @@ export default function AdminDashboard() {
   return (
     <section className="container-xl py-12">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="h1">Quản trị Website</h1>
+        <h1 className="h1">{t('admin.dashboard')}</h1>
         <button 
           onClick={handleLogout}
           className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-2"
@@ -157,7 +158,7 @@ export default function AdminDashboard() {
           <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V5.414l6.293 6.293a1 1 0 101.414-1.414L5.414 4H17a1 1 0 100-2H3z" clipRule="evenodd" />
           </svg>
-          Đăng xuất
+          {t('admin.logout')}
         </button>
       </div>
       <div className="mb-6 flex gap-4">
@@ -165,19 +166,19 @@ export default function AdminDashboard() {
           onClick={() => setView('reflections')}
           className={`btn ${view === 'reflections' ? 'btn-primary' : 'btn-outline'}`}
         >
-          Quản lý Phúc Âm
+          {t('admin.manage_reflections')}
         </button>
         <button
           onClick={() => setView('events')}
           className={`btn ${view === 'events' ? 'btn-primary' : 'btn-outline'}`}
         >
-          Quản lý Sự kiện
+          {t('admin.manage_events')}
         </button>
         <button
           onClick={() => setView('gallery')}
           className={`btn ${view === 'gallery' ? 'btn-primary' : 'btn-outline'}`}
         >
-          Quản lý Hình ảnh
+          {t('admin.manage_gallery')}
         </button>
       </div>
       {view === 'reflections' ? <AdminReflections /> : view === 'events' ? <AdminEvents /> : <AdminGallery />}

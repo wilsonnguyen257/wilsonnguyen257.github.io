@@ -12,6 +12,36 @@ body {
   @apply bg-white text-slate-800 antialiased dark:bg-slate-950 dark:text-slate-100;
 }
 
+/* Input placeholders */
+::placeholder {
+  @apply text-slate-400 dark:text-slate-500;
+}
+
+/* For Firefox */
+::-moz-placeholder {
+  @apply text-slate-400 dark:text-slate-500;
+}
+
+/* For Internet Explorer 10-11 */
+:-ms-input-placeholder {
+  @apply text-slate-400 dark:text-slate-500;
+}
+
+/* For Microsoft Edge */
+::-ms-input-placeholder {
+  @apply text-slate-400 dark:text-slate-500;
+}
+
+/* Input fields */
+input, textarea, select {
+  @apply bg-white text-slate-900 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-700;
+}
+
+/* Focus states */
+input:focus, textarea:focus, select:focus {
+  @apply ring-2 ring-brand-500 dark:ring-brand-400 border-transparent;
+}
+
 .container-xl {
   @apply max-w-6xl mx-auto px-4;
 }

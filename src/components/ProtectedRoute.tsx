@@ -59,7 +59,8 @@ export default function ProtectedRoute({
   }
 
   if (!isAuthenticated) {
-    console.log('ProtectedRoute: Not authenticated, showing nothing (should redirect)');
+    console.log('ProtectedRoute: Not authenticated, redirecting to login');
+    navigate('/admin', { replace: true });
     return null;
   }
 

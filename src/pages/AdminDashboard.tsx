@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
-import { Outlet, useNavigate, Link, useLocation } from "react-router-dom";
+import AdminReflections from "./AdminReflections";
+import AdminEvents from "./AdminEvents";
+import { useNavigate, useLocation } from "react-router-dom";
 import { login, logout, onAuthStateChanged } from "../lib/firebase";
 
 export default function AdminDashboard() {
@@ -8,6 +10,7 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<'reflections' | 'events'>('reflections');
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -40,8 +43,8 @@ export default function AdminDashboard() {
         console.log('AdminDashboard: Login failed:', result.error);
         setError(result.error || "Đăng nhập thất bại");
       } else {
-        console.log('AdminDashboard: Login successful, navigating to /admin/reflections');
-        navigate('/admin/reflections');
+        console.log('AdminDashboard: Login successful, navigating to /admin');
+        navigate('/admin');
       }
     } catch (err) {
       console.error('AdminDashboard: Login error:', err);
@@ -157,20 +160,20 @@ export default function AdminDashboard() {
         </button>
       </div>
       <div className="mb-6 flex gap-4">
-        <Link
-          to="/admin/reflections"
-          className={`btn ${location.pathname.includes('reflections') ? 'btn-primary' : 'btn-outline'}`}
+        <button
+          onClick={() => setView('reflections')}
+          className={`btn ${view === 'reflections' ? 'btn-primary' : 'btn-outline'}`}
         >
           Quản lý Phúc Âm
-        </Link>
-        <Link
-          to="/admin/events"
-          className={`btn ${location.pathname.includes('events') ? 'btn-primary' : 'btn-outline'}`}
+        </button>
+        <button
+          onClick={() => setView('events')}
+          className={`btn ${view === 'events' ? 'btn-primary' : 'btn-outline'}`}
         >
           Quản lý Sự kiện
-        </Link>
+        </button>
       </div>
-      <Outlet />
+      {view === 'reflections' ? <AdminReflections /> : <AdminEvents />}
     </section>
   );
 }

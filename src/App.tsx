@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Navbar from "./components/Navbar";
@@ -35,18 +35,23 @@ export default function App() {
               <Route path="/reflections/:id" element={<ReflectionDetail />} />
               
               {/* Admin Routes */}
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route
-                path="/admin"
+                path="/admin/reflections"
                 element={
                   <ProtectedRoute>
-                    <AdminDashboard />
+                    <AdminReflections />
                   </ProtectedRoute>
                 }
-              >
-                <Route index element={<Navigate to="reflections" replace />} />
-                <Route path="reflections" element={<AdminReflections />} />
-                <Route path="events" element={<AdminEvents />} />
-              </Route>
+              />
+              <Route
+                path="/admin/events"
+                element={
+                  <ProtectedRoute>
+                    <AdminEvents />
+                  </ProtectedRoute>
+                }
+              />
               
               <Route path="*" element={<NotFound />} />
             </Routes>

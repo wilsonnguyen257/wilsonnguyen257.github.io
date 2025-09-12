@@ -17,6 +17,12 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
+// Debug: Log config (except apiKey)
+console.log('Firebase Config:', {
+  ...firebaseConfig,
+  apiKey: '[HIDDEN]'
+});
+
 // Initialize Firebase
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
@@ -28,11 +34,12 @@ export const login = async (email: string, password: string) => {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     console.log('Login successful, user:', userCredential.user?.email);
     return { success: true };
-  } catch (error: any) {
-    console.error('Login error:', error.code, error.message);
+  } catch (error: unknown) {
+    console.error('Login error:', error);
+    const firebaseError = error as { code?: string; message: string };
     return { 
       success: false, 
-      error: error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' 
+      error: firebaseError.code === 'auth/user-not-found' || firebaseError.code === 'auth/wrong-password' 
         ? 'Invalid email or password. Please try again.'
         : 'An error occurred during login. Please try again.'
     };

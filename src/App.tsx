@@ -34,12 +34,8 @@ export default function App() {
               <Route path="/reflections" element={<Reflections />} />
               <Route path="/reflections/:id" element={<ReflectionDetail />} />
               
-              {/* Protected Admin Routes */}
-              <Route path="/admin" element={
-                <ProtectedRoute>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              }>
+              {/* Admin Routes */}
+              <Route path="/admin" element={<AdminDashboard />}>
                 <Route index element={<Navigate to="reflections" replace />} />
                 <Route path="reflections" element={
                   <ProtectedRoute>

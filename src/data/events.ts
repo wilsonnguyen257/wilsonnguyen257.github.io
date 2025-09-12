@@ -1,16 +1,12 @@
+import type { Translation } from '../types/content';
+
 export type Event = {
-  id: string
-  name: {
-    vi: string
-    en: string
-  }
-  date: string // ISO
-  time: string
-  location: string
-  description?: {
-    vi: string
-    en: string
-  }
+  id: string;
+  name: Translation;
+  date: string; // ISO yyyy-mm-dd
+  time: string; // e.g., '5:00 PM'
+  location: string;
+  description?: Translation;
 }
 
 

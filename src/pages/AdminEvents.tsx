@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { EVENTS as DEFAULT_EVENTS } from "../data/events";
+import { useState, useEffect } from 'react';
+import { useLanguage } from '../contexts/LanguageContext';
+import { v4 as uuidv4 } from 'uuid';
+import { EVENTS as DEFAULT_EVENTS } from '../data/events';
 
-export type Event = {
+type Event = {
   id: string;
   name: {
     vi: string;
@@ -17,442 +19,589 @@ export type Event = {
   isDefault?: boolean;
 };
 
-// Các hàm quản lý sự kiện
-function getEvents(): Event[] {
-  const data = localStorage.getItem("events");
-  const customEvents = data ? JSON.parse(data) : [];
-  
-  // Merge default events with custom events, marking default events
-  const defaultEvents = DEFAULT_EVENTS.map(event => ({ ...event, isDefault: true }));
-  const allEvents = [...defaultEvents, ...customEvents];
-  
-  // Sort events by date
-  return allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-}
+// Helper functions
+const getEvents = (): Event[] => {
+  try {
+    const saved = localStorage.getItem('events');
+    const customEvents = saved ? JSON.parse(saved) : [];
+    const defaultEvents = DEFAULT_EVENTS.map(ev => ({ ...ev, isDefault: true }));
+    return [...defaultEvents, ...customEvents].sort(
+      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
+  } catch (error) {
+    console.error('Error loading events:', error);
+    return [];
+  }
+};
 
-function saveEvents(events: Event[]) {
-  // Only save custom events to localStorage
-  const customEvents = events.filter(event => !event.isDefault);
-  localStorage.setItem("events", JSON.stringify(customEvents));
-}
+const saveEvents = (events: Event[]) => {
+  try {
+    const customEvents = events.filter(ev => !ev.isDefault);
+    localStorage.setItem('events', JSON.stringify(customEvents));
+  } catch (error) {
+    console.error('Error saving events:', error);
+  }
+};
 
-// Các hàm quản lý địa điểm và giờ đã lưu (đã bỏ vì chưa dùng đến)
-// Nếu cần tái sử dụng trong tương lai, có thể lấy từ localStorage với các key:
-//  - savedLocations (string[])
-//  - savedTimes (string[])
-
-type AdminEventsProps = { isAdmin?: boolean };
-
-export default function AdminEvents({ isAdmin }: AdminEventsProps) {
-  const [events, setEvents] = useState<Event[]>(getEvents());
-  const [nameVi, setNameVi] = useState("");
-  const [nameEn, setNameEn] = useState("");
-  const [date, setDate] = useState("");
-  const [time, setTime] = useState("");
-  const [location, setLocation] = useState("");
-  const [descriptionVi, setDescriptionVi] = useState("");
-  const [descriptionEn, setDescriptionEn] = useState("");
+const AdminEvents = () => {
+  const { language } = useLanguage();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [formData, setFormData] = useState({
+    nameVi: '',
+    nameEn: '',
+    date: '',
+    time: '',
+    location: '',
+    descriptionVi: '',
+    descriptionEn: ''
+  });
+  const [editId, setEditId] = useState<string | null>(null);
   const [autoTranslate, setAutoTranslate] = useState(true);
-  const [editIdx, setEditIdx] = useState<number>(-1);
+  
+  // Filter and sort state
+  const [filters, setFilters] = useState({
+    search: '',
+    startDate: '',
+    endDate: '',
+    location: ''
+  });
+  
+  const [sortConfig, setSortConfig] = useState<{
+    key: 'date' | 'name' | 'location';
+    direction: 'asc' | 'desc';
+  }>({ key: 'date', direction: 'desc' });
 
-  // Hàm làm sạch và format text từ nhiều nguồn
-  function cleanAndFormatText(text: string): string {
-    if (!text) return '';
+  // Apply filters and sorting when events or filters change
+  useEffect(() => {
+    let result = [...events];
     
-    return text
-      // Loại bỏ các ký tự đặc biệt và encoding
-      .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-width characters
-      .replace(/[\u00A0]/g, ' ') // Non-breaking spaces
-      .replace(/[\u2018\u2019]/g, "'") // Smart quotes
-      .replace(/[\u201C\u201D]/g, '"') // Smart double quotes
-      .replace(/[\u2013\u2014]/g, '-') // Em/en dashes
-      .replace(/[\u2026]/g, '...') // Ellipsis
-      
-      // Chuẩn hóa khoảng trắng
-      .replace(/\s+/g, ' ') // Multiple spaces → single space
-      .replace(/\n\s*\n\s*\n/g, '\n\n') // Multiple line breaks → double line break
-      .replace(/^\s+|\s+$/g, '') // Trim start/end
-      
-      // Chuẩn hóa dấu câu
-      .replace(/\s+([.,!?;:])/g, '$1') // Remove space before punctuation
-      .replace(/([.,!?;:])([^\s])/g, '$1 $2') // Add space after punctuation
-      
-      // Chuẩn hóa đoạn văn
-      .replace(/([.!?])\s*([A-ZÀÁẠẢÃÂẦẤẬẨẪĂẰẮẶẲẴÈÉẸẺẼÊỀẾỆỂỄÌÍỊỈĨÒÓỌỎÕÔỒỐỘỔỖƠỜỚỢỞỠÙÚỤỦŨƯỪỨỰỬỮỲÝỴỶỸĐ])/g, '$1\n\n$2'); // New paragraph after sentence
-  }
-
-  // Hàm dịch tự động (mock - có thể tích hợp API thật)
-  async function translateText(text: string, targetLang: 'en' | 'vi'): Promise<string> {
-    if (!text.trim()) return '';
-    
-    // Mock translation - trong thực tế có thể dùng Google Translate API
-    if (targetLang === 'en') {
-      // Một số từ khóa phổ biến
-      const translations: Record<string, string> = {
-        'CHÚA NHẬT': 'SUNDAY',
-        'THƯỜNG NIÊN': 'ORDINARY TIME', 
-        'NĂM C': 'YEAR C',
-        'NĂM A': 'YEAR A',
-        'NĂM B': 'YEAR B',
-        'Phấn Đấu': 'Strive',
-        'Qua Cửa Hẹp': 'Through the Narrow Gate',
-        'Lễ': 'Mass',
-        'Thánh': 'Saint',
-        'Chúa': 'Lord',
-        'Giáo xứ': 'Parish',
-        'Suy niệm': 'Reflection',
-        'Phúc âm': 'Gospel',
-        'Cầu nguyện': 'Prayer',
-        'Thánh lễ': 'Holy Mass'
-      };
-      
-      let translated = text;
-      Object.entries(translations).forEach(([vi, en]) => {
-        translated = translated.replace(new RegExp(vi, 'gi'), en);
-      });
-      return translated;
-    }
-    return text; // Fallback
-  }
-
-  function formatTimeForStorage(timeStr: string): string {
-    if (!timeStr) return '';
-    
-    // If already in 24h format (HH:MM), return as is
-    if (/^\d{2}:\d{2}$/.test(timeStr)) {
-      return timeStr;
+    // Apply filters
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      result = result.filter(event => 
+        event.name.vi.toLowerCase().includes(searchLower) || 
+        event.name.en.toLowerCase().includes(searchLower) ||
+        event.description?.vi?.toLowerCase().includes(searchLower) ||
+        event.description?.en?.toLowerCase().includes(searchLower)
+      );
     }
     
-    // Convert from 12h to 24h format
-    const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-    if (match) {
-      let [_, hours, minutes, period = ''] = match;
-      period = period.toUpperCase();
-      
-      if (period) {
-        let hours24 = parseInt(hours, 10);
-        if (period === 'PM' && hours24 < 12) {
-          hours24 += 12;
-        } else if (period === 'AM' && hours24 === 12) {
-          hours24 = 0;
-        }
-        return `${hours24.toString().padStart(2, '0')}:${minutes}`;
+    if (filters.startDate) {
+      result = result.filter(event => event.date >= filters.startDate);
+    }
+    
+    if (filters.endDate) {
+      result = result.filter(event => event.date <= filters.endDate);
+    }
+    
+    if (filters.location) {
+      result = result.filter(event => 
+        event.location.toLowerCase().includes(filters.location.toLowerCase())
+      );
+    }
+    
+    // Apply sorting
+    result.sort((a, b) => {
+      if (sortConfig.key === 'date') {
+        const dateA = new Date(a.date).getTime();
+        const dateB = new Date(b.date).getTime();
+        return sortConfig.direction === 'asc' ? dateA - dateB : dateB - dateA;
+      } else if (sortConfig.key === 'name') {
+        const nameA = a.name.en.toLowerCase();
+        const nameB = b.name.en.toLowerCase();
+        return sortConfig.direction === 'asc' 
+          ? nameA.localeCompare(nameB)
+          : nameB.localeCompare(nameA);
+      } else {
+        // location
+        return sortConfig.direction === 'asc'
+          ? a.location.localeCompare(b.location)
+          : b.location.localeCompare(a.location);
       }
-    }
+    });
     
-    return timeStr; // Return as is if format is unexpected
-  }
+    setFilteredEvents(result);
+  }, [events, filters, sortConfig]);
+  
+  // Load events on mount
+  useEffect(() => {
+    try {
+      const loadedEvents = getEvents();
+      setEvents(loadedEvents);
+      setFilteredEvents(loadedEvents);
+    } catch (err) {
+      setError(language === 'vi' ? 'Không thể tải sự kiện' : 'Failed to load events');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  
+  const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const clearFilters = () => {
+    setFilters({
+      search: '',
+      startDate: '',
+      endDate: '',
+      location: ''
+    });
+  };
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    // Auto-translate if enabled and nameVi is being changed
+    if (autoTranslate && name === 'nameVi' && !editId) {
+      setFormData(prev => ({
+        ...prev,
+        nameEn: value // Simple 1:1 translation for demo
+      }));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Format time for storage (24h format)
-    const formattedTime = formatTimeForStorage(time);
-    
-    let newList: Event[];
-    if (editIdx >= 0) {
-      newList = events.map((ev, i) =>
-        i === editIdx
-          ? { 
-              ...ev, 
-              name: { vi: nameVi, en: nameEn },
-              date, 
-              time: formattedTime, 
-              location, 
-              description: descriptionVi || descriptionEn ? { vi: descriptionVi, en: descriptionEn } : undefined
-            }
-          : ev
-      );
-      setEditIdx(-1);
-    } else {
-      newList = [
-        ...events,
-        {
-          id: Date.now().toString(),
-          name: { vi: nameVi, en: nameEn },
-          date,
-          time: formattedTime,
-          location,
-          description: descriptionVi || descriptionEn ? { vi: descriptionVi, en: descriptionEn } : undefined,
+    // Basic validation
+    if (!formData.nameVi || !formData.date || !formData.time || !formData.location) {
+      setError(language === 'vi' ? 'Vui lòng điền đầy đủ các trường bắt buộc' : 'Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const newEvent: Event = {
+        id: editId || uuidv4(),
+        name: {
+          vi: formData.nameVi,
+          en: formData.nameEn || formData.nameVi
         },
-      ];
-    }
-    setEvents(newList);
-    saveEvents(newList);
-    setNameVi("");
-    setNameEn("");
-    setDate("");
-    setTime("");
-    setLocation("");
-    setDescriptionVi("");
-    setDescriptionEn("");
-  }
+        date: formData.date,
+        time: formData.time,
+        location: formData.location,
+        description: formData.descriptionVi || formData.descriptionEn ? {
+          vi: formData.descriptionVi,
+          en: formData.descriptionEn || formData.descriptionVi
+        } : undefined
+      };
 
-  function formatTimeForInput(timeStr: string): string {
-    if (!timeStr) return '';
-    
-    // If already in 24h format (HH:MM), convert to 12h format for display
-    if (/^\d{2}:\d{2}$/.test(timeStr)) {
-      const [hours, minutes] = timeStr.split(':').map(Number);
-      const period = hours >= 12 ? 'PM' : 'AM';
-      const hours12 = hours % 12 || 12;
-      return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
-    }
-    
-    // If already in 12h format, ensure it has leading zeros
-    const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-    if (match) {
-      let [_, hours, minutes, period = ''] = match;
-      period = period.toUpperCase();
-      if (period) {
-        return `${hours.padStart(2, '0')}:${minutes} ${period}`;
+      if (editId) {
+        // Update existing event
+        setEvents(prev => {
+          const updated = prev.map(ev => ev.id === editId ? newEvent : ev);
+          saveEvents(updated);
+          return updated;
+        });
+      } else {
+        // Add new event
+        setEvents(prev => {
+          const updated = [...prev, newEvent];
+          saveEvents(updated);
+          return updated;
+        });
       }
-    }
-    
-    return timeStr; // Return as is if format is unexpected
-  }
 
-  function handleEdit(idx: number) {
-    const ev = events[idx];
-    // Handle both old and new data structures
-    if (typeof ev.name === 'string') {
-      setNameVi(ev.name);
-      setNameEn('');
-    } else {
-      setNameVi(ev.name.vi || '');
-      setNameEn(ev.name.en || '');
+      // Reset form
+      setFormData({
+        nameVi: '',
+        nameEn: '',
+        date: '',
+        time: '',
+        location: '',
+        descriptionVi: '',
+        descriptionEn: ''
+      });
+      setEditId(null);
+      setError('');
+    } catch (err) {
+      setError(language === 'vi' ? 'Có lỗi xảy ra khi lưu sự kiện' : 'Error saving event');
+      console.error(err);
     }
-    
-    setDate(ev.date);
-    setTime(formatTimeForInput(ev.time));
-    setLocation(ev.location);
-    
-    if (typeof ev.description === 'string') {
-      setDescriptionVi(ev.description || '');
-      setDescriptionEn('');
-    } else if (ev.description) {
-      setDescriptionVi(ev.description.vi || '');
-      setDescriptionEn(ev.description.en || '');
-    } else {
-      setDescriptionVi('');
-      setDescriptionEn('');
-    }
-    
-    setEditIdx(idx);
-  }
+  };
 
-  // Hàm tự động dịch khi nhập tiếng Việt
-  const handleVietnameseInput = async (text: string, setter: (value: string) => void, enSetter: (value: string) => void) => {
-    // Làm sạch text trước khi xử lý
-    const cleanedText = cleanAndFormatText(text);
-    setter(cleanedText);
-    
-    if (autoTranslate && cleanedText.trim()) {
+  const handleEdit = (id: string) => {
+    const event = events.find(ev => ev.id === id);
+    if (!event) return;
+
+    setFormData({
+      nameVi: event.name.vi,
+      nameEn: event.name.en,
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      descriptionVi: event.description?.vi || '',
+      descriptionEn: event.description?.en || ''
+    });
+    setEditId(id);
+    setError('');
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm(language === 'vi' ? 'Bạn có chắc chắn muốn xóa sự kiện này?' : 'Are you sure you want to delete this event?')) {
       try {
-        const translated = await translateText(cleanedText, 'en');
-        enSetter(translated);
-      } catch (error) {
-        console.error('Translation failed:', error);
+        setEvents(prev => {
+          const updated = prev.filter(ev => ev.id !== id);
+          saveEvents(updated);
+          return updated;
+        });
+      } catch (err) {
+        setError(language === 'vi' ? 'Có lỗi xảy ra khi xóa sự kiện' : 'Error deleting event');
+        console.error(err);
       }
     }
   };
-  
-  // Hàm format text cho English input
-  const handleEnglishInput = (text: string, setter: (value: string) => void) => {
-    const cleanedText = cleanAndFormatText(text);
-    setter(cleanedText);
+
+  const resetForm = () => {
+    setFormData({
+      nameVi: '',
+      nameEn: '',
+      date: '',
+      time: '',
+      location: '',
+      descriptionVi: '',
+      descriptionEn: ''
+    });
+    setEditId(null);
+    setError('');
   };
 
-  function handleDelete(idx: number) {
-    if (!window.confirm("Xoá sự kiện này?")) return;
-    const newList = events.filter((_, i) => i !== idx);
-    setEvents(newList);
-    saveEvents(newList);
+  if (loading) {
+    return <div>{language === 'vi' ? 'Đang tải sự kiện...' : 'Loading events...'}</div>;
   }
-
-  if (!isAdmin) return null;
 
   return (
-    <div className="bg-white dark:bg-slate-900">
-      <section className="container-xl py-12">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="h1 mb-8">Quản Lý Sự Kiện</h1>
-          
-          {/* Form Section */}
-          <div className="card mb-8">
-            <h2 className="text-xl font-semibold mb-4">
-              {editIdx >= 0 ? 'Chỉnh Sửa Sự Kiện' : 'Thêm Sự Kiện Mới'}
-            </h2>
-            <form onSubmit={handleSubmit} className="grid gap-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <div className="flex items-center gap-2 mb-2">
-                    <label className="block text-sm font-medium">Tự động dịch</label>
-                    <input
-                      type="checkbox"
-                      checked={autoTranslate}
-                      onChange={(e) => setAutoTranslate(e.target.checked)}
-                      className="rounded"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Tên sự kiện (Tiếng Việt)</label>
-                  <input
-                    placeholder="VD: CHÚA NHẬT XXI THƯỜNG NIÊN NĂM C"
-                    value={nameVi}
-                    onChange={(e) => handleVietnameseInput(e.target.value, setNameVi, setNameEn)}
-                    className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Tên sự kiện (Tiếng Anh)</label>
-                  <input
-                    placeholder="VD: 21st Sunday in Ordinary Time Year C"
-                    value={nameEn}
-                    onChange={(e) => handleEnglishInput(e.target.value, setNameEn)}
-                    className="w-full rounded-xl border border-slate-300 p-2 dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Ngày</label>
-                  <input
-                    type="date"
-                    placeholder="Ngày"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Giờ</label>
-                  <input
-                    type="time"
-                    placeholder="Chọn giờ"
-                    value={time}
-                    onChange={(e) => setTime(e.target.value)}
-                    className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
-                    step="300"
-                    required
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Ví dụ: 2:30 PM</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Địa điểm</label>
-                  <input
-                    placeholder="Địa điểm"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Mô tả (Tiếng Việt)</label>
-                  <textarea
-                    placeholder="VD: Phấn Đấu Qua Cửa Hẹp..."
-                    value={descriptionVi}
-                    onChange={(e) => handleVietnameseInput(e.target.value, setDescriptionVi, setDescriptionEn)}
-                    className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
-                    rows={3}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-1">Mô tả (Tiếng Anh)</label>
-                  <div className="relative">
-                    <textarea
-                      placeholder="VD: Strive Through the Narrow Gate..."
-                      value={descriptionEn}
-                      onChange={(e) => handleEnglishInput(e.target.value, setDescriptionEn)}
-                      className="rounded-xl border border-slate-300 p-2 w-full dark:bg-slate-800 dark:border-slate-700 dark:placeholder-slate-400"
-                      rows={3}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleEnglishInput(descriptionEn, setDescriptionEn)}
-                      className="absolute top-2 right-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 dark:bg-blue-900 dark:text-blue-300"
-                      title="Làm sạch format"
-                    >
-                      🧹 Format
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <button className="btn btn-primary w-fit">
-                {editIdx >= 0 ? "Cập nhật" : "Thêm sự kiện"}
-              </button>
-            </form>
+    <div className="min-h-screen bg-white dark:bg-slate-900 py-8 px-4 sm:px-6 lg:px-8 transition-colors">
+      <div className="max-w-7xl mx-auto">
+      <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-900 dark:text-white">{language === 'vi' ? 'Quản lý Sự Kiện' : 'Manage Events'}</h1>
+      
+      {error && (
+        <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 mb-8 border border-gray-200 dark:border-slate-700">
+        <h2 className="text-xl font-semibold mb-4">
+          {editId ? (language === 'vi' ? 'Chỉnh sửa sự kiện' : 'Edit Event') : (language === 'vi' ? 'Thêm Sự Kiện Mới' : 'Add New Event')}
+        </h2>
+        
+        <form onSubmit={handleSubmit}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {language === 'vi' ? 'Tên sự kiện (Tiếng Việt) *' : 'Event Name (Vietnamese) *'}
+              </label>
+              <input
+                type="text"
+                name="nameVi"
+                value={formData.nameVi}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {language === 'vi' ? 'Tên sự kiện (Tiếng Anh) *' : 'Event Name (English) *'}
+              </label>
+              <input
+                type="text"
+                name="nameEn"
+                value={formData.nameEn}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {language === 'vi' ? 'Ngày *' : 'Date *'}
+              </label>
+              <input
+                type="date"
+                name="date"
+                value={formData.date}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {language === 'vi' ? 'Giờ *' : 'Time *'}
+              </label>
+              <input
+                type="time"
+                name="time"
+                value={formData.time}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                required
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {language === 'vi' ? 'Địa điểm *' : 'Location *'}
+              </label>
+              <input
+                type="text"
+                name="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {language === 'vi' ? 'Mô tả (Tiếng Việt)' : 'Description (Vietnamese)'}
+              </label>
+              <textarea
+                name="descriptionVi"
+                value={formData.descriptionVi}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {language === 'vi' ? 'Mô tả (Tiếng Anh)' : 'Description (English)'}
+              </label>
+              <textarea
+                name="descriptionEn"
+                value={formData.descriptionEn}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                rows={3}
+              />
+            </div>
           </div>
-          <div className="grid gap-4">
-            {events.length === 0 && (
-              <p
-                className="p-muted"
-                style={{ color: "var(--color-text-muted)" }}
+
+          <div className="flex items-center space-x-4">
+            <button
+              type="submit"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+            >
+              {editId ? (language === 'vi' ? 'Cập nhật sự kiện' : 'Update Event') : (language === 'vi' ? 'Thêm sự kiện' : 'Add Event')}
+            </button>
+            
+            {editId && (
+              <button
+                type="button"
+                onClick={resetForm}
+                className="text-gray-600 hover:text-gray-800"
               >
-                Chưa có sự kiện nào.
-              </p>
+                {language === 'vi' ? 'Hủy' : 'Cancel'}
+              </button>
             )}
-            {events.map((ev, i) => (
-              <div
-                key={ev.id}
-                className="card"
-                style={{
-                  background: "var(--color-card)",
-                  color: "var(--color-text-main)",
-                  borderColor: "var(--color-border)",
-                }}
-              >
-                <h2
-                  className="h2 mb-2"
-                  style={{ color: "var(--color-heading)" }}
-                >
-                  {typeof ev.name === 'string' ? ev.name : ev.name.vi}
-                </h2>
-                <p
-                  className="p-muted"
-                  style={{ color: "var(--color-text-muted)" }}
-                >
-                  {ev.date} · {ev.time} · {ev.location}
-                </p>
-                {ev.description && (
-                  <p
-                    className="p-muted mt-1"
-                    style={{ color: "var(--color-text-muted)" }}
-                  >
-                    {typeof ev.description === 'string' ? ev.description : ev.description.vi}
-                  </p>
-                )}
-                <div className="mt-2 flex gap-2">
-                  <button
-                    className="btn btn-outline"
-                    style={{
-                      color: "var(--color-accent)",
-                      borderColor: "var(--color-accent)",
-                    }}
-                    onClick={() => handleEdit(i)}
-                  >
-                    Sửa
-                  </button>
-                  <button
-                    className="btn btn-outline"
-                    style={{
-                      color: "var(--color-accent)",
-                      borderColor: "var(--color-accent)",
-                    }}
-                    onClick={() => handleDelete(i)}
-                  >
-                    Xoá
-                  </button>
-                </div>
-              </div>
-            ))}
+            
+            <div className="flex items-center ml-auto">
+              <input
+                type="checkbox"
+                id="auto-translate"
+                checked={autoTranslate}
+                onChange={(e) => setAutoTranslate(e.target.checked)}
+                className="mr-2"
+              />
+              <label htmlFor="auto-translate" className="text-sm text-gray-700 dark:text-gray-300">
+                {language === 'vi' ? 'Tự động dịch sang tiếng Anh' : 'Auto-translate to English'}
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden mb-6 border border-gray-200 dark:border-slate-700">
+        <div className="p-6 border-b border-gray-200 dark:border-slate-700">
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{language === 'vi' ? 'Bộ lọc' : 'Filters'}</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Tìm kiếm' : 'Search'}</label>
+              <input
+                type="text"
+                name="search"
+                value={filters.search}
+                onChange={handleFilterChange}
+                placeholder={language === 'vi' ? 'Tìm sự kiện...' : 'Search events...'}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Từ ngày' : 'From Date'}</label>
+              <input
+                type="date"
+                name="startDate"
+                value={filters.startDate}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Đến ngày' : 'To Date'}</label>
+              <input
+                type="date"
+                name="endDate"
+                value={filters.endDate}
+                onChange={handleFilterChange}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Địa điểm' : 'Location'}</label>
+              <input
+                type="text"
+                name="location"
+                value={filters.location}
+                onChange={handleFilterChange}
+                placeholder={language === 'vi' ? 'Lọc theo địa điểm' : 'Filter by location'}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+              />
+            </div>
+          </div>
+          <div className="mt-4">
+            <button
+              onClick={clearFilters}
+              className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-slate-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            >
+              {language === 'vi' ? 'Xóa tất cả bộ lọc' : 'Clear all filters'}
+            </button>
           </div>
         </div>
-      </section>
+      </div>
+      
+      <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-slate-700">
+        <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+            {language === 'vi' ? 'Sự kiện sắp diễn ra' : 'Upcoming Events'}
+          </h2>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-600 dark:text-gray-300">{language === 'vi' ? 'Sắp xếp theo:' : 'Sort by:'}</span>
+            <select
+              value={`${sortConfig.key}-${sortConfig.direction}`}
+              onChange={(e) => {
+                const [key, direction] = e.target.value.split('-') as ['date' | 'name' | 'location', 'asc' | 'desc'];
+                setSortConfig({ key, direction });
+              }}
+              className="border rounded p-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+            >
+              <option value="date-asc">{language === 'vi' ? 'Ngày (Cũ đến mới)' : 'Date (Oldest First)'}</option>
+              <option value="date-desc">{language === 'vi' ? 'Ngày (Mới đến cũ)' : 'Date (Newest First)'}</option>
+              <option value="name-asc">{language === 'vi' ? 'Tên (A-Z)' : 'Name (A-Z)'}</option>
+              <option value="name-desc">{language === 'vi' ? 'Tên (Z-A)' : 'Name (Z-A)'}</option>
+              <option value="location-asc">{language === 'vi' ? 'Địa điểm (A-Z)' : 'Location (A-Z)'}</option>
+              <option value="location-desc">{language === 'vi' ? 'Địa điểm (Z-A)' : 'Location (Z-A)'}</option>
+            </select>
+          </div>
+        </div>
+        
+        {filteredEvents.length === 0 ? (
+          <div className="p-6 text-gray-500 dark:text-gray-400">{language === 'vi' ? 'Không tìm thấy sự kiện nào' : 'No events found'}</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50 dark:bg-slate-700/30">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    {language === 'vi' ? 'Tên (VI)' : 'Name (VI)'}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    {language === 'vi' ? 'Tên (EN)' : 'Name (EN)'}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    {language === 'vi' ? 'Ngày & Giờ' : 'Date & Time'}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    {language === 'vi' ? 'Địa điểm' : 'Location'}
+                  </th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                    {language === 'vi' ? 'Hành động' : 'Actions'}
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
+                {filteredEvents.map((event) => (
+                  <tr key={event.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                        {event.name.vi}
+                      </div>
+                      {event.description?.vi && (
+                        <div className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+                          {event.description.vi.length > 50 
+                            ? `${event.description.vi.substring(0, 50)}...` 
+                            : event.description.vi}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 dark:text-white">
+                        {event.name.en}
+                      </div>
+                      {event.description?.en && (
+                        <div className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+                          {event.description.en.length > 50 
+                            ? `${event.description.en.substring(0, 50)}...` 
+                            : event.description.en}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900 dark:text-white">
+                        {new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-AU')}
+                      </div>
+                      <div className="text-sm text-gray-500 dark:text-gray-300">
+                        {event.time}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      {event.location}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={() => handleEdit(event.id)}
+                        className="text-indigo-600 hover:text-indigo-900 mr-4"
+                        disabled={event.isDefault}
+                      >
+                        {language === 'vi' ? 'Sửa' : 'Edit'}
+                      </button>
+                      <button
+                        onClick={() => handleDelete(event.id)}
+                        className="text-red-600 hover:text-red-900"
+                        disabled={event.isDefault}
+                        title={event.isDefault ? (language === 'vi' ? 'Không thể xóa sự kiện mặc định' : 'Default events cannot be deleted') : ''}
+                      >
+                        {language === 'vi' ? 'Xóa' : 'Delete'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      </div>
     </div>
   );
-}
+};
+
+export default AdminEvents;

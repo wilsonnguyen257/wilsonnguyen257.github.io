@@ -10,7 +10,7 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ 
   children, 
-  redirectPath = '/admin' 
+  redirectPath = '/' 
 }: ProtectedRouteProps) {
   const navigate = useNavigate();
   const location = useLocation();

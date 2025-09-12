@@ -35,18 +35,17 @@ export default function App() {
               <Route path="/reflections/:id" element={<ReflectionDetail />} />
               
               {/* Admin Routes */}
-              <Route path="/admin" element={<AdminDashboard />}>
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedRoute>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                }
+              >
                 <Route index element={<Navigate to="reflections" replace />} />
-                <Route path="reflections" element={
-                  <ProtectedRoute>
-                    <AdminReflections />
-                  </ProtectedRoute>
-                } />
-                <Route path="events" element={
-                  <ProtectedRoute>
-                    <AdminEvents />
-                  </ProtectedRoute>
-                } />
+                <Route path="reflections" element={<AdminReflections />} />
+                <Route path="events" element={<AdminEvents />} />
               </Route>
               
               <Route path="*" element={<NotFound />} />

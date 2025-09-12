@@ -15,14 +15,19 @@ export default function AdminDashboard() {
   useEffect(() => {
     console.log('AdminDashboard: Setting up auth state listener');
     const unsubscribe = onAuthStateChanged((user) => {
-      console.log('AdminDashboard: Auth state changed, isAdmin:', !!user);
-      if (user) {
-        console.log('AdminDashboard: User is authenticated, setting isAdmin to true');
+      console.log('AdminDashboard: Auth state changed, user:', user?.email);
+      
+      if (user && user.email === import.meta.env.VITE_ADMIN_EMAIL) {
+        console.log('AdminDashboard: User is admin');
         setIsAdmin(true);
-      } else {
-        console.log('AdminDashboard: No user, redirecting to /admin');
+      } else if (user) {
+        console.log('AdminDashboard: User is not admin');
         setIsAdmin(false);
-        navigate('/admin');
+        // Non-admin user, redirect to home
+        navigate('/');
+      } else {
+        console.log('AdminDashboard: No user');
+        setIsAdmin(false);
       }
       setLoading(false);
     });

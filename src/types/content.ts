@@ -3,6 +3,7 @@
 export interface Translation {
   vi: string;
   en: string;
+  [key: string]: string;
 }
 
 export interface FilterState {

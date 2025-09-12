@@ -133,7 +133,7 @@ const AdminReflections: React.FC = () => {
     };
 
     loadReflections();
-  }, []);
+  }, [language]);
 
   // Theme class is applied globally (Navbar). No local theme effect.
 
@@ -258,8 +258,16 @@ const AdminReflections: React.FC = () => {
         setSuccess(null);
       }, 5000);
     } catch (err) {
-      console.error('Error saving reflection:', err);
-      setError(language === 'vi' ? 'Có lỗi xảy ra khi lưu bài suy niệm. Vui lòng thử lại.' : 'An error occurred while saving. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error('Error saving reflection:', errorMessage);
+      setError(language === 'vi' ? 
+        `Có lỗi xảy ra khi lưu bài suy niệm: ${errorMessage}` : 
+        `Error saving reflection: ${errorMessage}`);
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
     } finally {
       setIsLoading(false);
     }
@@ -296,7 +304,16 @@ const AdminReflections: React.FC = () => {
       setSuccess(language === 'vi' ? 'Đã xóa bài suy niệm thành công' : 'Reflection deleted successfully');
       setDeleteConfirm({ show: false, id: null });
     } catch (err) {
-      setError(language === 'vi' ? 'Có lỗi xảy ra khi xóa bài suy niệm' : 'An error occurred while deleting the reflection');
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      console.error('Error deleting reflection:', errorMessage);
+      setError(language === 'vi' ? 
+        `Có lỗi xảy ra khi xóa bài suy niệm: ${errorMessage}` : 
+        `Error deleting reflection: ${errorMessage}`);
+      
+      // Clear error message after 5 seconds
+      setTimeout(() => {
+        setError(null);
+      }, 5000);
     } finally {
       setIsLoading(false);
     }
@@ -413,6 +430,16 @@ const AdminReflections: React.FC = () => {
 
         {/* Add/Edit Form */}
         <div id="reflection-form" className="bg-white dark:bg-slate-800 shadow overflow-hidden sm:rounded-lg mb-8 border border-gray-200 dark:border-slate-700">
+          {error && (
+            <div className="px-4 py-3 mb-4 rounded bg-red-50 dark:bg-red-900/50 text-red-600 dark:text-red-200">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="px-4 py-3 mb-4 rounded bg-green-50 dark:bg-green-900/50 text-green-600 dark:text-green-200">
+              {success}
+            </div>
+          )}
           <div className="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-slate-700">
             <div className="flex items-center justify-between">
               <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
@@ -461,7 +488,23 @@ const AdminReflections: React.FC = () => {
               </div>
             </div>
             <div className="pt-5">
-              <div className="flex justify-end">
+              <div className="flex justify-between items-center">
+                <div className="flex space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => handleAutoTranslate('title.vi', 'title.en')}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    {language === 'vi' ? 'Dịch tiêu đề' : 'Translate title'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleAutoTranslate('content.vi', 'content.en')}
+                    className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                  >
+                    {language === 'vi' ? 'Dịch nội dung' : 'Translate content'}
+                  </button>
+                </div>
                 <button type="submit" className="ml-3 inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500">
                   {editingId ? (language === 'vi' ? 'Lưu thay đổi' : 'Save Changes') : (language === 'vi' ? 'Tạo mới' : 'Create')}
                 </button>

@@ -24,15 +24,13 @@ export async function getJson<T = unknown>(name: JsonName): Promise<T> {
   }
 }
 
-import { getEditToken } from './settings';
+// No edit token required
 
 export async function saveJson(name: JsonName, data: unknown) {
   const json = typeof data === 'string' ? data : JSON.stringify(data);
   // Try to persist to serverless API
   try {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    const token = getEditToken();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
     const res = await fetch(`/api/site-data/${name}`, { method: 'PUT', headers, body: json });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch {

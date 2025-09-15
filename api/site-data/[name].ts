@@ -46,16 +46,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   if (method === 'PUT') {
-    // Optional edit token protection: set EDIT_TOKEN in Vercel env to require it
-    const requiredToken = process.env.EDIT_TOKEN;
-    if (requiredToken) {
-      const auth = req.headers['authorization'] || '';
-      const provided = Array.isArray(auth) ? auth[0] : auth;
-      if (!provided.startsWith('Bearer ') || provided.slice(7) !== requiredToken) {
-        return res.status(401).json({ error: 'Unauthorized' });
-      }
-    }
-
     try {
       const body = typeof req.body === 'string' ? req.body : JSON.stringify(req.body ?? []);
       await put(key, body, {
@@ -72,4 +62,3 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   return res.status(405).json({ error: 'Method not allowed' });
 }
-

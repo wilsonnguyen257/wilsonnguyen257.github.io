@@ -3,12 +3,11 @@ import { useLanguage } from "../contexts/LanguageContext";
 import AdminReflections from "./AdminReflections";
 import AdminEvents from "./AdminEvents";
 import AdminGallery from "./AdminGallery";
-import AdminSettings from "./AdminSettings";
 // No routing deps needed while auth is disabled
 
 export default function AdminDashboard() {
   const { t } = useLanguage();
-  const [view, setView] = useState<'reflections' | 'events' | 'gallery' | 'settings'>('reflections');
+  const [view, setView] = useState<'reflections' | 'events' | 'gallery'>('reflections');
   // Auth removed; always show admin tools. Use with care.
 
   return (
@@ -36,14 +35,9 @@ export default function AdminDashboard() {
         >
           {t('admin.manage_gallery')}
         </button>
-        <button
-          onClick={() => setView('settings')}
-          className={`btn ${view === 'settings' ? 'btn-primary' : 'btn-outline'}`}
-        >
-          Settings
-        </button>
+        
       </div>
-      {view === 'reflections' ? <AdminReflections /> : view === 'events' ? <AdminEvents /> : view === 'gallery' ? <AdminGallery /> : <AdminSettings />}
+      {view === 'reflections' ? <AdminReflections /> : view === 'events' ? <AdminEvents /> : <AdminGallery />}
     </section>
   );
 }

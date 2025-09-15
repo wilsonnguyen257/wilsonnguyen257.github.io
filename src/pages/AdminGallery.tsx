@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { auth } from '../lib/firebase';
-import { uploadImage } from '../lib/cloudinary';
+import { app, auth } from '../lib/firebase';
 import { getJson, saveJson } from '../lib/storage';
-type GalleryItem = { id: string; url: string; name: string; created: number };
+import { v4 as uuidv4 } from 'uuid';
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+
+type GalleryItem = { id: string; url: string; name: string; created: number; path?: string };
 
 export default function AdminGallery() {
   const { t } = useLanguage();
   const [isAdmin, setIsAdmin] = useState(false);
-  const [images, setImages] = useState<{ id: string; url: string; name: string; created: number }[]>([]);
+  const [images, setImages] = useState<GalleryItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +26,7 @@ export default function AdminGallery() {
     return () => unsubscribe();
   }, []);
 
-  // Load gallery metadata from Cloudinary JSON
+  // Load gallery metadata from Firebase Storage JSON
   useEffect(() => {
     setUploading(true);
     let active = true;
@@ -32,7 +34,7 @@ export default function AdminGallery() {
       try {
         const items = await getJson<GalleryItem[]>('gallery');
         if (active) setImages(items || []);
-      } catch (e) {
+      } catch {
         setError('Failed to load gallery images');
       } finally {
         if (active) setUploading(false);
@@ -52,11 +54,19 @@ export default function AdminGallery() {
     setError(null);
     
     try {
-      const result = await uploadImage(file);
+      const storage = getStorage(app);
+      const ext = file.name.includes('.') ? `.${file.name.split('.').pop()}` : '';
+      const uid = uuidv4();
+      const path = `gallery/${uid}${ext}`;
+      const fileRef = ref(storage, path);
+      await uploadBytes(fileRef, file, { contentType: file.type });
+      const url = await getDownloadURL(fileRef);
+
       const newItem: GalleryItem = {
-        id: result.public_id,
-        url: result.secure_url,
-        name: result.original_filename || 'image',
+        id: uid,
+        path,
+        url,
+        name: file.name || 'image',
         created: Date.now(),
       };
       const updated = [...images, newItem];
@@ -72,21 +82,15 @@ export default function AdminGallery() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this image from Cloudinary and remove from gallery?')) return;
+    if (!window.confirm('Delete this image and remove from gallery?')) return;
     setError(null);
     try {
-      const user = auth.currentUser;
-      const tokenDel = await user?.getIdToken();
-      if (!tokenDel) throw new Error('Not authenticated');
+      const image = images.find(i => i.id === id);
+      if (!image) throw new Error('Image not found');
 
-      const resp = await fetch('/api/cloudinary-delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ public_id: id, idToken: tokenDel })
-      });
-      if (!resp.ok) {
-        const msg = await resp.json().catch(() => ({}));
-        throw new Error(msg?.error || 'Delete failed');
+      if (image.path) {
+        const storage = getStorage(app);
+        await deleteObject(ref(storage, image.path));
       }
 
       const updated = images.filter(img => img.id !== id);
@@ -118,7 +122,7 @@ export default function AdminGallery() {
             </div>
           )}
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Images are uploaded to Cloudinary using an unsigned preset, and listed from Firestore. To enable real deletion from Cloudinary, add a serverless signed delete endpoint.
+            Images are uploaded to Firebase Storage and listed via a JSON index. Deletion removes the file and updates the index.
           </p>
           <div className="flex flex-col md:flex-row gap-4">
             <input

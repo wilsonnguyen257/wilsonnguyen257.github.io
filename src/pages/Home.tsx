@@ -18,7 +18,7 @@ type Reflection = {
   author?: string;
 };
 
-// Reflections now come from Cloudinary JSON
+// Reflections now come from Firebase Storage JSON
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -58,15 +58,18 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const items = await getJson<any[]>('reflections');
-        const mapped: Reflection[] = (items || []).map((it: any) => ({
+        type RawReflection = Reflection & { id?: string };
+        const items = await getJson<RawReflection[]>('reflections');
+        const mapped: Reflection[] = (items || []).map((it) => ({
           title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
           content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },
           date: it.date,
           author: it.author,
         }));
         setLatestReflections(mapped.slice(0, 2));
-      } catch {}
+      } catch {
+        setLatestReflections([]);
+      }
     })();
   }, []);
 

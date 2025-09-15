@@ -46,10 +46,11 @@ const AdminReflections: React.FC = () => {
   // Load and keep in sync with Firebase Storage JSON
   useEffect(() => {
     setIsLoading(true);
-    const unsubscribe = subscribeJson<any[]>(
+    type RawReflection = Reflection & { id: string };
+    const unsubscribe = subscribeJson<RawReflection[]>(
       'reflections',
       (items) => {
-        const mapped: Reflection[] = (items || []).map((it: any) => ({
+        const mapped: Reflection[] = (items || []).map((it) => ({
           id: it.id,
           title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
           content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },

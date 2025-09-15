@@ -17,7 +17,7 @@ type Reflection = {
 };
 type ReflectionItem = Reflection & { id: string };
 
-// Data now comes from Cloudinary JSON
+// Data now comes from Firebase Storage JSON
 
 export default function Reflections() {
   const { t, language } = useLanguage();
@@ -27,10 +27,10 @@ export default function Reflections() {
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title">("newest");
   
   useEffect(() => {
-    const unsub = subscribeJson<any[]>(
+    const unsub = subscribeJson<ReflectionItem[]>(
       'reflections',
       (items) => {
-        const mapped: ReflectionItem[] = (items || []).map((it: any) => ({
+        const mapped: ReflectionItem[] = (items || []).map((it) => ({
           id: it.id,
           title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
           content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },
@@ -62,10 +62,11 @@ export default function Reflections() {
           return new Date(b.date || "").getTime() - new Date(a.date || "").getTime();
         case "oldest":
           return new Date(a.date || "").getTime() - new Date(b.date || "").getTime();
-        case "title":
+        case "title": {
           const aTitle = a.title[language] || a.title.vi;
           const bTitle = b.title[language] || b.title.vi;
           return aTitle.localeCompare(bTitle);
+        }
         default:
           return 0;
       }

@@ -30,10 +30,10 @@ export default function Events() {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'all'>('upcoming');
   
   useEffect(() => {
-    const unsub = subscribeJson<any[]>(
+    const unsub = subscribeJson<Event[]>(
       'events',
       (customs) => {
-        const mapped: Event[] = (customs || []).map((d: any) => ({
+        const mapped: Event[] = (customs || []).map((d) => ({
           id: d.id,
           name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
           date: d.date,

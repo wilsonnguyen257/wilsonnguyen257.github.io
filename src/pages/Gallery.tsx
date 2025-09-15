@@ -8,7 +8,7 @@ export default function Gallery() {
   const [images, setImages] = useState<Array<{ id: string; url: string; name: string; created: number }>>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load gallery items from Cloudinary JSON
+  // Load gallery items from Firebase Storage JSON
   useEffect(() => {
     const unsub = subscribeJson<GalleryItem[]>(
       'gallery',

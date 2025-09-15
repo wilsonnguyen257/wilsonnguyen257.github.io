@@ -20,7 +20,7 @@ export async function getJson<T = unknown>(name: JsonName): Promise<T> {
         url,
         origin: typeof window !== 'undefined' ? window.location.origin : undefined,
       });
-    } catch (_) {
+    } catch {
       // ignore logging failures
     }
     // Cache-bust in addition to no-store to avoid any intermediary caching
@@ -28,13 +28,13 @@ export async function getJson<T = unknown>(name: JsonName): Promise<T> {
     const fetchUrl = v ? `${url}&v=${encodeURIComponent(v)}` : url;
     try {
       console.log('[storage] fetching JSON', { fetchUrl });
-    } catch (_) {
+    } catch {
       // ignore logging failures
     }
     const res = await fetch(fetchUrl, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
-  } catch (e) {
+  } catch {
     return ([] as unknown) as T;
   }
 }
@@ -56,10 +56,10 @@ export function announceJsonUpdate(name: JsonName) {
       const bc = new BroadcastChannel(CHANNEL_NAME);
       bc.postMessage({ type: 'updated', name, ts });
       bc.close();
-    } catch (_) {
+    } catch {
       // Ignore if BroadcastChannel unsupported (Safari private mode, etc.)
     }
-  } catch (_) {
+  } catch {
     // Access to localStorage may fail in some embeds; ignore
   }
 }
@@ -75,9 +75,9 @@ export function subscribeJson<T = unknown>(
     try {
       const data = await getJson<T>(name);
       if (active) callback(data);
-    } catch (e) {
-      console.error('subscribeJson load error:', e);
-      onError?.(e);
+    } catch (err) {
+      console.error('subscribeJson load error:', err);
+      onError?.(err);
     }
   };
 
@@ -101,7 +101,7 @@ export function subscribeJson<T = unknown>(
         void load();
       }
     };
-  } catch (_) {
+  } catch {
     // ignore if unsupported
   }
 
@@ -112,7 +112,7 @@ export function subscribeJson<T = unknown>(
     active = false;
     window.removeEventListener('storage', storageHandler);
     if (bc) {
-      try { bc.close(); } catch (_) {}
+      try { bc.close(); } catch { /* ignore close errors */ void 0; }
     }
     window.clearInterval(interval);
   };

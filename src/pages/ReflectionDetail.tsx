@@ -24,10 +24,11 @@ export default function ReflectionDetail() {
 
   useEffect(() => {
     if (!id) return;
-    const unsub = subscribeJson<any[]>(
+    type Item = Reflection & { id: string };
+    const unsub = subscribeJson<Item[]>(
       'reflections',
       (items) => {
-        const found = (items as any[]).find(r => r.id === id);
+        const found = (items || []).find((r) => r.id === id);
         if (!found) {
           navigate("/reflections");
           return;

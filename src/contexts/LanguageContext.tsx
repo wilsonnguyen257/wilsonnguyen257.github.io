@@ -461,6 +461,7 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useLanguage() {
   const context = useContext(LanguageContext);
   if (context === undefined) {
@@ -468,3 +469,4 @@ export function useLanguage() {
   }
   return context;
 }
+/* eslint-disable react-refresh/only-export-components */

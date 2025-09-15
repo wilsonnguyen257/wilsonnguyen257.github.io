@@ -111,14 +111,14 @@ const AdminEvents = () => {
     setFilteredEvents(result);
   }, [events, filters, sortConfig]);
   
-  // Load events from Cloudinary JSON
+  // Load events from Firebase Storage JSON
   useEffect(() => {
     setLoading(true);
     let active = true;
     (async () => {
       try {
-        const customsRaw = await getJson<any[]>('events');
-        const customs: Event[] = (customsRaw || []).map((d: any) => ({
+        const customsRaw = await getJson<Event[]>('events');
+        const customs: Event[] = (customsRaw || []).map((d) => ({
           id: d.id,
           name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
           date: d.date,
@@ -132,7 +132,7 @@ const AdminEvents = () => {
           setFilteredEvents(merged);
         }
       } catch (err) {
-        console.error('Failed to load events from Cloudinary JSON:', err);
+        console.error('Failed to load events from Storage JSON:', err);
         setError(language === 'vi' ? 'Không thể tải sự kiện' : 'Failed to load events');
         const merged = mergeWithDefaults([]);
         if (active) {
@@ -208,8 +208,10 @@ const AdminEvents = () => {
         ? events.map(ev => ev.id === editId ? { ...newEvent, isDefault: ev.isDefault } : ev)
         : [...events, newEvent];
 
-      // Persist only custom events to Cloudinary JSON
-      const customEvents = updated.filter(ev => !ev.isDefault).map(({ isDefault, ...rest }) => rest);
+      // Persist only custom events to Firebase Storage JSON
+      const customEvents = updated
+        .filter(ev => !ev.isDefault)
+        .map((ev) => { const { isDefault, ...rest } = ev; void isDefault; return rest; });
       await saveJson('events', customEvents);
       setEvents(mergeWithDefaults(customEvents as Event[]));
 
@@ -253,7 +255,7 @@ const AdminEvents = () => {
       try {
         const remaining = events.filter(ev => ev.id !== id);
         const customEvents = remaining.filter(ev => !ev.isDefault);
-        await saveJson('events', customEvents.map(({ isDefault, ...r }) => r));
+        await saveJson('events', customEvents.map((ev) => { const { isDefault, ...r } = ev; void isDefault; return r; }));
         setEvents(mergeWithDefaults(customEvents as Event[]));
       } catch (err) {
         setError(language === 'vi' ? 'Có lỗi xảy ra khi xóa sự kiện' : 'Error deleting event');

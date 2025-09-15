@@ -80,25 +80,13 @@ Dates format via `toLocaleDateString()` with `vi-VN` or `en-US` based on current
 - Each form provides Vietnamese and English fields. Auto-translation can be toggled on/off.
 - “Format” buttons clean pasted English text (normalize whitespace/punctuation).
 
-## Backend Server (Express)
+## Data storage (frontend-only)
 
-This repo includes a simple Express backend that stores editable data as JSON files in the `data/` folder and exposes a small API consumed by the app.
+- Admin edits are stored in the browser's localStorage under keys like `site-data:events`, `site-data:reflections`, and `site-data:gallery`.
+- Cross‑tab updates use storage events and BroadcastChannel for immediate UI refresh in the same browser.
+- Clearing site data or using a different browser/device resets content to defaults (Events include built‑in defaults).
 
-- Start backend locally: `npm run dev:server` (port 4000)
-- Frontend dev server proxies `/api` to `http://localhost:4000`.
-- Build production: `npm run build`
-- Start production server (serves API and static `dist/`): `npm start` (port 4000)
-
-API routes:
-- `GET /api/site-data/events|reflections|gallery` → returns JSON (defaults to [])
-- `PUT /api/site-data/{name}` with JSON body → saves to `data/{name}.json`
-
-Note: The Express server provides a single-file JSON storage. For a real database later, keep the same endpoints and change the implementation. 
-
-## Data storage
-
-- Primary: API (`/api/site-data/...`) backed by JSON files in `data/` managed by the Express server.
-- Fallback: localStorage is still used if the API is unreachable.
+To make changes visible to everyone and persist across devices, you’ll need to hook up a backend later (Firebase, a small Node server, or any DB) and wire `src/lib/storage.ts` to it.
 
 ## Git & GitHub
 

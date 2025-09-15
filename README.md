@@ -80,21 +80,25 @@ Dates format via `toLocaleDateString()` with `vi-VN` or `en-US` based on current
 - Each form provides Vietnamese and English fields. Auto-translation can be toggled on/off.
 - “Format” buttons clean pasted English text (normalize whitespace/punctuation).
 
-## Deployment
+## Backend Server (Express)
 
-Recommended: Netlify or Vercel — they install and build from your GitHub repo automatically.
+This repo includes a simple Express backend that stores editable data as JSON files in the `data/` folder and exposes a small API consumed by the app.
 
-- Netlify: set build command `npm run build`, publish directory `dist/`.
-- Vercel: import the repo; framework Vite; it auto-detects build/output.
-- GitHub Pages: use an Action to build and publish `dist/` to `gh-pages` (don’t commit `dist/` to `main`).
+- Start backend locally: `npm run dev:server` (port 4000)
+- Frontend dev server proxies `/api` to `http://localhost:4000`.
+- Build production: `npm run build`
+- Start production server (serves API and static `dist/`): `npm start` (port 4000)
 
-## Data storage (no backend)
+API routes:
+- `GET /api/site-data/events|reflections|gallery` → returns JSON (defaults to [])
+- `PUT /api/site-data/{name}` with JSON body → saves to `data/{name}.json`
 
-- Admin edits are saved to the browser's localStorage using keys like `site-data:events`, `site-data:reflections`, and `site-data:gallery`.
-- Cross‑tab updates use `storage` events and an in‑page BroadcastChannel for responsiveness.
-- Clearing the browser’s site data resets content to defaults (Events include built‑in defaults; other sections start empty).
+Note: The Express server provides a single-file JSON storage. For a real database later, keep the same endpoints and change the implementation. 
 
-When you're ready to add a backend again, replace `src/lib/storage.ts` with real read/write logic and re‑enable auth in `src/components/ProtectedRoute.tsx` and `src/pages/AdminDashboard.tsx`.
+## Data storage
+
+- Primary: API (`/api/site-data/...`) backed by JSON files in `data/` managed by the Express server.
+- Fallback: localStorage is still used if the API is unreachable.
 
 ## Git & GitHub
 

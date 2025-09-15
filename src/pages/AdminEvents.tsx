@@ -2,8 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { v4 as uuidv4 } from 'uuid';
 import { EVENTS as DEFAULT_EVENTS } from '../data/events';
-import { dataApi } from '../lib/cloudinaryData';
-import { auth } from '../lib/firebase';
+import { getJson, saveJson } from '../lib/storage';
 
 type Event = {
   id: string;
@@ -118,7 +117,7 @@ const AdminEvents = () => {
     let active = true;
     (async () => {
       try {
-        const customsRaw = await dataApi.getEvents();
+        const customsRaw = await getJson<any[]>('events');
         const customs: Event[] = (customsRaw || []).map((d: any) => ({
           id: d.id,
           name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
@@ -211,9 +210,7 @@ const AdminEvents = () => {
 
       // Persist only custom events to Cloudinary JSON
       const customEvents = updated.filter(ev => !ev.isDefault).map(({ isDefault, ...rest }) => rest);
-      const idToken = await auth.currentUser?.getIdToken();
-      if (!idToken) throw new Error('Not authenticated');
-      await dataApi.saveJson('events', customEvents, idToken);
+      await saveJson('events', customEvents);
       setEvents(mergeWithDefaults(customEvents as Event[]));
 
       // Reset form
@@ -256,9 +253,7 @@ const AdminEvents = () => {
       try {
         const remaining = events.filter(ev => ev.id !== id);
         const customEvents = remaining.filter(ev => !ev.isDefault);
-        const idToken = await auth.currentUser?.getIdToken();
-        if (!idToken) throw new Error('Not authenticated');
-        await dataApi.saveJson('events', customEvents.map(({ isDefault, ...r }) => r), idToken);
+        await saveJson('events', customEvents.map(({ isDefault, ...r }) => r));
         setEvents(mergeWithDefaults(customEvents as Event[]));
       } catch (err) {
         setError(language === 'vi' ? 'Có lỗi xảy ra khi xóa sự kiện' : 'Error deleting event');

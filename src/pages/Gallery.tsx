@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { dataApi, type GalleryItem } from '../lib/cloudinaryData';
+import { subscribeJson } from '../lib/storage';
+type GalleryItem = { id: string; url: string; name: string; created: number };
 
 export default function Gallery() {
   const { t } = useLanguage();
@@ -9,16 +10,15 @@ export default function Gallery() {
 
   // Load gallery items from Cloudinary JSON
   useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const items = await dataApi.getGallery();
-        if (active) setImages(items as GalleryItem[]);
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => { active = false; };
+    const unsub = subscribeJson<GalleryItem[]>(
+      'gallery',
+      (items) => {
+        setImages(items || []);
+        setLoading(false);
+      },
+      () => setLoading(false)
+    );
+    return () => { unsub(); };
   }, []);
 
 

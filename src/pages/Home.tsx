@@ -3,7 +3,7 @@ import { EVENTS } from '../data/events';
 import { useEffect, useState } from 'react';
 import EventCountdown from '../components/EventCountdown';
 import { useLanguage } from '../contexts/LanguageContext';
-import { dataApi } from '../lib/cloudinaryData';
+import { getJson } from '../lib/storage';
 
 type Reflection = { 
   title: {
@@ -58,7 +58,7 @@ export default function Home() {
   useEffect(() => {
     (async () => {
       try {
-        const items = await dataApi.getReflections();
+        const items = await getJson<any[]>('reflections');
         const mapped: Reflection[] = (items || []).map((it: any) => ({
           title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
           content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },

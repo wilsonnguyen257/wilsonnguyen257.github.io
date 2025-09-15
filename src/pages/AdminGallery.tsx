@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { auth } from '../lib/firebase';
 import { uploadImage } from '../lib/cloudinary';
-import { dataApi, type GalleryItem } from '../lib/cloudinaryData';
+import { getJson, saveJson } from '../lib/storage';
+type GalleryItem = { id: string; url: string; name: string; created: number };
 
 export default function AdminGallery() {
   const { t } = useLanguage();
@@ -29,8 +30,8 @@ export default function AdminGallery() {
     let active = true;
     (async () => {
       try {
-        const items = await dataApi.getGallery();
-        if (active) setImages(items as GalleryItem[]);
+        const items = await getJson<GalleryItem[]>('gallery');
+        if (active) setImages(items || []);
       } catch (e) {
         setError('Failed to load gallery images');
       } finally {
@@ -59,9 +60,7 @@ export default function AdminGallery() {
         created: Date.now(),
       };
       const updated = [...images, newItem];
-      const token1 = await auth.currentUser?.getIdToken();
-      if (!token1) throw new Error('Not authenticated');
-      await dataApi.saveJson('gallery', updated, token1);
+      await saveJson('gallery', updated);
       setImages(updated);
       setFile(null);
     } catch (err) {
@@ -91,9 +90,7 @@ export default function AdminGallery() {
       }
 
       const updated = images.filter(img => img.id !== id);
-      const token2 = await auth.currentUser?.getIdToken();
-      if (!token2) throw new Error('Not authenticated');
-      await dataApi.saveJson('gallery', updated, token2);
+      await saveJson('gallery', updated);
       setImages(updated);
     } catch (err) {
       setError('Failed to delete image');

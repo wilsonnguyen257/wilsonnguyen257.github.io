@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { EVENTS as DEFAULT_EVENTS } from "../data/events";
 import type { Event } from "../data/events";
-import { dataApi } from "../lib/cloudinaryData";
+import { subscribeJson } from "../lib/storage";
 import EventCountdown from "../components/EventCountdown";
 import { useLanguage } from "../contexts/LanguageContext";
 
@@ -30,21 +30,21 @@ export default function Events() {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'all'>('upcoming');
   
   useEffect(() => {
-    let active = true;
-    const load = async () => {
-      const customs = await dataApi.getEvents();
-      const mapped: Event[] = (customs || []).map((d: any) => ({
-        id: d.id,
-        name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
-        date: d.date,
-        time: d.time,
-        location: d.location,
-        description: d.description ? { vi: d.description.vi || '', en: d.description.en || d.description.vi || '' } : undefined,
-      }));
-      if (active) setEvents(mergeEvents(mapped));
-    };
-    load();
-    return () => { active = false; };
+    const unsub = subscribeJson<any[]>(
+      'events',
+      (customs) => {
+        const mapped: Event[] = (customs || []).map((d: any) => ({
+          id: d.id,
+          name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
+          date: d.date,
+          time: d.time,
+          location: d.location,
+          description: d.description ? { vi: d.description.vi || '', en: d.description.en || d.description.vi || '' } : undefined,
+        }));
+        setEvents(mergeEvents(mapped));
+      }
+    );
+    return () => { unsub(); };
   }, []);
 
   const now = new Date();

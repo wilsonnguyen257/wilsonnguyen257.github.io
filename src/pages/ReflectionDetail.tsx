@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
-import { dataApi } from "../lib/cloudinaryData";
+import { subscribeJson } from "../lib/storage";
 
 type Reflection = { 
   title: {
@@ -23,10 +23,10 @@ export default function ReflectionDetail() {
   const [reflection, setReflection] = useState<Reflection | null>(null);
 
   useEffect(() => {
-    async function load() {
-      if (!id) return;
-      try {
-        const items = await dataApi.getReflections();
+    if (!id) return;
+    const unsub = subscribeJson<any[]>(
+      'reflections',
+      (items) => {
         const found = (items as any[]).find(r => r.id === id);
         if (!found) {
           navigate("/reflections");
@@ -39,12 +39,13 @@ export default function ReflectionDetail() {
           author: found.author,
         };
         setReflection(mapped);
-      } catch (e) {
+      },
+      (e) => {
         console.error('Failed to load reflection detail:', e);
         navigate("/reflections");
       }
-    }
-    load();
+    );
+    return () => { unsub(); };
   }, [id, navigate]);
 
   if (!reflection) return null;

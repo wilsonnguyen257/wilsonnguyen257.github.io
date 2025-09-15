@@ -3,8 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 // Theme and language are managed globally via Navbar; we still consume language to localize labels
 import { useLanguage } from '../contexts/LanguageContext';
 import type { FilterState, DeleteConfirmState, ReflectionFormData, Reflection } from '../types/content';
-import { dataApi } from '../lib/cloudinaryData';
-import { auth } from '../lib/firebase';
+import { subscribeJson, saveJson } from '../lib/storage';
 
 // Types moved to shared file: src/types/content.ts
 
@@ -44,13 +43,12 @@ const AdminReflections: React.FC = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({ show: false, id: null });
   const [autoTranslate, setAutoTranslate] = useState(true);
 
-  // Load reflections from Cloudinary JSON
+  // Load and keep in sync with Firebase Storage JSON
   useEffect(() => {
     setIsLoading(true);
-    let active = true;
-    (async () => {
-      try {
-        const items = await dataApi.getReflections();
+    const unsubscribe = subscribeJson<any[]>(
+      'reflections',
+      (items) => {
         const mapped: Reflection[] = (items || []).map((it: any) => ({
           id: it.id,
           title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
@@ -60,15 +58,16 @@ const AdminReflections: React.FC = () => {
           createdAt: it.createdAt || new Date().toISOString(),
           updatedAt: it.updatedAt || new Date().toISOString(),
         }));
-        if (active) setReflections(mapped);
-      } catch (err) {
-        console.error('Failed to load reflections from Cloudinary JSON:', err);
-        if (active) setError(language === 'vi' ? 'Không thể tải bài suy niệm' : 'Failed to load reflections');
-      } finally {
-        if (active) setIsLoading(false);
+        setReflections(mapped);
+        setIsLoading(false);
+      },
+      (err) => {
+        console.error('Failed to load reflections from Storage JSON:', err);
+        setError(language === 'vi' ? 'Không thể tải bài suy niệm' : 'Failed to load reflections');
+        setIsLoading(false);
       }
-    })();
-    return () => { active = false; };
+    );
+    return () => { unsubscribe(); };
   }, [language]);
 
   // Theme class is applied globally (Navbar). No local theme effect.
@@ -165,9 +164,7 @@ const AdminReflections: React.FC = () => {
             updatedAt: now,
           }, ...reflections];
 
-      const idToken = await auth.currentUser?.getIdToken();
-      if (!idToken) throw new Error('Not authenticated');
-      await dataApi.saveJson('reflections', updated, idToken);
+      await saveJson('reflections', updated);
       setReflections(updated);
 
       // Show success message
@@ -226,9 +223,7 @@ const AdminReflections: React.FC = () => {
     try {
       setIsLoading(true);
       const filtered = reflections.filter(r => r.id !== deleteConfirm.id);
-      const idToken = await auth.currentUser?.getIdToken();
-      if (!idToken) throw new Error('Not authenticated');
-      await dataApi.saveJson('reflections', filtered, idToken);
+      await saveJson('reflections', filtered);
       setReflections(filtered);
       setSuccess(language === 'vi' ? 'Đã xóa bài suy niệm thành công' : 'Reflection deleted successfully');
       setDeleteConfirm({ show: false, id: null });

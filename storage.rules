@@ -1,0 +1,27 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Helper: restrict writes to specific admin emails
+    function isAdmin() {
+      // Only allow the specific admin account to write
+      return request.auth != null && request.auth.token.email == 'admin@gmail.com';
+    }
+
+    // Public JSON used by the app lives under `site-data/`.
+    // - Read: public (app fetches these without requiring auth)
+    // - Write: admins only (see isAdmin)
+    // Note: Storage Rules paths cannot include suffixes like `.json` after a variable.
+    // Match any object in `site-data/` and enforce extensions via policy if needed.
+    match /site-data/{file} {
+      // Only expose JSON files under this prefix
+      allow read: if file.matches(".*\\.json");
+      // Writes restricted to admins and JSON files
+      allow write: if isAdmin() && file.matches(".*\\.json");
+    }
+
+    // Deny everything else by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
-import { dataApi } from "../lib/cloudinaryData";
+import { subscribeJson } from "../lib/storage";
 
 type Reflection = { 
   title: {
@@ -27,10 +27,9 @@ export default function Reflections() {
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title">("newest");
   
   useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        const items = await dataApi.getReflections();
+    const unsub = subscribeJson<any[]>(
+      'reflections',
+      (items) => {
         const mapped: ReflectionItem[] = (items || []).map((it: any) => ({
           id: it.id,
           title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
@@ -38,13 +37,11 @@ export default function Reflections() {
           date: it.date,
           author: it.author,
         }));
-        if (active) setReflections(mapped);
-      } catch (err) {
-        console.error('Failed to load reflections from Cloudinary JSON:', err);
-        if (active) setReflections([]);
-      }
-    })();
-    return () => { active = false; };
+        setReflections(mapped);
+      },
+      () => setReflections([])
+    );
+    return () => { unsub(); };
   }, []);
 
   // Get unique authors for filter

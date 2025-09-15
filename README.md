@@ -88,6 +88,35 @@ Recommended: Netlify or Vercel — they install and build from your GitHub repo 
 - Vercel: import the repo; framework Vite; it auto-detects build/output.
 - GitHub Pages: use an Action to build and publish `dist/` to `gh-pages` (don’t commit `dist/` to `main`).
 
+## Firebase Storage Rules
+
+This app reads JSON content from Firebase Storage under `site-data/*.json` and lets admins update it.
+
+- Rules file: `storage.rules` (referenced in `firebase.json`).
+- Default policy:
+  - Read: public for `site-data/*.json` so the app can fetch content without auth.
+  - Write: requires authentication by default. For stricter control, edit the `isAdmin()` helper in `storage.rules` to allow only specific admin emails.
+
+Deploy rules:
+
+```bash
+npm i -g firebase-tools
+firebase login
+firebase use <your-project-id>   # or run `firebase init` once
+firebase deploy --only storage
+```
+
+Restrict to specific admins (example):
+
+```js
+function isAdmin() {
+  return request.auth != null && request.auth.token.email in [
+    'you@example.com',
+    'teammate@example.com'
+  ];
+}
+```
+
 ## Git & GitHub
 
 `.gitignore` already excludes `node_modules/` and `dist/`.

@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { dataApi } from "../lib/cloudinaryData";
 
 type Reflection = { 
   title: {
@@ -15,11 +16,6 @@ type Reflection = {
   author?: string;
 };
 
-function getReflections(): Reflection[] {
-  const data = localStorage.getItem("reflections");
-  return data ? JSON.parse(data) : [];
-}
-
 export default function ReflectionDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -27,13 +23,28 @@ export default function ReflectionDetail() {
   const [reflection, setReflection] = useState<Reflection | null>(null);
 
   useEffect(() => {
-    const list = getReflections();
-    const idx = Number(id);
-    if (isNaN(idx) || idx < 0 || idx >= list.length) {
-      navigate("/reflections");
-      return;
+    async function load() {
+      if (!id) return;
+      try {
+        const items = await dataApi.getReflections();
+        const found = (items as any[]).find(r => r.id === id);
+        if (!found) {
+          navigate("/reflections");
+          return;
+        }
+        const mapped: Reflection = {
+          title: { vi: found.title?.vi || '', en: found.title?.en || found.title?.vi || '' },
+          content: { vi: found.content?.vi || '', en: found.content?.en || found.content?.vi || '' },
+          date: found.date,
+          author: found.author,
+        };
+        setReflection(mapped);
+      } catch (e) {
+        console.error('Failed to load reflection detail:', e);
+        navigate("/reflections");
+      }
     }
-    setReflection(list[idx]);
+    load();
   }, [id, navigate]);
 
   if (!reflection) return null;

@@ -3,6 +3,7 @@ import { EVENTS } from '../data/events';
 import { useEffect, useState } from 'react';
 import EventCountdown from '../components/EventCountdown';
 import { useLanguage } from '../contexts/LanguageContext';
+import { dataApi } from '../lib/cloudinaryData';
 
 type Reflection = { 
   title: {
@@ -17,10 +18,7 @@ type Reflection = {
   author?: string;
 };
 
-function getReflections(): Reflection[] {
-  const data = localStorage.getItem("reflections");
-  return data ? JSON.parse(data) : [];
-}
+// Reflections now come from Cloudinary JSON
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -58,8 +56,18 @@ export default function Home() {
   const [latestReflections, setLatestReflections] = useState<Reflection[]>([]);
 
   useEffect(() => {
-    const reflections = getReflections();
-    setLatestReflections(reflections.slice(0, 2));
+    (async () => {
+      try {
+        const items = await dataApi.getReflections();
+        const mapped: Reflection[] = (items || []).map((it: any) => ({
+          title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
+          content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },
+          date: it.date,
+          author: it.author,
+        }));
+        setLatestReflections(mapped.slice(0, 2));
+      } catch {}
+    })();
   }, []);
 
   return (

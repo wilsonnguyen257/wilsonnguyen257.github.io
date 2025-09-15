@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { v4 as uuidv4 } from 'uuid';
 import { EVENTS as DEFAULT_EVENTS } from '../data/events';
+import { dataApi } from '../lib/cloudinaryData';
+import { auth } from '../lib/firebase';
 
 type Event = {
   id: string;
@@ -19,28 +21,12 @@ type Event = {
   isDefault?: boolean;
 };
 
-// Helper functions
-const getEvents = (): Event[] => {
-  try {
-    const saved = localStorage.getItem('events');
-    const customEvents = saved ? JSON.parse(saved) : [];
-    const defaultEvents = DEFAULT_EVENTS.map(ev => ({ ...ev, isDefault: true }));
-    return [...defaultEvents, ...customEvents].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-    );
-  } catch (error) {
-    console.error('Error loading events:', error);
-    return [];
-  }
-};
-
-const saveEvents = (events: Event[]) => {
-  try {
-    const customEvents = events.filter(ev => !ev.isDefault);
-    localStorage.setItem('events', JSON.stringify(customEvents));
-  } catch (error) {
-    console.error('Error saving events:', error);
-  }
+// Merge Firestore events with defaults (defaults are read-only)
+const mergeWithDefaults = (customEvents: Event[]): Event[] => {
+  const defaultEvents = DEFAULT_EVENTS.map(ev => ({ ...ev, isDefault: true } as Event));
+  return [...defaultEvents, ...customEvents].sort(
+    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  );
 };
 
 const AdminEvents = () => {
@@ -126,17 +112,39 @@ const AdminEvents = () => {
     setFilteredEvents(result);
   }, [events, filters, sortConfig]);
   
-  // Load events on mount
+  // Load events from Cloudinary JSON
   useEffect(() => {
-    try {
-      const loadedEvents = getEvents();
-      setEvents(loadedEvents);
-      setFilteredEvents(loadedEvents);
-    } catch {
-      setError(language === 'vi' ? 'Không thể tải sự kiện' : 'Failed to load events');
-    } finally {
-      setLoading(false);
-    }
+    setLoading(true);
+    let active = true;
+    (async () => {
+      try {
+        const customsRaw = await dataApi.getEvents();
+        const customs: Event[] = (customsRaw || []).map((d: any) => ({
+          id: d.id,
+          name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
+          date: d.date,
+          time: d.time,
+          location: d.location,
+          description: d.description ? { vi: d.description.vi || '', en: d.description.en || d.description.vi || '' } : undefined,
+        }));
+        const merged = mergeWithDefaults(customs);
+        if (active) {
+          setEvents(merged);
+          setFilteredEvents(merged);
+        }
+      } catch (err) {
+        console.error('Failed to load events from Cloudinary JSON:', err);
+        setError(language === 'vi' ? 'Không thể tải sự kiện' : 'Failed to load events');
+        const merged = mergeWithDefaults([]);
+        if (active) {
+          setEvents(merged);
+          setFilteredEvents(merged);
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => { active = false; };
   }, [language]);
   
   const handleFilterChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -172,7 +180,7 @@ const AdminEvents = () => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Basic validation
@@ -197,21 +205,16 @@ const AdminEvents = () => {
         } : undefined
       };
 
-      if (editId) {
-        // Update existing event
-        setEvents(prev => {
-          const updated = prev.map(ev => ev.id === editId ? newEvent : ev);
-          saveEvents(updated);
-          return updated;
-        });
-      } else {
-        // Add new event
-        setEvents(prev => {
-          const updated = [...prev, newEvent];
-          saveEvents(updated);
-          return updated;
-        });
-      }
+      const updated = editId
+        ? events.map(ev => ev.id === editId ? { ...newEvent, isDefault: ev.isDefault } : ev)
+        : [...events, newEvent];
+
+      // Persist only custom events to Cloudinary JSON
+      const customEvents = updated.filter(ev => !ev.isDefault).map(({ isDefault, ...rest }) => rest);
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error('Not authenticated');
+      await dataApi.saveJson('events', customEvents, idToken);
+      setEvents(mergeWithDefaults(customEvents as Event[]));
 
       // Reset form
       setFormData({
@@ -248,14 +251,15 @@ const AdminEvents = () => {
     setError('');
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm(language === 'vi' ? 'Bạn có chắc chắn muốn xóa sự kiện này?' : 'Are you sure you want to delete this event?')) {
       try {
-        setEvents(prev => {
-          const updated = prev.filter(ev => ev.id !== id);
-          saveEvents(updated);
-          return updated;
-        });
+        const remaining = events.filter(ev => ev.id !== id);
+        const customEvents = remaining.filter(ev => !ev.isDefault);
+        const idToken = await auth.currentUser?.getIdToken();
+        if (!idToken) throw new Error('Not authenticated');
+        await dataApi.saveJson('events', customEvents.map(({ isDefault, ...r }) => r), idToken);
+        setEvents(mergeWithDefaults(customEvents as Event[]));
       } catch (err) {
         setError(language === 'vi' ? 'Có lỗi xảy ra khi xóa sự kiện' : 'Error deleting event');
         console.error(err);

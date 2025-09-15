@@ -1,18 +1,13 @@
 import { useEffect, useState } from "react";
 import { EVENTS as DEFAULT_EVENTS } from "../data/events";
 import type { Event } from "../data/events";
+import { dataApi } from "../lib/cloudinaryData";
 import EventCountdown from "../components/EventCountdown";
 import { useLanguage } from "../contexts/LanguageContext";
 
-function getEvents(): Event[] {
-  const data = localStorage.getItem("events");
-  const customEvents = data ? JSON.parse(data) : [];
-  
-  // Merge default events with custom events, marking default events
+function mergeEvents(customs: Event[]): Event[] {
   const defaultEvents = DEFAULT_EVENTS.map(event => ({ ...event, isDefault: true }));
-  const allEvents = [...defaultEvents, ...customEvents];
-  
-  // Sort events by date
+  const allEvents = [...defaultEvents, ...customs];
   return allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 }
 
@@ -31,13 +26,25 @@ function groupEventsByMonth(events: Event[], language: string): Record<string, E
 
 export default function Events() {
   const { t, language } = useLanguage();
-  const [events, setEvents] = useState<Event[]>(getEvents());
+  const [events, setEvents] = useState<Event[]>(mergeEvents([]));
   const [activeTab, setActiveTab] = useState<'upcoming' | 'all'>('upcoming');
   
   useEffect(() => {
-    function update() { setEvents(getEvents()); }
-    window.addEventListener("storage", update);
-    return () => window.removeEventListener("storage", update);
+    let active = true;
+    const load = async () => {
+      const customs = await dataApi.getEvents();
+      const mapped: Event[] = (customs || []).map((d: any) => ({
+        id: d.id,
+        name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
+        date: d.date,
+        time: d.time,
+        location: d.location,
+        description: d.description ? { vi: d.description.vi || '', en: d.description.en || d.description.vi || '' } : undefined,
+      }));
+      if (active) setEvents(mergeEvents(mapped));
+    };
+    load();
+    return () => { active = false; };
   }, []);
 
   const now = new Date();

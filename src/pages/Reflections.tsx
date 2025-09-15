@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
+import { dataApi } from "../lib/cloudinaryData";
 
 type Reflection = { 
   title: {
@@ -14,26 +15,36 @@ type Reflection = {
   date?: string; 
   author?: string;
 };
+type ReflectionItem = Reflection & { id: string };
 
-function getReflections(): Reflection[] {
-  const data = localStorage.getItem("reflections");
-  return data ? JSON.parse(data) : [];
-}
+// Data now comes from Cloudinary JSON
 
 export default function Reflections() {
   const { t, language } = useLanguage();
-  const [reflections, setReflections] = useState<Reflection[]>([]);
+  const [reflections, setReflections] = useState<ReflectionItem[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAuthor, setSelectedAuthor] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title">("newest");
   
   useEffect(() => {
-    function updateReflections() {
-      setReflections(getReflections());
-    }
-    updateReflections();
-    window.addEventListener("storage", updateReflections);
-    return () => window.removeEventListener("storage", updateReflections);
+    let active = true;
+    (async () => {
+      try {
+        const items = await dataApi.getReflections();
+        const mapped: ReflectionItem[] = (items || []).map((it: any) => ({
+          id: it.id,
+          title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
+          content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },
+          date: it.date,
+          author: it.author,
+        }));
+        if (active) setReflections(mapped);
+      } catch (err) {
+        console.error('Failed to load reflections from Cloudinary JSON:', err);
+        if (active) setReflections([]);
+      }
+    })();
+    return () => { active = false; };
   }, []);
 
   // Get unique authors for filter
@@ -161,12 +172,10 @@ export default function Reflections() {
           ) : (
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {filteredReflections.map((reflection) => {
-                // Find the original index in the full reflections array
-                const originalIndex = reflections.findIndex(r => r === reflection);
                 return (
                   <Link
-                    key={originalIndex}
-                    to={`/reflections/${originalIndex}`}
+                    key={reflection.id}
+                    to={`/reflections/${reflection.id}`}
                     className="card group hover:shadow-lg transition-all duration-300 hover:-translate-y-1"
                   >
                     <div className="mb-4">

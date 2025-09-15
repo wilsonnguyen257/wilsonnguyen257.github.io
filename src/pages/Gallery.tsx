@@ -1,26 +1,24 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getGalleryImages } from '../lib/cloudinary';
+import { dataApi, type GalleryItem } from '../lib/cloudinaryData';
 
 export default function Gallery() {
   const { t } = useLanguage();
   const [images, setImages] = useState<Array<{ id: string; url: string; name: string; created: number }>>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch images from Cloudinary
+  // Load gallery items from Cloudinary JSON
   useEffect(() => {
-    const fetchImages = async () => {
+    let active = true;
+    (async () => {
       try {
-        const galleryImages = await getGalleryImages();
-        setImages(galleryImages);
-      } catch (error) {
-        console.error('Error fetching gallery images:', error);
+        const items = await dataApi.getGallery();
+        if (active) setImages(items as GalleryItem[]);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
-    };
-
-    fetchImages();
+    })();
+    return () => { active = false; };
   }, []);
 
 

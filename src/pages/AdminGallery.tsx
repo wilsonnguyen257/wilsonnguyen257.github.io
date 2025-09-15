@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { auth } from '../lib/firebase';
-import { uploadImage, deleteImage, getGalleryImages } from '../lib/cloudinary';
+import { uploadImage } from '../lib/cloudinary';
+import { dataApi, type GalleryItem } from '../lib/cloudinaryData';
 
 export default function AdminGallery() {
   const { t } = useLanguage();
@@ -22,22 +23,21 @@ export default function AdminGallery() {
     return () => unsubscribe();
   }, []);
 
-  // Load images from Cloudinary on mount
+  // Load gallery metadata from Cloudinary JSON
   useEffect(() => {
-    const loadImages = async () => {
+    setUploading(true);
+    let active = true;
+    (async () => {
       try {
-        setUploading(true);
-        const galleryImages = await getGalleryImages();
-        setImages(galleryImages);
-      } catch (err) {
+        const items = await dataApi.getGallery();
+        if (active) setImages(items as GalleryItem[]);
+      } catch (e) {
         setError('Failed to load gallery images');
-        console.error(err);
       } finally {
-        setUploading(false);
+        if (active) setUploading(false);
       }
-    };
-
-    loadImages();
+    })();
+    return () => { active = false; };
   }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,12 +52,17 @@ export default function AdminGallery() {
     
     try {
       const result = await uploadImage(file);
-      setImages(prev => [...prev, {
+      const newItem: GalleryItem = {
         id: result.public_id,
         url: result.secure_url,
         name: result.original_filename || 'image',
-        created: Date.now()
-      }]);
+        created: Date.now(),
+      };
+      const updated = [...images, newItem];
+      const token1 = await auth.currentUser?.getIdToken();
+      if (!token1) throw new Error('Not authenticated');
+      await dataApi.saveJson('gallery', updated, token1);
+      setImages(updated);
       setFile(null);
     } catch (err) {
       setError('Failed to upload image. Please try again.');
@@ -68,11 +73,28 @@ export default function AdminGallery() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this image?')) return;
-    
+    if (!window.confirm('Delete this image from Cloudinary and remove from gallery?')) return;
+    setError(null);
     try {
-      await deleteImage(id);
-      setImages(prev => prev.filter(img => img.id !== id));
+      const user = auth.currentUser;
+      const tokenDel = await user?.getIdToken();
+      if (!tokenDel) throw new Error('Not authenticated');
+
+      const resp = await fetch('/api/cloudinary-delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ public_id: id, idToken: tokenDel })
+      });
+      if (!resp.ok) {
+        const msg = await resp.json().catch(() => ({}));
+        throw new Error(msg?.error || 'Delete failed');
+      }
+
+      const updated = images.filter(img => img.id !== id);
+      const token2 = await auth.currentUser?.getIdToken();
+      if (!token2) throw new Error('Not authenticated');
+      await dataApi.saveJson('gallery', updated, token2);
+      setImages(updated);
     } catch (err) {
       setError('Failed to delete image');
       console.error('Delete error:', err);
@@ -98,6 +120,9 @@ export default function AdminGallery() {
               {error}
             </div>
           )}
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Images are uploaded to Cloudinary using an unsigned preset, and listed from Firestore. To enable real deletion from Cloudinary, add a serverless signed delete endpoint.
+          </p>
           <div className="flex flex-col md:flex-row gap-4">
             <input
               type="file"

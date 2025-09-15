@@ -1,5 +1,4 @@
 import AdminGallery from './pages/AdminGallery';
-              <Route path="/admin/gallery" element={<AdminGallery />} />
 import { Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
@@ -53,6 +52,14 @@ export default function App() {
                 element={
                   <ProtectedRoute>
                     <AdminEvents />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/gallery"
+                element={
+                  <ProtectedRoute>
+                    <AdminGallery />
                   </ProtectedRoute>
                 }
               />

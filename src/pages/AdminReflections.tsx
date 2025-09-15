@@ -3,6 +3,8 @@ import { v4 as uuidv4 } from 'uuid';
 // Theme and language are managed globally via Navbar; we still consume language to localize labels
 import { useLanguage } from '../contexts/LanguageContext';
 import type { FilterState, DeleteConfirmState, ReflectionFormData, Reflection } from '../types/content';
+import { dataApi } from '../lib/cloudinaryData';
+import { auth } from '../lib/firebase';
 
 // Types moved to shared file: src/types/content.ts
 
@@ -15,48 +17,7 @@ const defaultFormData: ReflectionFormData = {
   author: 'Cộng đoàn'
 };
 
-// Storage Functions
-function getReflections(): Reflection[] {
-  try {
-    const data = localStorage.getItem("reflections");
-    if (!data) return [];
-    
-    const parsed = JSON.parse(data) as Array<Omit<Reflection, 'id' | 'createdAt' | 'updatedAt'> & { id?: string, createdAt?: string, updatedAt?: string }>;
-    
-    return parsed.map(item => ({
-      id: item.id || uuidv4(),
-      title: {
-        vi: item.title?.vi || '',
-        en: item.title?.en || ''
-      },
-      content: {
-        vi: item.content?.vi || '',
-        en: item.content?.en || ''
-      },
-      date: item.date || new Date().toISOString().split('T')[0],
-      author: item.author || 'Cộng đoàn',
-      createdAt: item.createdAt || new Date().toISOString(),
-      updatedAt: item.updatedAt || new Date().toISOString()
-    }));
-  } catch (error) {
-    console.error('Error loading reflections:', error);
-    return [];
-  }
-}
-
-function saveReflections(reflections: Reflection[]) {
-  const dataToSave = reflections.map(reflection => ({
-    id: reflection.id,
-    title: { ...reflection.title },
-    content: { ...reflection.content },
-    date: reflection.date,
-    author: reflection.author,
-    createdAt: reflection.createdAt,
-    updatedAt: reflection.updatedAt
-  }));
-  
-  localStorage.setItem("reflections", JSON.stringify(dataToSave));
-};
+// Storage now handled by Firestore via helpers above
 
 // Main Component
 const AdminReflections: React.FC = () => {
@@ -83,22 +44,31 @@ const AdminReflections: React.FC = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({ show: false, id: null });
   const [autoTranslate, setAutoTranslate] = useState(true);
 
-  // Load reflections on component mount
+  // Load reflections from Cloudinary JSON
   useEffect(() => {
-    const loadReflections = () => {
+    setIsLoading(true);
+    let active = true;
+    (async () => {
       try {
-        setIsLoading(true);
-        const savedReflections = getReflections();
-        setReflections(savedReflections);
+        const items = await dataApi.getReflections();
+        const mapped: Reflection[] = (items || []).map((it: any) => ({
+          id: it.id,
+          title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
+          content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },
+          date: it.date || new Date().toISOString().split('T')[0],
+          author: it.author || (language === 'vi' ? 'Cộng đoàn' : 'Community'),
+          createdAt: it.createdAt || new Date().toISOString(),
+          updatedAt: it.updatedAt || new Date().toISOString(),
+        }));
+        if (active) setReflections(mapped);
       } catch (err) {
-        setError(language === 'vi' ? 'Không thể tải bài suy niệm' : 'Failed to load reflections');
-        console.error('Error loading reflections:', err);
+        console.error('Failed to load reflections from Cloudinary JSON:', err);
+        if (active) setError(language === 'vi' ? 'Không thể tải bài suy niệm' : 'Failed to load reflections');
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
-    };
-
-    loadReflections();
+    })();
+    return () => { active = false; };
   }, [language]);
 
   // Theme class is applied globally (Navbar). No local theme effect.
@@ -182,35 +152,26 @@ const AdminReflections: React.FC = () => {
     
     try {
       const now = new Date().toISOString();
-      let updatedReflections: Reflection[];
-      let isNew = false;
-      
-      if (editingId) {
-        // Update existing reflection
-        updatedReflections = reflections.map(r => 
-          r.id === editingId 
-            ? { ...r, ...formData, id: editingId, updatedAt: now } 
-            : r
-        );
-      } else {
-        // Add new reflection
-        const newReflection: Reflection = {
-          ...defaultFormData,
-          ...formData,
-          id: uuidv4(),
-          createdAt: now,
-          updatedAt: now,
-        };
-        updatedReflections = [newReflection, ...reflections];
-        isNew = true;
-      }
-      
-      // Update state and save to storage
-      setReflections(updatedReflections);
-      saveReflections(updatedReflections);
-      
+      const idToUse = editingId || uuidv4();
+      const updated = editingId
+        ? reflections.map(r => r.id === editingId ? { ...r, ...formData, id: editingId, updatedAt: now } : r)
+        : [{
+            id: idToUse,
+            title: { vi: formData.title.vi, en: formData.title.en || formData.title.vi },
+            content: { vi: formData.content.vi, en: formData.content.en || formData.content.vi },
+            date: formData.date,
+            author: formData.author,
+            createdAt: now,
+            updatedAt: now,
+          }, ...reflections];
+
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error('Not authenticated');
+      await dataApi.saveJson('reflections', updated, idToken);
+      setReflections(updated);
+
       // Show success message
-      setSuccess(isNew ? (language === 'vi' ? 'Đã thêm bài suy niệm mới thành công!' : 'New reflection added successfully!') : (language === 'vi' ? 'Đã cập nhật bài suy niệm thành công!' : 'Reflection updated successfully!'));
+      setSuccess(editingId ? (language === 'vi' ? 'Đã cập nhật bài suy niệm thành công!' : 'Reflection updated successfully!') : (language === 'vi' ? 'Đã thêm bài suy niệm mới thành công!' : 'New reflection added successfully!'));
       
       // Reset form
       setFormData(defaultFormData);
@@ -264,9 +225,11 @@ const AdminReflections: React.FC = () => {
     
     try {
       setIsLoading(true);
-      const updatedReflections = reflections.filter(r => r.id !== deleteConfirm.id);
-      saveReflections(updatedReflections);
-      setReflections(updatedReflections);
+      const filtered = reflections.filter(r => r.id !== deleteConfirm.id);
+      const idToken = await auth.currentUser?.getIdToken();
+      if (!idToken) throw new Error('Not authenticated');
+      await dataApi.saveJson('reflections', filtered, idToken);
+      setReflections(filtered);
       setSuccess(language === 'vi' ? 'Đã xóa bài suy niệm thành công' : 'Reflection deleted successfully');
       setDeleteConfirm({ show: false, id: null });
     } catch (err) {

@@ -6,7 +6,13 @@ const CHANNEL_NAME = 'site-data';
 const LOCAL_KEY = (name: JsonName) => `site-data:${name}` as const;
 
 export async function getJson<T = unknown>(name: JsonName): Promise<T> {
-  // Local-only storage
+  // Try shared serverless storage first
+  try {
+    const v = (() => { try { return localStorage.getItem(VERSION_KEY(name)) || ''; } catch { return ''; } })();
+    const res = await fetch(`/api/site-data/${name}${v ? `?v=${encodeURIComponent(v)}` : ''}`, { cache: 'no-store' });
+    if (res.ok) return await res.json();
+  } catch { /* ignore */ }
+  // Fallback to localStorage-only
   try {
     const raw = localStorage.getItem(LOCAL_KEY(name));
     if (!raw) return ([] as unknown) as T;
@@ -20,7 +26,14 @@ export async function getJson<T = unknown>(name: JsonName): Promise<T> {
 
 export async function saveJson(name: JsonName, data: unknown) {
   const json = typeof data === 'string' ? data : JSON.stringify(data);
-  try { localStorage.setItem(LOCAL_KEY(name), json); } catch { /* ignore */ }
+  // Try shared API first
+  try {
+    const res = await fetch(`/api/site-data/${name}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: json });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  } catch {
+    // Fallback to localStorage
+    try { localStorage.setItem(LOCAL_KEY(name), json); } catch { /* ignore */ }
+  }
   announceJsonUpdate(name);
 }
 
@@ -83,8 +96,8 @@ export function subscribeJson<T = unknown>(
     // ignore if unsupported
   }
 
-  // Periodic refresh fallback (every 2 minutes) for robustness
-  const interval = window.setInterval(() => void load(), 120_000);
+  // Periodic refresh (every 30s) so other users see updates soon after save
+  const interval = window.setInterval(() => void load(), 30_000);
 
   return () => {
     active = false;

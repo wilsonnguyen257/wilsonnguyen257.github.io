@@ -1,6 +1,6 @@
 # Vietnamese Catholic Church Website (React + TypeScript + Vite)
 
-A multilingual church website with Vietnamese and English support, reflections and events, and light/dark theme toggle. Admin can manage content via dashboard. Language and theme preferences are persisted in localStorage.
+A multilingual church website with Vietnamese and English support, reflections and events, and light/dark theme toggle. Admin can manage content via dashboard. Language and theme preferences are persisted in localStorage. Content (events, reflections, gallery) is currently stored in localStorage only — no remote database.
 
 ## Features
 
@@ -8,7 +8,7 @@ A multilingual church website with Vietnamese and English support, reflections a
 - Reflections list and detail pages with search, author filter, and sorting.
 - Events with localized date formatting.
 - Light/Dark theme toggle via context and Tailwind “class” strategy.
-- Admin dashboard for Events and Reflections with bilingual fields.
+- Admin dashboard for Events, Reflections, and Gallery with bilingual fields.
 - Optional auto-translation (mock dictionary) and text formatting utilities.
 - Clean, responsive UI built with Tailwind CSS.
 
@@ -88,34 +88,13 @@ Recommended: Netlify or Vercel — they install and build from your GitHub repo 
 - Vercel: import the repo; framework Vite; it auto-detects build/output.
 - GitHub Pages: use an Action to build and publish `dist/` to `gh-pages` (don’t commit `dist/` to `main`).
 
-## Firebase Storage Rules
+## Data storage (no backend)
 
-This app reads JSON content from Firebase Storage under `site-data/*.json` and lets admins update it.
+- Admin edits are saved to the browser's localStorage using keys like `site-data:events`, `site-data:reflections`, and `site-data:gallery`.
+- Cross‑tab updates use `storage` events and an in‑page BroadcastChannel for responsiveness.
+- Clearing the browser’s site data resets content to defaults (Events include built‑in defaults; other sections start empty).
 
-- Rules file: `storage.rules` (referenced in `firebase.json`).
-- Default policy:
-  - Read: public for `site-data/*.json` so the app can fetch content without auth.
-  - Write: requires authentication by default. For stricter control, edit the `isAdmin()` helper in `storage.rules` to allow only specific admin emails.
-
-Deploy rules:
-
-```bash
-npm i -g firebase-tools
-firebase login
-firebase use <your-project-id>   # or run `firebase init` once
-firebase deploy --only storage
-```
-
-Restrict to specific admins (example):
-
-```js
-function isAdmin() {
-  return request.auth != null && request.auth.token.email in [
-    'you@example.com',
-    'teammate@example.com'
-  ];
-}
-```
+When you're ready to add a backend again, replace `src/lib/storage.ts` with real read/write logic and re‑enable auth in `src/components/ProtectedRoute.tsx` and `src/pages/AdminDashboard.tsx`.
 
 ## Git & GitHub
 

@@ -1,9 +1,6 @@
 {
   "devCommand": "npm run dev",
   "rewrites": [
-    { "source": "/api/:match*", "destination": "/api/:match*" },
-    { "source": "/admin", "destination": "/" },
-    { "source": "/admin/:match*", "destination": "/" },
     { "source": "/:match*", "destination": "/" }
   ]
 }

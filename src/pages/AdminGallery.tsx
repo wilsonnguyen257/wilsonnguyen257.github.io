@@ -1,30 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { app, auth } from '../lib/firebase';
 import { getJson, saveJson } from '../lib/storage';
 import { v4 as uuidv4 } from 'uuid';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 type GalleryItem = { id: string; url: string; name: string; created: number; path?: string };
 
 export default function AdminGallery() {
   const { t } = useLanguage();
-  const [isAdmin, setIsAdmin] = useState(false);
   const [images, setImages] = useState<GalleryItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user && user.email === import.meta.env.VITE_ADMIN_EMAIL) {
-        setIsAdmin(true);
-      } else {
-        setIsAdmin(false);
-      }
-    });
-    return () => unsubscribe();
-  }, []);
 
   // Load gallery metadata from Firebase Storage JSON
   useEffect(() => {
@@ -54,21 +40,15 @@ export default function AdminGallery() {
     setError(null);
     
     try {
-      const storage = getStorage(app);
-      const ext = file.name.includes('.') ? `.${file.name.split('.').pop()}` : '';
       const uid = uuidv4();
-      const path = `gallery/${uid}${ext}`;
-      const fileRef = ref(storage, path);
-      await uploadBytes(fileRef, file, { contentType: file.type });
-      const url = await getDownloadURL(fileRef);
-
-      const newItem: GalleryItem = {
-        id: uid,
-        path,
-        url,
-        name: file.name || 'image',
-        created: Date.now(),
-      };
+      // Convert file to data URL for local preview-only storage
+      const url = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      });
+      const newItem: GalleryItem = { id: uid, url, name: file.name || 'image', created: Date.now() };
       const updated = [...images, newItem];
       await saveJson('gallery', updated);
       setImages(updated);
@@ -87,12 +67,6 @@ export default function AdminGallery() {
     try {
       const image = images.find(i => i.id === id);
       if (!image) throw new Error('Image not found');
-
-      if (image.path) {
-        const storage = getStorage(app);
-        await deleteObject(ref(storage, image.path));
-      }
-
       const updated = images.filter(img => img.id !== id);
       await saveJson('gallery', updated);
       setImages(updated);
@@ -101,12 +75,6 @@ export default function AdminGallery() {
       console.error('Delete error:', err);
     }
   };
-
-  if (!isAdmin) {
-    return (
-      <div className="container-xl py-12 text-center">Unauthorized</div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-slate-900 py-10">

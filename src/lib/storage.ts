@@ -99,14 +99,33 @@ export function subscribeJson<T = unknown>(
     // ignore if unsupported
   }
 
-  // Simple periodic refresh fallback (every 2 minutes) for robustness
-  const interval = window.setInterval(() => void load(), 120_000);
+  // Server-Sent Events to receive cross-user updates instantly
+  let es: EventSource | null = null;
+  try {
+    es = new EventSource('/api/site-data/stream');
+    es.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data) as { type?: string; name?: JsonName };
+        if (msg?.type === 'updated' && msg?.name === name) {
+          void load();
+        }
+      } catch { /* ignore */ }
+    };
+  } catch {
+    // ignore if blocked
+  }
+
+  // Periodic refresh fallback (every 60s) for robustness
+  const interval = window.setInterval(() => void load(), 60_000);
 
   return () => {
     active = false;
     window.removeEventListener('storage', storageHandler);
     if (bc) {
       try { bc.close(); } catch { /* ignore close errors */ void 0; }
+    }
+    if (es) {
+      try { es.close(); } catch { /* ignore */ }
     }
     window.clearInterval(interval);
   };

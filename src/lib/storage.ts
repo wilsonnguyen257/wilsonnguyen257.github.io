@@ -1,4 +1,6 @@
 export type JsonName = 'events' | 'reflections' | 'gallery';
+import { IS_FIREBASE_CONFIGURED, db } from './firebase';
+import { doc, getDoc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 
 // Lightweight cross-tab/channel notification so UIs refresh immediately
 const VERSION_KEY = (name: JsonName) => `site-data:version:${name}` as const;
@@ -6,6 +8,18 @@ const CHANNEL_NAME = 'site-data';
 const LOCAL_KEY = (name: JsonName) => `site-data:${name}` as const;
 
 export async function getJson<T = unknown>(name: JsonName): Promise<T> {
+  // Prefer Firebase Firestore if configured
+  if (IS_FIREBASE_CONFIGURED && db) {
+    try {
+      const ref = doc(db, 'site-data', name);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return ([] as unknown) as T;
+      const data = snap.data() as { value?: T } | undefined;
+      return (data?.value ?? ([] as unknown)) as T;
+    } catch {
+      // fall through to API/local
+    }
+  }
   // Try shared serverless storage first
   try {
     const v = (() => { try { return localStorage.getItem(VERSION_KEY(name)) || ''; } catch { return ''; } })();
@@ -26,6 +40,17 @@ export async function getJson<T = unknown>(name: JsonName): Promise<T> {
 
 export async function saveJson(name: JsonName, data: unknown) {
   const json = typeof data === 'string' ? data : JSON.stringify(data);
+  // Prefer Firebase Firestore if configured
+  if (IS_FIREBASE_CONFIGURED && db) {
+    try {
+      const ref = doc(db, 'site-data', name);
+      await setDoc(ref, { value: JSON.parse(json), updatedAt: serverTimestamp() });
+      announceJsonUpdate(name);
+      return;
+    } catch {
+      // fall back
+    }
+  }
   // Try shared API first
   try {
     const res = await fetch(`/api/site-data/${name}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: json });
@@ -75,6 +100,20 @@ export function subscribeJson<T = unknown>(
   // Initial fetch
   void load();
 
+  // If Firebase configured, also live-listen to the doc
+  let unsubscribeFirestore: (() => void) | null = null;
+  if (IS_FIREBASE_CONFIGURED && db) {
+    try {
+      const ref = doc(db, 'site-data', name);
+      unsubscribeFirestore = onSnapshot(ref, (snap) => {
+        const data = (snap.data() as { value?: T } | undefined)?.value;
+        if (data !== undefined) callback(data);
+      });
+    } catch (err) {
+      console.error('Firestore subscribe error:', err);
+    }
+  }
+
   // Listen for cross-tab updates via storage events
   const storageHandler = (e: StorageEvent) => {
     if (!e.key || e.key !== VERSION_KEY(name)) return;
@@ -106,5 +145,8 @@ export function subscribeJson<T = unknown>(
       try { bc.close(); } catch { /* ignore close errors */ void 0; }
     }
     window.clearInterval(interval);
+    if (unsubscribeFirestore) {
+      try { unsubscribeFirestore(); } catch { /* ignore */ }
+    }
   };
 }

@@ -1,6 +1,6 @@
 # Vietnamese Catholic Church Website (React + TypeScript + Vite)
 
-A multilingual church website with Vietnamese and English support, reflections and events, and light/dark theme toggle. Admin can manage content via dashboard. Language and theme preferences are persisted in localStorage. Content (events, reflections, gallery) is currently stored in localStorage only — no remote database.
+A multilingual church website with Vietnamese and English support, reflections and events, and light/dark theme toggle. Admin can manage content via dashboard. Language and theme preferences are persisted in localStorage. Content (events, reflections, gallery) can be stored in Firebase (recommended) or falls back to Vercel Blob/localStorage.
 
 ## Features
 
@@ -17,6 +17,7 @@ A multilingual church website with Vietnamese and English support, reflections a
 - React + TypeScript + Vite
 - Tailwind CSS (darkMode: 'class')
 - Context API for language (`src/contexts/LanguageContext.tsx`) and theme (`src/contexts/ThemeContext.tsx`)
+- Optional Firebase Auth + Firestore backend (`src/lib/firebase.ts` + `src/lib/storage.ts`)
 
 ## Getting Started
 
@@ -80,13 +81,65 @@ Dates format via `toLocaleDateString()` with `vi-VN` or `en-US` based on current
 - Each form provides Vietnamese and English fields. Auto-translation can be toggled on/off.
 - “Format” buttons clean pasted English text (normalize whitespace/punctuation).
 
-## Data storage (frontend-only)
+## Backend Storage
 
-- Admin edits are stored in the browser's localStorage under keys like `site-data:events`, `site-data:reflections`, and `site-data:gallery`.
-- Cross‑tab updates use storage events and BroadcastChannel for immediate UI refresh in the same browser.
-- Clearing site data or using a different browser/device resets content to defaults (Events include built‑in defaults).
+You have three layers of storage, used in this order:
 
-To make changes visible to everyone and persist across devices, you’ll need to hook up a backend later (Firebase, a small Node server, or any DB) and wire `src/lib/storage.ts` to it.
+1) Firebase Firestore (if configured)
+2) Vercel Blob via API route (`/api/site-data/[name].ts`)
+3) LocalStorage fallback (dev/offline)
+
+`src/lib/storage.ts` abstracts reads/writes/subscriptions. When Firebase is configured, data is stored in a single Firestore document per dataset at collection `site-data/{name}` with shape `{ value: [...] }` and `updatedAt` timestamp.
+
+### Enable Firebase
+
+1) Create a Firebase project and enable:
+   - Authentication: Email/Password
+   - Firestore Database (in production or test mode)
+2) Copy `.env.example` to `.env` and fill values from your Firebase Web App settings:
+
+```
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
+```
+
+3) Restart dev server. When configured, admin routes enforce sign-in.
+4) Optional: Secure Firestore with rules that allow reads for everyone and restrict writes to authenticated admins, e.g.:
+
+```
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /site-data/{doc} {
+      allow read: if true;
+      allow write: if request.auth != null; // tighten as needed
+    }
+  }
+}
+```
+
+You can also use the provided rules files and Firebase CLI:
+
+- Install CLI: `npm i -g firebase-tools`
+- Login: `firebase login`
+- Initialize (optional): `firebase init` (choose Firestore and Storage, use existing project)
+- Deploy rules only:
+  - `firebase deploy --only firestore:rules`
+  - `firebase deploy --only storage`
+
+The repo contains example rules:
+- Firestore: `firestore.rules`
+- Storage: `storage.rules` (public read for `gallery/**`, write requires auth)
+
+Finally, in Firebase Authentication → Settings, add your production domain (e.g., `https://<username>.github.io`) to Authorized Domains so sign-in works in production.
+
+### Sign In
+
+- Visit `/login` to sign in with Email/Password (Firebase). Admin pages are wrapped with a protected route that requires auth when Firebase is configured. Without Firebase, the app allows access and stores data locally.
 
 ## Git & GitHub
 

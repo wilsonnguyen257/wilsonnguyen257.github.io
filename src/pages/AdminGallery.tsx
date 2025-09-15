@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getJson, saveJson } from '../lib/storage';
 import { v4 as uuidv4 } from 'uuid';
+import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 type GalleryItem = { id: string; url: string; name: string; created: number; path?: string };
 
@@ -41,14 +43,24 @@ export default function AdminGallery() {
     
     try {
       const uid = uuidv4();
-      // Convert file to data URL for local preview-only storage
-      const url = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = () => reject(reader.error);
-        reader.readAsDataURL(file);
-      });
-      const newItem: GalleryItem = { id: uid, url, name: file.name || 'image', created: Date.now() };
+      let url = '';
+      let path: string | undefined;
+      if (IS_FIREBASE_CONFIGURED && fbStorage) {
+        // Upload to Firebase Storage and get a public URL
+        path = `gallery/${uid}/${file.name}`;
+        const objectRef = ref(fbStorage, path);
+        await uploadBytes(objectRef, file);
+        url = await getDownloadURL(objectRef);
+      } else {
+        // Fallback: data URL for local/preview-only storage
+        url = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result));
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+      }
+      const newItem: GalleryItem = { id: uid, url, name: file.name || 'image', created: Date.now(), path };
       const updated = [...images, newItem];
       await saveJson('gallery', updated);
       setImages(updated);
@@ -67,6 +79,14 @@ export default function AdminGallery() {
     try {
       const image = images.find(i => i.id === id);
       if (!image) throw new Error('Image not found');
+      // Try to delete from Firebase Storage if configured and path recorded
+      if (IS_FIREBASE_CONFIGURED && fbStorage && image.path) {
+        try {
+          await deleteObject(ref(fbStorage, image.path));
+        } catch (err) {
+          console.warn('Failed to delete storage object; proceeding to update index', err);
+        }
+      }
       const updated = images.filter(img => img.id !== id);
       await saveJson('gallery', updated);
       setImages(updated);
@@ -90,7 +110,7 @@ export default function AdminGallery() {
             </div>
           )}
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Images are uploaded to Firebase Storage and listed via a JSON index. Deletion removes the file and updates the index.
+            {IS_FIREBASE_CONFIGURED ? 'Images are uploaded to Firebase Storage and indexed for display.' : 'Firebase not configured — images are stored as data URLs locally for preview only.'}
           </p>
           <div className="flex flex-col md:flex-row gap-4">
             <input

@@ -1,0 +1,21 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Publicly readable site data: events, reflections, gallery index
+    match /site-data/{doc} {
+      allow read: if true; // anyone can read
+
+      // Authenticated users can write; tighten to specific emails if desired.
+      allow write: if request.auth != null;
+
+      // Example: restrict to a fixed allowlist of admin emails
+      // allow write: if request.auth != null && (
+      //   request.auth.token.email in [
+      //     'you@example.com',
+      //     'admin@yourdomain.org'
+      //   ]
+      // );
+    }
+  }
+}
+

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useTheme } from "../contexts/ThemeContext";
+import { IS_FIREBASE_CONFIGURED, onAuthStateChanged, logout, type User } from "../lib/firebase";
 
 const links = [
   { to: "/", key: "nav.home" },
@@ -18,6 +19,13 @@ export default function Navbar() {
   const { language, setLanguage, t } = useLanguage();
   const { theme, toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    if (!IS_FIREBASE_CONFIGURED) return;
+    const unsub = onAuthStateChanged((u) => setUser(u));
+    return () => { try { (unsub as any)?.(); } catch { /* noop */ } };
+  }, []);
 
   const navItem = (to: string, key: string) => (
     <NavLink
@@ -45,6 +53,22 @@ export default function Navbar() {
 
         <nav className="hidden items-center gap-1 md:flex">
           {links.map((link) => navItem(link.to, link.key))}
+
+          {/* Admin link (shown when Firebase is not configured or user is signed in) */}
+          {(!IS_FIREBASE_CONFIGURED || user) && (
+            <NavLink
+              to="/admin"
+              className={({ isActive }) =>
+                `rounded-xl px-3 py-2 text-sm font-medium ${
+                  isActive
+                    ? "bg-brand-600 text-white"
+                    : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                }`
+              }
+            >
+              Admin
+            </NavLink>
+          )}
           
           {/* Theme Toggle */}
           <div className="ml-4">
@@ -67,6 +91,32 @@ export default function Navbar() {
               {language === 'vi' ? '🇺🇸 EN' : '🇻🇳 VI'}
             </button>
           </div>
+
+          {/* Auth controls */}
+          {IS_FIREBASE_CONFIGURED && (
+            <div className="ml-2 flex items-center gap-2">
+              {user ? (
+                <>
+                  <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[160px]" title={user.email || ''}>
+                    {user.email}
+                  </span>
+                  <button
+                    onClick={() => void logout()}
+                    className="px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 dark:border-slate-600"
+                  >
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  to="/login"
+                  className="px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 dark:border-slate-600"
+                >
+                  Sign in
+                </Link>
+              )}
+            </div>
+          )}
         </nav>
 
         <button
@@ -107,6 +157,7 @@ export default function Navbar() {
         <div id="mobile-menu" className="md:hidden border-t border-slate-200 dark:border-slate-800">
           <div className="container-xl flex flex-col gap-1 py-2">
             {links.map((l) => navItem(l.to, l.key))}
+            {(!IS_FIREBASE_CONFIGURED || user) && navItem('/admin', 'Admin')}
             <div className="mt-2 space-y-2">
               <button
                 onClick={toggleTheme}
@@ -122,6 +173,23 @@ export default function Navbar() {
               >
                 {language === 'vi' ? '🇺🇸 EN' : '🇻🇳 VI'}
               </button>
+              {IS_FIREBASE_CONFIGURED && (
+                user ? (
+                  <button
+                    onClick={() => void logout()}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition"
+                  >
+                    Sign out
+                  </button>
+                ) : (
+                  <Link
+                    to="/login"
+                    className="block text-center w-full px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition"
+                  >
+                    Sign in
+                  </Link>
+                )
+              )}
             </div>
           </div>
         </div>

@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom';
-import { EVENTS } from '../data/events';
+import { EVENTS, type Event } from '../data/events';
 import { useEffect, useState } from 'react';
 import EventCountdown from '../components/EventCountdown';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getJson } from '../lib/storage';
+import { subscribeJson } from '../lib/storage';
 
 type Reflection = { 
   title: {
@@ -19,6 +19,12 @@ type Reflection = {
 };
 
 // Reflections now come from Firebase Storage JSON
+
+function mergeEvents(customs: Event[]): Event[] {
+  const defaultEvents = EVENTS.map(event => ({ ...event }));
+  const allEvents = [...defaultEvents, ...customs];
+  return allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+}
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -45,21 +51,21 @@ export default function Home() {
     return d;
   };
 
-  // Sort events by date ascending to be safe
-  const sortedEvents = [...EVENTS].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const [events, setEvents] = useState<Event[]>(mergeEvents([]));
   const now = new Date();
 
   // Find index of the current event: first event whose day hasn't ended yet
-  const currentIndex = sortedEvents.findIndex(ev => now.getTime() <= endOfEventDay(ev.date).getTime());
-  const startIndex = currentIndex === -1 ? sortedEvents.length : currentIndex;
-  const upcomingEvents = sortedEvents.slice(startIndex, startIndex + 3);
+  const currentIndex = events.findIndex(ev => now.getTime() <= endOfEventDay(ev.date).getTime());
+  const startIndex = currentIndex === -1 ? events.length : currentIndex;
+  const upcomingEvents = events.slice(startIndex, startIndex + 3);
   const [latestReflections, setLatestReflections] = useState<Reflection[]>([]);
 
   useEffect(() => {
-    (async () => {
-      try {
-        type RawReflection = Reflection & { id?: string };
-        const items = await getJson<RawReflection[]>('reflections');
+    // Live reflections
+    type RawReflection = Reflection & { id?: string };
+    const unsubRefl = subscribeJson<RawReflection[]>(
+      'reflections',
+      (items) => {
         const mapped: Reflection[] = (items || []).map((it) => ({
           title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
           content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },
@@ -67,10 +73,29 @@ export default function Home() {
           author: it.author,
         }));
         setLatestReflections(mapped.slice(0, 2));
-      } catch {
-        setLatestReflections([]);
-      }
-    })();
+      },
+      () => setLatestReflections([])
+    );
+
+    // Live events (merge with defaults)
+    type RawEvent = Event;
+    const unsubEvents = subscribeJson<RawEvent[]>(
+      'events',
+      (customs) => {
+        const mapped: Event[] = (customs || []).map((d) => ({
+          id: d.id,
+          name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
+          date: d.date,
+          time: d.time,
+          location: d.location,
+          description: d.description ? { vi: d.description.vi || '', en: d.description.en || d.description.vi || '' } : undefined,
+        }));
+        setEvents(mergeEvents(mapped));
+      },
+      () => setEvents(mergeEvents([]))
+    );
+
+    return () => { unsubRefl(); unsubEvents(); };
   }, []);
 
   return (

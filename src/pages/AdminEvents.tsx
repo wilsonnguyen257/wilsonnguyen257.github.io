@@ -179,6 +179,16 @@ const AdminEvents = () => {
     }
   };
 
+  const isValidTime = (val: string) => /^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i.test(val.trim());
+  const normalizeTime = (val: string) => {
+    const m = val.trim().match(/^(0?[1-9]|1[0-2]):([0-5][0-9])\s*(AM|PM)$/i);
+    if (!m) return val.trim();
+    const hh = String(parseInt(m[1], 10));
+    const mm = m[2];
+    const ampm = m[3].toUpperCase();
+    return `${hh}:${mm} ${ampm}`;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -187,6 +197,12 @@ const AdminEvents = () => {
       setError(language === 'vi' ? 'Vui lòng điền đầy đủ các trường bắt buộc' : 'Please fill in all required fields');
       return;
     }
+    // Time format validation (e.g., 5:00 PM)
+    if (!isValidTime(formData.time)) {
+      setError(language === 'vi' ? 'Giờ không hợp lệ. Định dạng đúng: 5:00 PM' : 'Invalid time. Expected format: 5:00 PM');
+      return;
+    }
+    const timeNormalized = normalizeTime(formData.time);
 
     try {
       const newEvent: Event = {
@@ -196,7 +212,7 @@ const AdminEvents = () => {
           en: formData.nameEn || formData.nameVi
         },
         date: formData.date,
-        time: formData.time,
+        time: timeNormalized,
         location: formData.location,
         description: formData.descriptionVi || formData.descriptionEn ? {
           vi: formData.descriptionVi,

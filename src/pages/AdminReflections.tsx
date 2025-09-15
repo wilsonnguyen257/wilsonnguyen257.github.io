@@ -145,6 +145,16 @@ const AdminReflections: React.FC = () => {
       setError(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc (tiêu đề và nội dung tiếng Việt)' : 'Please fill in required fields (Vietnamese title and content)');
       return;
     }
+    // Simple content length check
+    const contentLen = formData.content.vi.trim().length;
+    if (contentLen < 20) {
+      setError(language === 'vi' ? 'Nội dung quá ngắn (ít nhất 20 ký tự)' : 'Content too short (minimum 20 characters)');
+      return;
+    }
+    if (contentLen > 5000) {
+      setError(language === 'vi' ? 'Nội dung quá dài (tối đa 5000 ký tự)' : 'Content too long (max 5000 characters)');
+      return;
+    }
     
     setIsLoading(true);
     setError(null);

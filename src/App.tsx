@@ -18,6 +18,7 @@ import AdminReflections from './pages/AdminReflections';
 import AdminEvents from './pages/AdminEvents';
 import AdminDashboard from './pages/AdminDashboard';
 import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
 
 export default function App() {
   return (
@@ -36,6 +37,7 @@ export default function App() {
               <Route path="/contact" element={<Contact />} />
               <Route path="/reflections" element={<Reflections />} />
               <Route path="/reflections/:id" element={<ReflectionDetail />} />
+              <Route path="/login" element={<Login />} />
               
               {/* Admin Routes */}
               <Route path="/admin" element={<AdminDashboard />} />

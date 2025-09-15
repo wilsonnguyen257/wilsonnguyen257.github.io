@@ -6,7 +6,15 @@ const CHANNEL_NAME = 'site-data';
 const LOCAL_KEY = (name: JsonName) => `site-data:${name}` as const;
 
 export async function getJson<T = unknown>(name: JsonName): Promise<T> {
-  // Read from localStorage only. No remote database.
+  // Try serverless storage first
+  try {
+    const v = (() => {
+      try { return localStorage.getItem(VERSION_KEY(name)) || ''; } catch { return ''; }
+    })();
+    const res = await fetch(`/api/site-data/${name}${v ? `?v=${encodeURIComponent(v)}` : ''}`, { cache: 'no-store' });
+    if (res.ok) return await res.json();
+  } catch { /* ignore */ }
+  // Fallback to localStorage-only
   try {
     const raw = localStorage.getItem(LOCAL_KEY(name));
     if (!raw) return ([] as unknown) as T;
@@ -16,12 +24,20 @@ export async function getJson<T = unknown>(name: JsonName): Promise<T> {
   }
 }
 
+import { getEditToken } from './settings';
+
 export async function saveJson(name: JsonName, data: unknown) {
   const json = typeof data === 'string' ? data : JSON.stringify(data);
+  // Try to persist to serverless API
   try {
-    localStorage.setItem(LOCAL_KEY(name), json);
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const token = getEditToken();
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(`/api/site-data/${name}`, { method: 'PUT', headers, body: json });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   } catch {
-    // ignore quota errors
+    // serverless failed, fallback to localStorage only
+    try { localStorage.setItem(LOCAL_KEY(name), json); } catch { /* ignore */ }
   }
   announceJsonUpdate(name);
 }

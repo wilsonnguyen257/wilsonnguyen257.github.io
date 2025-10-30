@@ -13,6 +13,9 @@ export default function AdminGallery() {
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editDate, setEditDate] = useState('');
 
   // Load gallery metadata from Firebase Storage JSON
   useEffect(() => {
@@ -70,6 +73,40 @@ export default function AdminGallery() {
       console.error('Upload error:', err);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const startEdit = (img: GalleryItem) => {
+    setEditingId(img.id);
+    setEditName(img.name);
+    setEditDate(new Date(img.created).toISOString().split('T')[0]);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditName('');
+    setEditDate('');
+  };
+
+  const saveEdit = async (id: string) => {
+    setError(null);
+    try {
+      const updated = images.map(img => {
+        if (img.id === id) {
+          return {
+            ...img,
+            name: editName,
+            created: new Date(editDate).getTime()
+          };
+        }
+        return img;
+      });
+      await saveJson('gallery', updated);
+      setImages(updated);
+      cancelEdit();
+    } catch (err) {
+      setError('Failed to update image');
+      console.error('Update error:', err);
     }
   };
 
@@ -135,25 +172,70 @@ export default function AdminGallery() {
           ) : (
             <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
               {images.map((img) => (
-                <div key={img.id} className="relative group">
+                <div key={img.id} className="relative group bg-white dark:bg-slate-700 rounded-lg shadow p-4">
                   <img
                     src={img.url}
                     alt={img.name}
-                    className="w-full h-48 object-cover rounded-lg"
+                    className="w-full h-48 object-cover rounded-lg mb-3"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-50 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-                    <button
-                      onClick={() => handleDelete(img.id)}
-                      className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-                      disabled={uploading}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                  <div className="mt-2 text-sm text-gray-600 dark:text-gray-300 truncate">
-                    {img.name}
-                  </div>
+                  
+                  {editingId === img.id ? (
+                    <div className="space-y-2">
+                      <input
+                        type="text"
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="w-full px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:text-white dark:border-slate-500"
+                        placeholder="Image name"
+                      />
+                      <input
+                        type="date"
+                        value={editDate}
+                        onChange={(e) => setEditDate(e.target.value)}
+                        className="w-full px-2 py-1 border rounded text-sm dark:bg-slate-600 dark:text-white dark:border-slate-500"
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => saveEdit(img.id)}
+                          className="flex-1 px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={cancelEdit}
+                          className="flex-1 px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="text-sm text-gray-700 dark:text-gray-200 font-medium truncate mb-1">
+                        {img.name}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                        {new Date(img.created).toLocaleDateString()}
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => startEdit(img)}
+                          className="flex-1 px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                          disabled={uploading}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleDelete(img.id)}
+                          className="flex-1 px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700"
+                          disabled={uploading}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               ))}
             </div>

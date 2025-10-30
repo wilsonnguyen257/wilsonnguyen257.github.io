@@ -65,18 +65,21 @@ export default function Events() {
         <section className="py-16">
           <div className="container-xl">
             <h2 className="h2 text-center mb-8">{t('events.next_event')}</h2>
-            <div className="card max-w-3xl mx-auto">
+            <div 
+              className="card max-w-3xl mx-auto cursor-pointer hover:shadow-xl transition-all group"
+              onClick={() => setSelectedEvent(upcomingEvents[0])}
+            >
               {upcomingEvents[0].thumbnail && (
                 <img 
                   src={upcomingEvents[0].thumbnail} 
                   alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
-                  className="w-full h-64 object-cover rounded-xl mb-6"
+                  className="w-full h-64 object-cover rounded-xl mb-6 group-hover:scale-[1.02] transition-transform duration-300"
                 />
               )}
               <div className="inline-block bg-brand-100 text-brand-700 rounded-full px-4 py-1 text-sm font-medium dark:bg-brand-900 dark:text-brand-100">
                 {t('events.latest_event')}
               </div>
-              <h3 className="text-2xl font-bold text-brand-600 dark:text-brand-400 mt-4">
+              <h3 className="text-2xl font-bold text-brand-600 dark:text-brand-400 mt-4 group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors">
                 {upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
               </h3>
               <div className="flex flex-col md:flex-row items-center gap-4 mt-4">
@@ -107,6 +110,9 @@ export default function Events() {
                 eventDate={upcomingEvents[0].date} 
                 eventTime={upcomingEvents[0].time.replace(' PM', ':00')}
               />
+              <div className="mt-4 text-brand-600 dark:text-brand-400 text-sm font-medium flex items-center group-hover:translate-x-1 transition-transform">
+                {t('events.view_details') || 'View Details'} →
+              </div>
             </div>
           </div>
         </section>

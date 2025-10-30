@@ -73,7 +73,7 @@ export default function Events() {
                 <img 
                   src={upcomingEvents[0].thumbnail} 
                   alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
-                  className="w-full h-64 object-cover rounded-xl mb-6 group-hover:scale-[1.02] transition-transform duration-300"
+                  className="w-full aspect-video object-contain bg-slate-100 dark:bg-slate-800 rounded-xl mb-6 group-hover:scale-[1.02] transition-transform duration-300"
                   loading="lazy"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;
@@ -155,11 +155,11 @@ export default function Events() {
                       onClick={() => setSelectedEvent(event)}
                     >
                       {event.thumbnail && (
-                        <div className="relative overflow-hidden rounded-t-lg -m-6 mb-4">
+                        <div className="relative overflow-hidden rounded-t-lg -m-6 mb-4 aspect-video bg-slate-100 dark:bg-slate-800">
                           <img 
                             src={event.thumbnail} 
                             alt={event.name[language] || event.name.vi}
-                            className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
                             loading="lazy"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
@@ -249,11 +249,11 @@ export default function Events() {
             onClick={(e) => e.stopPropagation()}
           >
             {selectedEvent.thumbnail && (
-              <div className="relative h-64 md:h-80 overflow-hidden rounded-t-lg">
+              <div className="relative overflow-hidden rounded-t-lg aspect-video bg-slate-100 dark:bg-slate-800">
                 <img 
                   src={selectedEvent.thumbnail} 
                   alt={selectedEvent.name[language] || selectedEvent.name.vi}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                   loading="eager"
                   onError={(e) => {
                     const target = e.target as HTMLImageElement;

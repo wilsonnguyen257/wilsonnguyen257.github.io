@@ -42,7 +42,7 @@ const AdminEvents = () => {
     nameVi: '',
     nameEn: '',
     date: '',
-    time: '',
+    time: '5:00 PM', // Initialize with default time
     location: '',
     descriptionVi: '',
     descriptionEn: ''

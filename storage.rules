@@ -7,6 +7,12 @@ service firebase.storage {
       allow write: if request.auth != null; // only signed-in users can upload/delete
     }
 
+    // Publicly readable event thumbnails
+    match /events/{allPaths=**} {
+      allow read: if true; // anyone can view event thumbnails
+      allow write: if request.auth != null; // only signed-in users can upload/delete
+    }
+
     // Default: deny other paths unless you configure them
     match /{allPaths=**} {
       allow read, write: if false;

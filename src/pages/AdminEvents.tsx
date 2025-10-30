@@ -5,7 +5,7 @@ import type { Event } from '../types/content';
 import { getJson, saveJson } from '../lib/storage';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import RichTextEditor from '../components/RichTextEditor';
+import VisualEditor from '../components/VisualEditor';
 
 const AdminEvents = () => {
   const { language } = useLanguage();
@@ -527,22 +527,20 @@ const AdminEvents = () => {
             </div>
 
             <div className="md:col-span-2">
-              <RichTextEditor
+              <VisualEditor
                 label={language === 'vi' ? 'Nội dung (Tiếng Việt)' : 'Content (Vietnamese)'}
                 value={formData.contentVi}
-                onChange={(value) => setFormData(prev => ({ ...prev, contentVi: value }))}
+                onChange={(value: string) => setFormData(prev => ({ ...prev, contentVi: value }))}
                 placeholder={language === 'vi' ? 'Nhập nội dung sự kiện...' : 'Enter event content...'}
-                rows={6}
               />
             </div>
 
             <div className="md:col-span-2">
-              <RichTextEditor
+              <VisualEditor
                 label={language === 'vi' ? 'Nội dung (Tiếng Anh)' : 'Content (English)'}
                 value={formData.contentEn}
-                onChange={(value) => setFormData(prev => ({ ...prev, contentEn: value }))}
+                onChange={(value: string) => setFormData(prev => ({ ...prev, contentEn: value }))}
                 placeholder={language === 'vi' ? 'Nhập nội dung sự kiện...' : 'Enter event content...'}
-                rows={6}
               />
             </div>
           </div>

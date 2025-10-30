@@ -31,3 +31,14 @@ export interface Reflection extends Omit<ReflectionFormData, 'id'> {
   createdAt: string; // ISO datetime
   updatedAt: string; // ISO datetime
 }
+
+export interface Event {
+  id: string;
+  name: Translation;
+  date: string; // ISO yyyy-mm-dd
+  time: string; // e.g., '5:00 PM'
+  location: string;
+  description?: Translation;
+  thumbnail?: string; // URL to event thumbnail image
+  thumbnailPath?: string; // Firebase Storage path
+}

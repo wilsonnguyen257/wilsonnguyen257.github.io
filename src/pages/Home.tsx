@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { EVENTS, type Event } from '../data/events';
+import type { Event } from '../types/content';
 import { useEffect, useState } from 'react';
 import EventCountdown from '../components/EventCountdown';
 import { useLanguage } from '../contexts/LanguageContext';
@@ -19,12 +19,6 @@ type Reflection = {
 };
 
 // Reflections now come from Firebase Storage JSON
-
-function mergeEvents(customs: Event[]): Event[] {
-  const defaultEvents = EVENTS.map(event => ({ ...event }));
-  const allEvents = [...defaultEvents, ...customs];
-  return allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-}
 
 export default function Home() {
   const { t, language } = useLanguage();
@@ -51,7 +45,7 @@ export default function Home() {
     return d;
   };
 
-  const [events, setEvents] = useState<Event[]>(mergeEvents([]));
+  const [events, setEvents] = useState<Event[]>([]);
   const now = new Date();
 
   // Find index of the current event: first event whose day hasn't ended yet
@@ -77,22 +71,24 @@ export default function Home() {
       () => setLatestReflections([])
     );
 
-    // Live events (merge with defaults)
+    // Live events from cloud database
     type RawEvent = Event;
     const unsubEvents = subscribeJson<RawEvent[]>(
       'events',
-      (customs) => {
-        const mapped: Event[] = (customs || []).map((d) => ({
+      (eventsData) => {
+        const mapped: Event[] = (eventsData || []).map((d) => ({
           id: d.id,
           name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
           date: d.date,
           time: d.time,
           location: d.location,
           description: d.description ? { vi: d.description.vi || '', en: d.description.en || d.description.vi || '' } : undefined,
-        }));
-        setEvents(mergeEvents(mapped));
+          thumbnail: d.thumbnail,
+          thumbnailPath: d.thumbnailPath,
+        })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        setEvents(mapped);
       },
-      () => setEvents(mergeEvents([]))
+      () => setEvents([])
     );
 
     return () => { unsubRefl(); unsubEvents(); };

@@ -1,36 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { v4 as uuidv4 } from 'uuid';
-import { EVENTS as DEFAULT_EVENTS } from '../data/events';
+import type { Event } from '../types/content';
 import { getJson, saveJson } from '../lib/storage';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-
-type Event = {
-  id: string;
-  name: {
-    vi: string;
-    en: string;
-  };
-  date: string;
-  time: string;
-  location: string;
-  description?: {
-    vi: string;
-    en: string;
-  };
-  thumbnail?: string;
-  thumbnailPath?: string;
-  isDefault?: boolean;
-};
-
-// Merge Firestore events with defaults (defaults are read-only)
-const mergeWithDefaults = (customEvents: Event[]): Event[] => {
-  const defaultEvents = DEFAULT_EVENTS.map(ev => ({ ...ev, isDefault: true } as Event));
-  return [...defaultEvents, ...customEvents].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
-  );
-};
 
 const AdminEvents = () => {
   const { language } = useLanguage();
@@ -129,27 +103,28 @@ const AdminEvents = () => {
     let active = true;
     (async () => {
       try {
-        const customsRaw = await getJson<Event[]>('events');
-        const customs: Event[] = (customsRaw || []).map((d) => ({
+        const eventsRaw = await getJson<Event[]>('events');
+        const events: Event[] = (eventsRaw || []).map((d) => ({
           id: d.id,
           name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
           date: d.date,
           time: d.time,
           location: d.location,
           description: d.description ? { vi: d.description.vi || '', en: d.description.en || d.description.vi || '' } : undefined,
-        }));
-        const merged = mergeWithDefaults(customs);
+          thumbnail: d.thumbnail,
+          thumbnailPath: d.thumbnailPath,
+        })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        
         if (active) {
-          setEvents(merged);
-          setFilteredEvents(merged);
+          setEvents(events);
+          setFilteredEvents(events);
         }
       } catch (err) {
         console.error('Failed to load events from Storage JSON:', err);
         setError(language === 'vi' ? 'Không thể tải sự kiện' : 'Failed to load events');
-        const merged = mergeWithDefaults([]);
         if (active) {
-          setEvents(merged);
-          setFilteredEvents(merged);
+          setEvents([]);
+          setFilteredEvents([]);
         }
       } finally {
         if (active) setLoading(false);
@@ -297,15 +272,15 @@ const AdminEvents = () => {
       };
 
       const updated = editId
-        ? events.map(ev => ev.id === editId ? { ...newEvent, isDefault: ev.isDefault } : ev)
+        ? events.map(ev => ev.id === editId ? newEvent : ev)
         : [...events, newEvent];
 
-      // Persist only custom events to Firebase Storage JSON
-      const customEvents = updated
-        .filter(ev => !ev.isDefault)
-        .map((ev) => { const { isDefault, ...rest } = ev; void isDefault; return rest; });
-      await saveJson('events', customEvents);
-      setEvents(mergeWithDefaults(customEvents as Event[]));
+      // Sort events by date
+      const sorted = updated.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      // Persist all events to Firebase Storage JSON
+      await saveJson('events', sorted);
+      setEvents(sorted);
 
       // Reset form
       resetForm();
@@ -361,9 +336,8 @@ const AdminEvents = () => {
         }
         
         const remaining = events.filter(ev => ev.id !== id);
-        const customEvents = remaining.filter(ev => !ev.isDefault);
-        await saveJson('events', customEvents.map((ev) => { const { isDefault, ...r } = ev; void isDefault; return r; }));
-        setEvents(mergeWithDefaults(customEvents as Event[]));
+        await saveJson('events', remaining);
+        setEvents(remaining);
       } catch (err) {
         setError(language === 'vi' ? 'Có lỗi xảy ra khi xóa sự kiện' : 'Error deleting event');
         console.error(err);
@@ -739,16 +713,13 @@ const AdminEvents = () => {
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <button
                         onClick={() => handleEdit(event.id)}
-                        className="text-indigo-600 hover:text-indigo-900 mr-4"
-                        disabled={event.isDefault}
+                        className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 mr-4"
                       >
                         {language === 'vi' ? 'Sửa' : 'Edit'}
                       </button>
                       <button
                         onClick={() => handleDelete(event.id)}
-                        className="text-red-600 hover:text-red-900"
-                        disabled={event.isDefault}
-                        title={event.isDefault ? (language === 'vi' ? 'Không thể xóa sự kiện mặc định' : 'Default events cannot be deleted') : ''}
+                        className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
                       >
                         {language === 'vi' ? 'Xóa' : 'Delete'}
                       </button>

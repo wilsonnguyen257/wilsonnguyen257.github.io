@@ -1,15 +1,8 @@
 import { useEffect, useState } from "react";
-import { EVENTS as DEFAULT_EVENTS } from "../data/events";
-import type { Event } from "../data/events";
+import type { Event } from "../types/content";
 import { subscribeJson } from "../lib/storage";
 import EventCountdown from "../components/EventCountdown";
 import { useLanguage } from "../contexts/LanguageContext";
-
-function mergeEvents(customs: Event[]): Event[] {
-  const defaultEvents = DEFAULT_EVENTS.map(event => ({ ...event, isDefault: true }));
-  const allEvents = [...defaultEvents, ...customs];
-  return allEvents.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-}
 
 function groupEventsByMonth(events: Event[], language: string): Record<string, Event[]> {
   return events.reduce((groups: Record<string, Event[]>, event) => {
@@ -26,22 +19,24 @@ function groupEventsByMonth(events: Event[], language: string): Record<string, E
 
 export default function Events() {
   const { t, language } = useLanguage();
-  const [events, setEvents] = useState<Event[]>(mergeEvents([]));
+  const [events, setEvents] = useState<Event[]>([]);
   const [activeTab, setActiveTab] = useState<'upcoming' | 'all'>('upcoming');
   
   useEffect(() => {
     const unsub = subscribeJson<Event[]>(
       'events',
-      (customs) => {
-        const mapped: Event[] = (customs || []).map((d) => ({
+      (eventsData) => {
+        const mapped: Event[] = (eventsData || []).map((d) => ({
           id: d.id,
           name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
           date: d.date,
           time: d.time,
           location: d.location,
           description: d.description ? { vi: d.description.vi || '', en: d.description.en || d.description.vi || '' } : undefined,
-        }));
-        setEvents(mergeEvents(mapped));
+          thumbnail: d.thumbnail,
+          thumbnailPath: d.thumbnailPath,
+        })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        setEvents(mapped);
       }
     );
     return () => { unsub(); };

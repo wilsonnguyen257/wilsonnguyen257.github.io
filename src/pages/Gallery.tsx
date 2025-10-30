@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { subscribeJson } from '../lib/storage';
 type GalleryItem = { id: string; url: string; name: string; created: number };
@@ -33,19 +33,19 @@ export default function Gallery() {
     setCurrentImage(null);
   };
 
-  const showNext = () => {
+  const showNext = useCallback(() => {
     if (!currentImage) return;
     const currentIndex = images.findIndex(img => img.id === currentImage.id);
     const nextIndex = (currentIndex + 1) % images.length;
     setCurrentImage(images[nextIndex]);
-  };
+  }, [currentImage, images]);
 
-  const showPrevious = () => {
+  const showPrevious = useCallback(() => {
     if (!currentImage) return;
     const currentIndex = images.findIndex(img => img.id === currentImage.id);
     const prevIndex = (currentIndex - 1 + images.length) % images.length;
     setCurrentImage(images[prevIndex]);
-  };
+  }, [currentImage, images]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -56,48 +56,80 @@ export default function Gallery() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [lightboxOpen, currentImage, images]);
+  }, [lightboxOpen, currentImage, images, showNext, showPrevious]);
 
 
   return (
-    <section className="container-xl py-12">
-  <h1 className="h1 text-center">{t('gallery.title')}</h1>
-      <p className="mt-3 p-muted max-w-prose mx-auto text-center">{t('gallery.subtitle')}</p>
-      {loading ? (
-        <div className="flex justify-center items-center py-20">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-600 dark:border-brand-300"></div>
-        </div>
-      ) : images.length === 0 ? (
-        <div className="flex flex-col items-center py-20">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-16 w-16 text-brand-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M9 10l3 3m0 0l3-3m-3 3V4" />
-          </svg>
-          <p className="text-xl text-gray-500 dark:text-slate-400">{t('gallery.empty')}</p>
-        </div>
-      ) : (
-        <div className="grid gap-6 mt-8 md:grid-cols-2 lg:grid-cols-3">
-          {images.map((img) => (
-            <div 
-              key={img.id} 
-              className="card relative group overflow-hidden cursor-pointer"
-              onClick={() => openLightbox(img)}
-            >
-              <div className="aspect-video bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden">
-                <img
-                  src={img.url}
-                  alt={img.name}
-                  className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
-                  loading="lazy"
-                />
-              </div>
-              <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent px-4 py-2 text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition">
-                {img.name}
-                <span className="ml-2 text-xs text-gray-300">{new Date(img.created).toLocaleDateString()}</span>
-              </div>
+    <div className="bg-slate-50 dark:bg-slate-900">
+      {/* Hero Section */}
+      <section className="relative bg-gradient-to-br from-brand-600 to-brand-800 text-white py-20">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
+        <div className="container-xl relative">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+              <span className="font-medium">{t('gallery.title')}</span>
             </div>
-          ))}
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('gallery.title')}</h1>
+            <p className="text-xl text-white/90 leading-relaxed">
+              {t('gallery.subtitle')}
+            </p>
+          </div>
         </div>
-      )}
+      </section>
+
+      {/* Gallery Grid Section */}
+      <section className="py-20">
+        <div className="container-xl">
+          {loading ? (
+            <div className="flex justify-center items-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-600 dark:border-brand-300"></div>
+            </div>
+          ) : images.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-20 bg-white dark:bg-slate-800 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600">
+              <div className="w-20 h-20 bg-slate-100 dark:bg-slate-700 rounded-2xl flex items-center justify-center mb-6">
+                <svg className="w-10 h-10 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">{t('gallery.empty')}</h3>
+              <p className="text-slate-600 dark:text-slate-400">Hình ảnh sẽ được cập nhật sớm.</p>
+            </div>
+          ) : (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {images.map((img) => (
+                <div 
+                  key={img.id} 
+                  className="group bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden cursor-pointer border border-slate-200 dark:border-slate-700 hover:-translate-y-1"
+                  onClick={() => openLightbox(img)}
+                >
+                  <div className="aspect-video bg-slate-100 dark:bg-slate-700 overflow-hidden relative">
+                    <img
+                      src={img.url}
+                      alt={img.name}
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                      loading="lazy"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="absolute bottom-0 left-0 right-0 p-4">
+                        <p className="text-white font-semibold text-sm line-clamp-2">{img.name}</p>
+                        <div className="flex items-center gap-2 mt-1 text-white/80 text-xs">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span>{new Date(img.created).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* Lightbox Modal */}
       {lightboxOpen && currentImage && (
@@ -157,6 +189,6 @@ export default function Gallery() {
           </div>
         </div>
       )}
-    </section>
+    </div>
   );
 }

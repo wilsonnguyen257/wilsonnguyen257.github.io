@@ -21,6 +21,14 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
+  // Get initials from email (e.g., "admin@gmail.com" -> "AD")
+  const getInitials = (email: string | null | undefined): string => {
+    if (!email) return 'AD';
+    const username = email.split('@')[0];
+    if (username.length <= 2) return username.toUpperCase();
+    return username.substring(0, 2).toUpperCase();
+  };
+
   useEffect(() => {
     if (!IS_FIREBASE_CONFIGURED) return;
     const unsub = onAuthStateChanged((u) => setUser(u));
@@ -103,8 +111,11 @@ export default function Navbar() {
           {/* Sign out button (only shown when user is signed in) */}
           {IS_FIREBASE_CONFIGURED && user && (
             <div className="ml-2 flex items-center gap-2">
-              <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-[160px]" title={user.email || ''}>
-                {user.email}
+              <span 
+                className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 text-xs font-bold" 
+                title={user.email || ''}
+              >
+                {getInitials(user.email)}
               </span>
               <button
                 onClick={() => void logout()}

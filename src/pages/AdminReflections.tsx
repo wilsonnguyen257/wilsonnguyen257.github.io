@@ -38,7 +38,6 @@ const AdminReflections: React.FC = () => {
   });
   
   // UI state
-  const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({ show: false, id: null });
@@ -46,7 +45,6 @@ const AdminReflections: React.FC = () => {
 
   // Load and keep in sync with Firebase Storage JSON
   useEffect(() => {
-    setIsLoading(true);
     type RawReflection = Reflection & { id: string };
     const unsubscribe = subscribeJson<RawReflection[]>(
       'reflections',
@@ -61,12 +59,10 @@ const AdminReflections: React.FC = () => {
           updatedAt: it.updatedAt || new Date().toISOString(),
         }));
         setReflections(mapped);
-        setIsLoading(false);
       },
       (err) => {
         console.error('Failed to load reflections from Storage JSON:', err);
         setError(language === 'vi' ? 'Không thể tải bài suy niệm' : 'Failed to load reflections');
-        setIsLoading(false);
       }
     );
     return () => { unsubscribe(); };
@@ -157,7 +153,6 @@ const AdminReflections: React.FC = () => {
       return;
     }
     
-    setIsLoading(true);
     setError(null);
     setSuccess(null);
     
@@ -205,8 +200,6 @@ const AdminReflections: React.FC = () => {
       setTimeout(() => {
         setError(null);
       }, 5000);
-    } finally {
-      setIsLoading(false);
     }
   };
   
@@ -236,7 +229,6 @@ const AdminReflections: React.FC = () => {
     if (!deleteConfirm.id) return;
     
     try {
-      setIsLoading(true);
       const filtered = reflections.filter(r => r.id !== deleteConfirm.id);
       await saveJson('reflections', filtered);
       setReflections(filtered);
@@ -253,8 +245,6 @@ const AdminReflections: React.FC = () => {
       setTimeout(() => {
         setError(null);
       }, 5000);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -320,17 +310,9 @@ const AdminReflections: React.FC = () => {
     });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen bg-white dark:bg-slate-900">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8 px-4 sm:px-6 lg:px-8 transition-colors">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-white dark:bg-slate-900 transition-colors">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
           <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-200 px-6 py-4 rounded-r-lg mb-6 flex items-start gap-3 shadow-md">
             <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -361,16 +343,16 @@ const AdminReflections: React.FC = () => {
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Tiêu đề (Tiếng Việt) *' : 'Title (Vietnamese) *'}</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Tiêu đề (Tiếng Việt)' : 'Title (Vietnamese)'} <span className="text-red-500">*</span></label>
                 <input type="text" name="title.vi" value={formData.title.vi} onChange={handleInputChange} className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white" required />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Tiêu đề (Tiếng Anh) *' : 'Title (English) *'}</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Tiêu đề (Tiếng Anh)' : 'Title (English)'} <span className="text-red-500">*</span></label>
                 <input type="text" name="title.en" value={formData.title.en} onChange={handleInputChange} className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white" required />
               </div>
               <div className="md:col-span-2">
                 <VisualEditor
-                  label={language === 'vi' ? 'Nội dung (Tiếng Việt) *' : 'Content (Vietnamese) *'}
+                  label={language === 'vi' ? 'Nội dung (Tiếng Việt)' : 'Content (Vietnamese)'}
                   value={formData.content.vi}
                   onChange={(value: string) => setFormData(prev => ({ ...prev, content: { ...prev.content, vi: value } }))}
                   placeholder={language === 'vi' ? 'Nhập nội dung bài suy niệm...' : 'Enter reflection content...'}
@@ -379,7 +361,7 @@ const AdminReflections: React.FC = () => {
               </div>
               <div className="md:col-span-2">
                 <VisualEditor
-                  label={language === 'vi' ? 'Nội dung (Tiếng Anh) *' : 'Content (English) *'}
+                  label={language === 'vi' ? 'Nội dung (Tiếng Anh)' : 'Content (English)'}
                   value={formData.content.en}
                   onChange={(value: string) => setFormData(prev => ({ ...prev, content: { ...prev.content, en: value } }))}
                   placeholder={language === 'vi' ? 'Nhập nội dung bài suy niệm...' : 'Enter reflection content...'}
@@ -387,7 +369,7 @@ const AdminReflections: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Ngày *' : 'Date *'}</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Ngày' : 'Date'} <span className="text-red-500">*</span></label>
                 <input
                   type="date"
                   value={formData.date}
@@ -397,32 +379,19 @@ const AdminReflections: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Tác giả *' : 'Author *'}</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Tác giả' : 'Author'} <span className="text-red-500">*</span></label>
                 <input type="text" name="author" value={formData.author} onChange={handleInputChange} className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white" required />
               </div>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <button
                 type="submit"
-                disabled={isLoading}
-                className="inline-flex items-center gap-2 py-2.5 px-6 border border-transparent shadow-lg text-sm font-semibold rounded-lg text-white bg-brand-600 hover:bg-brand-700 transition-all duration-300 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 py-2.5 px-6 border border-transparent shadow-lg text-sm font-semibold rounded-lg text-white bg-brand-600 hover:bg-brand-700 transition-all duration-300 hover:shadow-xl"
               >
-                {isLoading ? (
-                  <>
-                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    <span>{language === 'vi' ? 'Đang xử lý...' : 'Processing...'}</span>
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span>{editingId ? (language === 'vi' ? 'Lưu thay đổi' : 'Save Changes') : (language === 'vi' ? 'Tạo mới' : 'Create')}</span>
-                  </>
-                )}
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span>{editingId ? (language === 'vi' ? 'Lưu thay đổi' : 'Save Changes') : (language === 'vi' ? 'Tạo mới' : 'Create')}</span>
               </button>
               {editingId && (
                 <button

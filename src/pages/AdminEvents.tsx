@@ -11,7 +11,6 @@ const AdminEvents = () => {
   const { language } = useLanguage();
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   
   // Initialize with current date
@@ -108,7 +107,6 @@ const AdminEvents = () => {
   
   // Load events from Firebase Storage JSON
   useEffect(() => {
-    setLoading(true);
     let active = true;
     (async () => {
       try {
@@ -135,8 +133,6 @@ const AdminEvents = () => {
           setEvents([]);
           setFilteredEvents([]);
         }
-      } finally {
-        if (active) setLoading(false);
       }
     })();
     return () => { active = false; };
@@ -380,10 +376,6 @@ const AdminEvents = () => {
     setError('');
   };
 
-  if (loading) {
-    return <div>{language === 'vi' ? 'Đang tải sự kiện...' : 'Loading events...'}</div>;
-  }
-
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-7xl mx-auto">
@@ -413,7 +405,7 @@ const AdminEvents = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {language === 'vi' ? 'Tên sự kiện (Tiếng Việt) *' : 'Event Name (Vietnamese) *'}
+                {language === 'vi' ? 'Tên sự kiện (Tiếng Việt)' : 'Event Name (Vietnamese)'} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -427,7 +419,7 @@ const AdminEvents = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {language === 'vi' ? 'Tên sự kiện (Tiếng Anh) *' : 'Event Name (English) *'}
+                {language === 'vi' ? 'Tên sự kiện (Tiếng Anh)' : 'Event Name (English)'} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -441,7 +433,7 @@ const AdminEvents = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {language === 'vi' ? 'Ngày *' : 'Date *'}
+                {language === 'vi' ? 'Ngày' : 'Date'} <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -454,7 +446,7 @@ const AdminEvents = () => {
             
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {language === 'vi' ? 'Giờ *' : 'Time *'}
+                {language === 'vi' ? 'Giờ' : 'Time'} <span className="text-red-500">*</span>
               </label>
               <div className="flex gap-2">
                 <select
@@ -492,7 +484,7 @@ const AdminEvents = () => {
 
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {language === 'vi' ? 'Địa điểm *' : 'Location *'}
+                {language === 'vi' ? 'Địa điểm' : 'Location'} <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -766,7 +758,7 @@ const AdminEvents = () => {
                       {event.location}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium">
-                      <div className="flex flex-col gap-2">
+                      <div className={`flex gap-2 ${language === 'vi' ? 'flex-col' : 'flex-row justify-end'}`}>
                         <button
                           onClick={() => handleEdit(event.id)}
                           className="inline-flex items-center justify-center gap-1.5 text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold transition-colors"

@@ -458,11 +458,12 @@ export default function Events() {
                 </div>
               </div>
               {selectedEvent.content && (
-                <div className="prose dark:prose-invert max-w-none">
-                  <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed whitespace-pre-wrap">
-                    {selectedEvent.content[language] || selectedEvent.content.vi}
-                  </p>
-                </div>
+                <div 
+                  className="prose dark:prose-invert max-w-none prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:text-lg prose-p:leading-relaxed"
+                  dangerouslySetInnerHTML={{ 
+                    __html: selectedEvent.content[language] || selectedEvent.content.vi 
+                  }}
+                />
               )}
             </div>
           </div>

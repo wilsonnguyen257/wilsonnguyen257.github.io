@@ -103,11 +103,14 @@ export default function ReflectionDetail() {
       <section className="py-20">
         <div className="container-xl max-w-4xl mx-auto">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 md:p-12 border border-slate-200 dark:border-slate-700">
-            <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-p:leading-relaxed">
-              <div className="whitespace-pre-line text-lg leading-relaxed">
-                {typeof reflection.content === 'string' ? reflection.content : (reflection.content[language] || reflection.content.vi)}
-              </div>
-            </div>
+            <div 
+              className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-slate-900 dark:prose-headings:text-white prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-p:leading-relaxed"
+              dangerouslySetInnerHTML={{ 
+                __html: typeof reflection.content === 'string' 
+                  ? reflection.content 
+                  : (reflection.content[language] || reflection.content.vi) 
+              }}
+            />
           </div>
           
           {/* Navigation */}

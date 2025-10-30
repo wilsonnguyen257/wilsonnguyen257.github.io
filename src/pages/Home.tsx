@@ -193,7 +193,15 @@ export default function Home() {
           <h2 className="h2 text-center mb-8">{t('home.upcoming_events')}</h2>
           {upcomingEvents.length > 0 && (
             <div className="mb-8">
-              <div className="card text-center">
+              <div className="card text-center max-w-3xl mx-auto">
+                {upcomingEvents[0].thumbnail && (
+                  <img 
+                    src={upcomingEvents[0].thumbnail} 
+                    alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
+                    className="w-full aspect-video object-contain bg-slate-100 dark:bg-slate-800 rounded-xl mb-6"
+                    loading="eager"
+                  />
+                )}
                 <div className="inline-block bg-brand-100 text-brand-700 rounded-full px-4 py-1 text-sm font-medium dark:bg-brand-900 dark:text-brand-100 mb-3">
                   {t('home.important_event')}
                 </div>
@@ -239,32 +247,44 @@ export default function Home() {
               <div className="grid gap-6">
                 {upcomingEvents.slice(1).map(event => (
                   <div key={event.id} className="card hover:shadow-md transition-shadow">
-                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                      <div>
-                        <h3 className="font-semibold">{event.name[language] || event.name.vi}</h3>
-                        <div className="flex flex-col md:flex-row gap-2 md:items-center mt-2">
-                          <div className="flex items-center">
-                            <span className="mr-2 text-brand-600">📅</span>
-                            <span className="p-muted">{new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { 
-                              weekday: 'long', 
-                              year: 'numeric', 
-                              month: 'long', 
-                              day: 'numeric' 
-                            })}</span>
-                          </div>
-                          <div className="hidden md:block text-slate-400">·</div>
-                          <div className="flex items-center">
-                            <span className="mr-2 text-brand-600">⏰</span>
-                            <span className="p-muted">{event.time}</span>
-                          </div>
+                    <div className="flex flex-col md:flex-row gap-4">
+                      {event.thumbnail && (
+                        <div className="md:w-64 shrink-0">
+                          <img 
+                            src={event.thumbnail} 
+                            alt={event.name[language] || event.name.vi}
+                            className="w-full aspect-video object-contain bg-slate-100 dark:bg-slate-800 rounded-lg"
+                            loading="lazy"
+                          />
                         </div>
-                        {event.description && (
-                          <p className="p-muted mt-2 line-clamp-2">{event.description[language] || event.description.vi}</p>
-                        )}
+                      )}
+                      <div className="flex-1 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                        <div className="flex-1">
+                          <h3 className="font-semibold">{event.name[language] || event.name.vi}</h3>
+                          <div className="flex flex-col md:flex-row gap-2 md:items-center mt-2">
+                            <div className="flex items-center">
+                              <span className="mr-2 text-brand-600">📅</span>
+                              <span className="p-muted">{new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { 
+                                weekday: 'long', 
+                                year: 'numeric', 
+                                month: 'long', 
+                                day: 'numeric' 
+                              })}</span>
+                            </div>
+                            <div className="hidden md:block text-slate-400">·</div>
+                            <div className="flex items-center">
+                              <span className="mr-2 text-brand-600">⏰</span>
+                              <span className="p-muted">{event.time}</span>
+                            </div>
+                          </div>
+                          {event.description && (
+                            <p className="p-muted mt-2 line-clamp-2">{event.description[language] || event.description.vi}</p>
+                          )}
+                        </div>
+                        <Link to="/events" className="btn btn-outline whitespace-nowrap self-start md:self-center">
+                          {t('home.details')}
+                        </Link>
                       </div>
-                      <Link to="/events" className="btn btn-outline whitespace-nowrap">
-                        {t('home.details')}
-                      </Link>
                     </div>
                   </div>
                 ))}

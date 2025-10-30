@@ -7,6 +7,8 @@ export type Event = {
   time: string; // e.g., '5:00 PM'
   location: string;
   description?: Translation;
+  thumbnail?: string; // URL to event thumbnail image
+  thumbnailPath?: string; // Firebase Storage path
 }
 
 

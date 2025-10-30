@@ -70,6 +70,13 @@ export default function Events() {
           <div className="container-xl">
             <h2 className="h2 text-center mb-8">{t('events.next_event')}</h2>
             <div className="card max-w-3xl mx-auto">
+              {upcomingEvents[0].thumbnail && (
+                <img 
+                  src={upcomingEvents[0].thumbnail} 
+                  alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
+                  className="w-full h-64 object-cover rounded-xl mb-6"
+                />
+              )}
               <div className="inline-block bg-brand-100 text-brand-700 rounded-full px-4 py-1 text-sm font-medium dark:bg-brand-900 dark:text-brand-100">
                 {t('events.latest_event')}
               </div>
@@ -136,43 +143,54 @@ export default function Events() {
                 <div className="grid gap-6">
                   {monthEvents.map((event) => (
                     <div key={event.id} className="card hover:shadow-lg transition-shadow">
-                      <div className="flex flex-col md:flex-row justify-between gap-6">
-                        <div>
-                          <h4 className="text-lg font-semibold text-brand-600 dark:text-brand-400">
-                            {event.name[language] || event.name.vi}
-                          </h4>
-                          <div className="mt-2 flex flex-col md:flex-row gap-4 text-sm">
-                            <div className="flex items-center">
-                              <span className="mr-2">📅</span>
-                              <span>{new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
-                                weekday: 'long',
-                                day: 'numeric',
-                                month: 'numeric'
-                              })}</span>
+                      <div className="flex flex-col md:flex-row gap-6">
+                        {event.thumbnail && (
+                          <img 
+                            src={event.thumbnail} 
+                            alt={event.name[language] || event.name.vi}
+                            className="w-full md:w-48 h-48 object-cover rounded-lg shrink-0"
+                          />
+                        )}
+                        <div className="flex-1">
+                          <div className="flex flex-col md:flex-row justify-between gap-4">
+                            <div className="flex-1">
+                              <h4 className="text-lg font-semibold text-brand-600 dark:text-brand-400">
+                                {event.name[language] || event.name.vi}
+                              </h4>
+                              <div className="mt-2 flex flex-col md:flex-row gap-4 text-sm">
+                                <div className="flex items-center">
+                                  <span className="mr-2">📅</span>
+                                  <span>{new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
+                                    weekday: 'long',
+                                    day: 'numeric',
+                                    month: 'numeric'
+                                  })}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="mr-2">⏰</span>
+                                  <span>{event.time}</span>
+                                </div>
+                                <div className="flex items-center">
+                                  <span className="mr-2">📍</span>
+                                  <span>{event.location}</span>
+                                </div>
+                              </div>
+                              {event.description && (
+                                <p className="mt-3 p-muted">{event.description[language] || event.description.vi}</p>
+                              )}
                             </div>
-                            <div className="flex items-center">
-                              <span className="mr-2">⏰</span>
-                              <span>{event.time}</span>
-                            </div>
-                            <div className="flex items-center">
-                              <span className="mr-2">📍</span>
-                              <span>{event.location}</span>
+                            <div className="shrink-0">
+                              {new Date(event.date) >= now ? (
+                                <div className="inline-block bg-brand-100 text-brand-700 rounded-full px-3 py-1 text-sm font-medium dark:bg-brand-900 dark:text-brand-100">
+                                  {t('events.upcoming')}
+                                </div>
+                              ) : (
+                                <div className="inline-block bg-slate-100 text-slate-600 rounded-full px-3 py-1 text-sm font-medium dark:bg-slate-700 dark:text-slate-300">
+                                  {t('events.past')}
+                                </div>
+                              )}
                             </div>
                           </div>
-                          {event.description && (
-                            <p className="mt-3 p-muted">{event.description[language] || event.description.vi}</p>
-                          )}
-                        </div>
-                        <div className="shrink-0">
-                          {new Date(event.date) >= now ? (
-                            <div className="inline-block bg-brand-100 text-brand-700 rounded-full px-3 py-1 text-sm font-medium dark:bg-brand-900 dark:text-brand-100">
-                              {t('events.upcoming')}
-                            </div>
-                          ) : (
-                            <div className="inline-block bg-slate-100 text-slate-600 rounded-full px-3 py-1 text-sm font-medium dark:bg-slate-700 dark:text-slate-300">
-                              {t('events.past')}
-                            </div>
-                          )}
                         </div>
                       </div>
                     </div>

@@ -3,6 +3,8 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { v4 as uuidv4 } from 'uuid';
 import { EVENTS as DEFAULT_EVENTS } from '../data/events';
 import { getJson, saveJson } from '../lib/storage';
+import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 
 type Event = {
   id: string;
@@ -17,6 +19,8 @@ type Event = {
     vi: string;
     en: string;
   };
+  thumbnail?: string;
+  thumbnailPath?: string;
   isDefault?: boolean;
 };
 
@@ -45,6 +49,9 @@ const AdminEvents = () => {
   });
   const [editId, setEditId] = useState<string | null>(null);
   const [autoTranslate, setAutoTranslate] = useState(true);
+  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
+  const [uploading, setUploading] = useState(false);
   
   // Filter and sort state
   const [filters, setFilters] = useState({
@@ -189,6 +196,40 @@ const AdminEvents = () => {
     return `${hh}:${mm} ${ampm}`;
   };
 
+  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setThumbnailFile(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      setThumbnailPreview(String(reader.result));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const uploadThumbnail = async (eventId: string): Promise<{ url: string; path?: string }> => {
+    if (!thumbnailFile) return { url: '' };
+    
+    if (IS_FIREBASE_CONFIGURED && fbStorage) {
+      const path = `events/${eventId}/${thumbnailFile.name}`;
+      const storageRef = ref(fbStorage, path);
+      await uploadBytes(storageRef, thumbnailFile);
+      const url = await getDownloadURL(storageRef);
+      return { url, path };
+    } else {
+      // Fallback: use data URL for local development
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve({ url: String(reader.result) });
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(thumbnailFile);
+      });
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -205,8 +246,27 @@ const AdminEvents = () => {
     const timeNormalized = normalizeTime(formData.time);
 
     try {
+      setUploading(true);
+      const eventId = editId || uuidv4();
+      
+      // Upload thumbnail if provided
+      let thumbnail = '';
+      let thumbnailPath: string | undefined;
+      if (thumbnailFile) {
+        const uploaded = await uploadThumbnail(eventId);
+        thumbnail = uploaded.url;
+        thumbnailPath = uploaded.path;
+      } else if (editId) {
+        // Keep existing thumbnail when editing
+        const existingEvent = events.find(ev => ev.id === editId);
+        if (existingEvent) {
+          thumbnail = existingEvent.thumbnail || '';
+          thumbnailPath = existingEvent.thumbnailPath;
+        }
+      }
+
       const newEvent: Event = {
-        id: editId || uuidv4(),
+        id: eventId,
         name: {
           vi: formData.nameVi,
           en: formData.nameEn || formData.nameVi
@@ -217,7 +277,9 @@ const AdminEvents = () => {
         description: formData.descriptionVi || formData.descriptionEn ? {
           vi: formData.descriptionVi,
           en: formData.descriptionEn || formData.descriptionVi
-        } : undefined
+        } : undefined,
+        thumbnail: thumbnail || undefined,
+        thumbnailPath: thumbnailPath
       };
 
       const updated = editId
@@ -241,11 +303,15 @@ const AdminEvents = () => {
         descriptionVi: '',
         descriptionEn: ''
       });
+      setThumbnailFile(null);
+      setThumbnailPreview('');
       setEditId(null);
       setError('');
     } catch (err) {
       setError(language === 'vi' ? 'Có lỗi xảy ra khi lưu sự kiện' : 'Error saving event');
       console.error(err);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -262,6 +328,8 @@ const AdminEvents = () => {
       descriptionVi: event.description?.vi || '',
       descriptionEn: event.description?.en || ''
     });
+    setThumbnailFile(null);
+    setThumbnailPreview(event.thumbnail || '');
     setEditId(id);
     setError('');
   };
@@ -269,6 +337,17 @@ const AdminEvents = () => {
   const handleDelete = async (id: string) => {
     if (window.confirm(language === 'vi' ? 'Bạn có chắc chắn muốn xóa sự kiện này?' : 'Are you sure you want to delete this event?')) {
       try {
+        const eventToDelete = events.find(ev => ev.id === id);
+        
+        // Delete thumbnail from Firebase Storage if exists
+        if (eventToDelete?.thumbnailPath && IS_FIREBASE_CONFIGURED && fbStorage) {
+          try {
+            await deleteObject(ref(fbStorage, eventToDelete.thumbnailPath));
+          } catch (err) {
+            console.warn('Failed to delete thumbnail from storage:', err);
+          }
+        }
+        
         const remaining = events.filter(ev => ev.id !== id);
         const customEvents = remaining.filter(ev => !ev.isDefault);
         await saveJson('events', customEvents.map((ev) => { const { isDefault, ...r } = ev; void isDefault; return r; }));
@@ -384,6 +463,28 @@ const AdminEvents = () => {
                 className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
                 required
               />
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {language === 'vi' ? 'Hình ảnh thumbnail' : 'Thumbnail Image'}
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleThumbnailChange}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                disabled={uploading}
+              />
+              {thumbnailPreview && (
+                <div className="mt-2">
+                  <img
+                    src={thumbnailPreview}
+                    alt="Thumbnail preview"
+                    className="h-32 w-auto rounded border object-cover"
+                  />
+                </div>
+              )}
             </div>
 
             <div>

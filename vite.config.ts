@@ -18,6 +18,15 @@ export default defineConfig(({ mode }) => ({
     outDir: 'dist',
     assetsDir: 'assets',
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
   },
   define: {
     'process.env': {}

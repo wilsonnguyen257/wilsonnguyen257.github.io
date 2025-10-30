@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
+// Context providers export hooks and types - this is intentional
+/* eslint-disable react-refresh/only-export-components */
+
 type AdminAuthContextType = {
   isAdmin: boolean;
   adminKey: string | null;
@@ -43,4 +46,7 @@ export function useAdminAuth() {
   if (!ctx) throw new Error('useAdminAuth must be used within AdminAuthProvider');
   return ctx;
 }
+
+// Export type for better module structure
+export type { AdminAuthContextType };
 

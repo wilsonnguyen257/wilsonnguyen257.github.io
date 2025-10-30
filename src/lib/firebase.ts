@@ -23,7 +23,10 @@ const cfg = {
 };
 
 const REQUIRED_KEYS = ['apiKey', 'authDomain', 'projectId', 'appId'] as const;
-const isConfigured = REQUIRED_KEYS.every((k) => (cfg as any)[k] && String((cfg as any)[k]).length > 0);
+const isConfigured = REQUIRED_KEYS.every((k) => {
+  const value = cfg[k as keyof typeof cfg];
+  return value && String(value).length > 0;
+});
 
 export const IS_FIREBASE_CONFIGURED = isConfigured;
 

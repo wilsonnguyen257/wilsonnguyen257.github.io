@@ -469,4 +469,3 @@ export function useLanguage() {
   }
   return context;
 }
-/* eslint-disable react-refresh/only-export-components */

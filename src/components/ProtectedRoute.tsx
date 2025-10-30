@@ -9,15 +9,31 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, redirectPath = '/login' }: ProtectedRouteProps) {
   const location = useLocation();
-
-  // If Firebase auth not configured, allow access (legacy behavior)
-  if (!IS_FIREBASE_CONFIGURED) return <>{children}</>;
-
   const [user, setUser] = useState<User | undefined>(undefined);
+
   useEffect(() => {
+    // If Firebase auth not configured, allow access immediately
+    if (!IS_FIREBASE_CONFIGURED) {
+      setUser(null);
+      return;
+    }
+
     const unsub = onAuthStateChanged((u) => setUser(u));
-    return () => { try { unsub && (unsub as any)(); } catch { /* ignore */ } };
+    return () => {
+      try {
+        if (unsub && typeof unsub === 'function') {
+          unsub();
+        }
+      } catch {
+        /* ignore */
+      }
+    };
   }, []);
+
+  // If Firebase not configured, allow access
+  if (!IS_FIREBASE_CONFIGURED) {
+    return <>{children}</>;
+  }
 
   if (user === undefined) {
     return <div className="container-xl py-12 text-center text-slate-500">Checking access…</div>;

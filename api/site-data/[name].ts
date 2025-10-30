@@ -4,7 +4,7 @@ import { list, put } from '@vercel/blob';
 function ok<T>(res: VercelResponse, data: T) {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.status(200).json(data as any);
+  res.status(200).json(data);
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -31,8 +31,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!r.ok) return res.status(r.status).send(await r.text());
       const text = await r.text();
       try { return ok(res, text ? JSON.parse(text) : []); } catch { return ok(res, []); }
-    } catch (err: any) {
-      return res.status(500).json({ error: err?.message || 'Failed to read' });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to read';
+      return res.status(500).json({ error: errorMessage });
     }
   }
 
@@ -46,8 +47,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         token: process.env.BLOB_READ_WRITE_TOKEN,
       });
       return ok(res, { success: true });
-    } catch (err: any) {
-      return res.status(500).json({ error: err?.message || 'Failed to write' });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to write';
+      return res.status(500).json({ error: errorMessage });
     }
   }
 

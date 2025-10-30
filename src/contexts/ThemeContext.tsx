@@ -50,4 +50,3 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
     </ThemeContext.Provider>
   );
 }
-/* eslint-disable react-refresh/only-export-components */

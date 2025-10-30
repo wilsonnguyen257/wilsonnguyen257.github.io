@@ -24,7 +24,15 @@ export default function Navbar() {
   useEffect(() => {
     if (!IS_FIREBASE_CONFIGURED) return;
     const unsub = onAuthStateChanged((u) => setUser(u));
-    return () => { try { (unsub as any)?.(); } catch { /* noop */ } };
+    return () => {
+      try {
+        if (unsub && typeof unsub === 'function') {
+          unsub();
+        }
+      } catch {
+        /* noop */
+      }
+    };
   }, []);
 
   const navItem = (to: string, key: string) => (

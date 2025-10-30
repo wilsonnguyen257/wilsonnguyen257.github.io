@@ -2,6 +2,14 @@
 
 A multilingual church website with Vietnamese and English support, reflections and events, and light/dark theme toggle. Admin can manage content via dashboard. Language and theme preferences are persisted in localStorage. Content (events, reflections, gallery) can be stored in Firebase (recommended) or falls back to Vercel Blob/localStorage.
 
+## 🚀 Quick Start
+
+For production deployment and making content available online, see:
+- **[📘 DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete Firebase setup guide
+- **[🔐 GITHUB_SECRETS.md](./GITHUB_SECRETS.md)** - GitHub Actions deployment setup
+
+For local development, continue reading below.
+
 ## Features
 
 - Multilingual UI and content (vi/en) with smart fallback to Vietnamese.
@@ -49,6 +57,35 @@ Lint:
 ```bash
 npm run lint
 ```
+
+Lint and fix issues:
+```bash
+npm run lint:fix
+```
+
+Type check:
+```bash
+npm run type-check
+```
+
+## Code Quality & Standards
+
+This project follows modern TypeScript and React best practices:
+
+- ✅ **TypeScript strict mode** - Full type safety without `any` types
+- ✅ **ESLint configured** - Catches common errors and enforces code style
+- ✅ **React Hooks rules** - Proper hooks usage enforced
+- ✅ **Code splitting** - Lazy loading for optimal bundle sizes
+- ✅ **Manual chunks** - React and Firebase separated for better caching
+- ✅ **Security audits** - Dependencies regularly checked for vulnerabilities
+
+### Performance Optimizations
+
+- Lazy loading for all routes except the home page
+- React vendor bundle separated (~44 KB gzipped)
+- Firebase bundle separated (~119 KB gzipped)
+- Individual page bundles (0.5-18 KB each)
+- Suspense boundaries with loading states
 
 ## Project Structure
 

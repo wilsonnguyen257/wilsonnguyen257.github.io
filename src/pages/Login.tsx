@@ -11,7 +11,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const from = (location.state as any)?.from || '/admin';
+  const from = (location.state as { from?: string })?.from || '/admin';
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();

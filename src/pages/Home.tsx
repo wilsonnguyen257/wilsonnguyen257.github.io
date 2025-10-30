@@ -20,6 +20,13 @@ type Reflection = {
 
 // Reflections now come from Firebase Storage JSON
 
+// Helper function to strip HTML tags for preview text
+const stripHtml = (html: string): string => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+
 export default function Home() {
   const { t, language } = useLanguage();
   // Helpers to parse/compare dates
@@ -346,7 +353,7 @@ export default function Home() {
                   
                   {upcomingEvents[0].content && (
                     <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed line-clamp-3">
-                      {upcomingEvents[0].content[language] || upcomingEvents[0].content.vi}
+                      {stripHtml(upcomingEvents[0].content[language] || upcomingEvents[0].content.vi)}
                     </p>
                   )}
                   
@@ -407,7 +414,7 @@ export default function Home() {
                       
                       {event.content && (
                         <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-2 mb-4">
-                          {event.content[language] || event.content.vi}
+                          {stripHtml(event.content[language] || event.content.vi)}
                         </p>
                       )}
                       
@@ -523,7 +530,7 @@ export default function Home() {
                     {reflection.title[language] || reflection.title.vi}
                   </h4>
                   <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-3 leading-relaxed mb-4">
-                    {reflection.content[language] || reflection.content.vi}
+                    {stripHtml(reflection.content[language] || reflection.content.vi)}
                   </p>
                   <span className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 font-semibold text-sm group-hover:gap-3 transition-all">
                     {t('home.read_more')}

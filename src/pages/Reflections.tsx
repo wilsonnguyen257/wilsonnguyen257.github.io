@@ -19,6 +19,13 @@ type ReflectionItem = Reflection & { id: string };
 
 // Data now comes from Firebase Storage JSON
 
+// Helper function to strip HTML tags for preview text
+const stripHtml = (html: string): string => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+
 export default function Reflections() {
   const { t, language } = useLanguage();
   const [reflections, setReflections] = useState<ReflectionItem[]>([]);
@@ -232,7 +239,8 @@ export default function Reflections() {
                   <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed mb-6 line-clamp-3">
                     {(() => {
                       const content = featuredReflection.content[language] || featuredReflection.content.vi;
-                      return content.slice(0, 200) + (content.length > 200 ? '...' : '');
+                      const plainText = stripHtml(content);
+                      return plainText.slice(0, 200) + (plainText.length > 200 ? '...' : '');
                     })()}
                   </p>
                   
@@ -321,7 +329,8 @@ export default function Reflections() {
                         <p className="text-slate-600 dark:text-slate-300 mb-4 line-clamp-3 leading-relaxed">
                           {(() => {
                             const content = reflection.content[language] || reflection.content.vi;
-                            return content.slice(0, 120) + (content.length > 120 ? '...' : '');
+                            const plainText = stripHtml(content);
+                            return plainText.slice(0, 120) + (plainText.length > 120 ? '...' : '');
                           })()}
                         </p>
                         

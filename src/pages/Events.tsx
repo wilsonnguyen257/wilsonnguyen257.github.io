@@ -17,6 +17,13 @@ function groupEventsByMonth(events: Event[], language: string): Record<string, E
   }, {});
 }
 
+// Helper function to strip HTML tags for preview text
+const stripHtml = (html: string): string => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
+
 export default function Events() {
   const { t, language } = useLanguage();
   const [events, setEvents] = useState<Event[]>([]);
@@ -177,7 +184,7 @@ export default function Events() {
 
                     {upcomingEvents[0].content && (
                       <p className="text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3 mb-4">
-                        {upcomingEvents[0].content[language] || upcomingEvents[0].content.vi}
+                        {stripHtml(upcomingEvents[0].content[language] || upcomingEvents[0].content.vi)}
                       </p>
                     )}
 
@@ -334,7 +341,7 @@ export default function Events() {
                             {/* Content */}
                             {event.content && (
                               <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                                {event.content[language] || event.content.vi}
+                                {stripHtml(event.content[language] || event.content.vi)}
                               </p>
                             )}
                           </div>

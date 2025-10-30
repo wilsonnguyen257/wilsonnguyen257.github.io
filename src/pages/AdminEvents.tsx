@@ -186,7 +186,7 @@ const AdminEvents = () => {
     }
   };
 
-  const isValidTime = (val: string) => /^(0?[1-9]|1[0-2]):[0-5][0-9]\s?(AM|PM)$/i.test(val.trim());
+  const isValidTime = (val: string) => /^(0?[1-9]|1[0-2]):[0-5][0-9]\s*(AM|PM)$/i.test(val.trim());
   const normalizeTime = (val: string) => {
     const m = val.trim().match(/^(0?[1-9]|1[0-2]):([0-5][0-9])\s*(AM|PM)$/i);
     if (!m) return val.trim();
@@ -238,9 +238,9 @@ const AdminEvents = () => {
       setError(language === 'vi' ? 'Vui lòng điền đầy đủ các trường bắt buộc' : 'Please fill in all required fields');
       return;
     }
-    // Time format validation (e.g., 5:00 PM)
+    // Time format validation (e.g., 5:00 PM or 07:30PM)
     if (!isValidTime(formData.time)) {
-      setError(language === 'vi' ? 'Giờ không hợp lệ. Định dạng đúng: 5:00 PM' : 'Invalid time. Expected format: 5:00 PM');
+      setError(language === 'vi' ? 'Giờ không hợp lệ. Định dạng đúng: 5:00 PM hoặc 07:30PM' : 'Invalid time. Expected format: 5:00 PM or 07:30PM');
       return;
     }
     const timeNormalized = normalizeTime(formData.time);

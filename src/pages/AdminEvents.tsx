@@ -39,11 +39,6 @@ const AdminEvents = () => {
     minute: '00',
     period: 'PM'
   });
-  const [dateComponents, setDateComponents] = useState({
-    day: initialDay,
-    month: initialMonth,
-    year: initialYear
-  });
   
   // Filter and sort state
   const [filters, setFilters] = useState({
@@ -188,18 +183,6 @@ const AdminEvents = () => {
     setFormData(prev => ({ ...prev, time: formattedTime }));
   };
 
-  const handleDateChange = (field: 'day' | 'month' | 'year', value: string) => {
-    const newDateComponents = { ...dateComponents, [field]: value };
-    setDateComponents(newDateComponents);
-    
-    // Update formData.date with formatted string (yyyy-mm-dd)
-    const year = newDateComponents.year;
-    const month = newDateComponents.month.padStart(2, '0');
-    const day = newDateComponents.day.padStart(2, '0');
-    const formattedDate = `${year}-${month}-${day}`;
-    setFormData(prev => ({ ...prev, date: formattedDate }));
-  };
-
   const isValidTime = (val: string) => /^(0?[1-9]|1[0-2]):[0-5][0-9]\s*(AM|PM)$/i.test(val.trim());
   const normalizeTime = (val: string) => {
     const m = val.trim().match(/^(0?[1-9]|1[0-2]):([0-5][0-9])\s*(AM|PM)$/i);
@@ -331,16 +314,6 @@ const AdminEvents = () => {
       });
     }
 
-    // Parse date string (e.g., "2025-11-01")
-    const dateMatch = event.date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-    if (dateMatch) {
-      setDateComponents({
-        year: dateMatch[1],
-        month: String(parseInt(dateMatch[2], 10)), // Remove leading zero
-        day: String(parseInt(dateMatch[3], 10))    // Remove leading zero
-      });
-    }
-
     setFormData({
       nameVi: event.name.vi,
       nameEn: event.name.en,
@@ -399,11 +372,6 @@ const AdminEvents = () => {
       hour: '5',
       minute: '00',
       period: 'PM'
-    });
-    setDateComponents({
-      day: currentDay,
-      month: currentMonth,
-      year: currentYear
     });
     setThumbnailFile(null);
     setThumbnailPreview('');
@@ -465,69 +433,14 @@ const AdminEvents = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {language === 'vi' ? 'Ngày *' : 'Date *'}
               </label>
-              <div className="flex gap-2">
-                <select
-                  value={dateComponents.day}
-                  onChange={(e) => handleDateChange('day', e.target.value)}
-                  className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                <input
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                  className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
                   required
-                >
-                  {Array.from({ length: 31 }, (_, i) => i + 1).map(d => (
-                    <option key={d} value={d}>{d}</option>
-                  ))}
-                </select>
-                <select
-                  value={dateComponents.month}
-                  onChange={(e) => handleDateChange('month', e.target.value)}
-                  className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                  required
-                >
-                  {language === 'vi' ? (
-                    <>
-                      <option value="1">Tháng 1</option>
-                      <option value="2">Tháng 2</option>
-                      <option value="3">Tháng 3</option>
-                      <option value="4">Tháng 4</option>
-                      <option value="5">Tháng 5</option>
-                      <option value="6">Tháng 6</option>
-                      <option value="7">Tháng 7</option>
-                      <option value="8">Tháng 8</option>
-                      <option value="9">Tháng 9</option>
-                      <option value="10">Tháng 10</option>
-                      <option value="11">Tháng 11</option>
-                      <option value="12">Tháng 12</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="1">January</option>
-                      <option value="2">February</option>
-                      <option value="3">March</option>
-                      <option value="4">April</option>
-                      <option value="5">May</option>
-                      <option value="6">June</option>
-                      <option value="7">July</option>
-                      <option value="8">August</option>
-                      <option value="9">September</option>
-                      <option value="10">October</option>
-                      <option value="11">November</option>
-                      <option value="12">December</option>
-                    </>
-                  )}
-                </select>
-                <select
-                  value={dateComponents.year}
-                  onChange={(e) => handleDateChange('year', e.target.value)}
-                  className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                  required
-                >
-                  {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() + i).map(y => (
-                    <option key={y} value={y}>{y}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
+                />
+              </div>            <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {language === 'vi' ? 'Giờ *' : 'Time *'}
               </label>

@@ -597,7 +597,7 @@ const AdminEvents = () => {
                 name="startDate"
                 value={filters.startDate}
                 onChange={handleFilterChange}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
               />
             </div>
             <div>
@@ -607,7 +607,7 @@ const AdminEvents = () => {
                 name="endDate"
                 value={filters.endDate}
                 onChange={handleFilterChange}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
               />
             </div>
             <div>

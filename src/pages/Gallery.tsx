@@ -82,12 +82,14 @@ export default function Gallery() {
               className="card relative group overflow-hidden cursor-pointer"
               onClick={() => openLightbox(img)}
             >
-              <img
-                src={img.url}
-                alt={img.name}
-                className="w-full h-64 object-cover rounded-xl transition-transform duration-300 group-hover:scale-110"
-                loading="lazy"
-              />
+              <div className="aspect-video bg-slate-100 dark:bg-slate-800 rounded-xl overflow-hidden">
+                <img
+                  src={img.url}
+                  alt={img.name}
+                  className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110"
+                  loading="lazy"
+                />
+              </div>
               <div className="absolute bottom-0 left-0 w-full bg-gradient-to-t from-black/60 to-transparent px-4 py-2 text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition">
                 {img.name}
                 <span className="ml-2 text-xs text-gray-300">{new Date(img.created).toLocaleDateString()}</span>

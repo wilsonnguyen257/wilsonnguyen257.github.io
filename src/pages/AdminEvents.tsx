@@ -52,6 +52,11 @@ const AdminEvents = () => {
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [thumbnailPreview, setThumbnailPreview] = useState<string>('');
   const [uploading, setUploading] = useState(false);
+  const [timeComponents, setTimeComponents] = useState({
+    hour: '5',
+    minute: '00',
+    period: 'PM'
+  });
   
   // Filter and sort state
   const [filters, setFilters] = useState({
@@ -186,6 +191,15 @@ const AdminEvents = () => {
     }
   };
 
+  const handleTimeChange = (field: 'hour' | 'minute' | 'period', value: string) => {
+    const newTimeComponents = { ...timeComponents, [field]: value };
+    setTimeComponents(newTimeComponents);
+    
+    // Update formData.time with formatted string
+    const formattedTime = `${newTimeComponents.hour}:${newTimeComponents.minute} ${newTimeComponents.period}`;
+    setFormData(prev => ({ ...prev, time: formattedTime }));
+  };
+
   const isValidTime = (val: string) => /^(0?[1-9]|1[0-2]):[0-5][0-9]\s*(AM|PM)$/i.test(val.trim());
   const normalizeTime = (val: string) => {
     const m = val.trim().match(/^(0?[1-9]|1[0-2]):([0-5][0-9])\s*(AM|PM)$/i);
@@ -294,19 +308,7 @@ const AdminEvents = () => {
       setEvents(mergeWithDefaults(customEvents as Event[]));
 
       // Reset form
-      setFormData({
-        nameVi: '',
-        nameEn: '',
-        date: '',
-        time: '',
-        location: '',
-        descriptionVi: '',
-        descriptionEn: ''
-      });
-      setThumbnailFile(null);
-      setThumbnailPreview('');
-      setEditId(null);
-      setError('');
+      resetForm();
     } catch (err) {
       setError(language === 'vi' ? 'Có lỗi xảy ra khi lưu sự kiện' : 'Error saving event');
       console.error(err);
@@ -318,6 +320,16 @@ const AdminEvents = () => {
   const handleEdit = (id: string) => {
     const event = events.find(ev => ev.id === id);
     if (!event) return;
+
+    // Parse time string (e.g., "5:00 PM")
+    const timeMatch = event.time.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+    if (timeMatch) {
+      setTimeComponents({
+        hour: timeMatch[1],
+        minute: timeMatch[2],
+        period: timeMatch[3].toUpperCase()
+      });
+    }
 
     setFormData({
       nameVi: event.name.vi,
@@ -369,6 +381,13 @@ const AdminEvents = () => {
       descriptionVi: '',
       descriptionEn: ''
     });
+    setTimeComponents({
+      hour: '5',
+      minute: '00',
+      period: 'PM'
+    });
+    setThumbnailFile(null);
+    setThumbnailPreview('');
     setEditId(null);
     setError('');
   };
@@ -441,14 +460,38 @@ const AdminEvents = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {language === 'vi' ? 'Giờ *' : 'Time *'}
               </label>
-              <input
-                type="time"
-                name="time"
-                value={formData.time}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                required
-              />
+              <div className="flex gap-2">
+                <select
+                  value={timeComponents.hour}
+                  onChange={(e) => handleTimeChange('hour', e.target.value)}
+                  className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                  required
+                >
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
+                    <option key={h} value={h}>{h}</option>
+                  ))}
+                </select>
+                <span className="flex items-center text-lg">:</span>
+                <select
+                  value={timeComponents.minute}
+                  onChange={(e) => handleTimeChange('minute', e.target.value)}
+                  className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                  required
+                >
+                  {['00', '15', '30', '45'].map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+                <select
+                  value={timeComponents.period}
+                  onChange={(e) => handleTimeChange('period', e.target.value)}
+                  className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                  required
+                >
+                  <option value="AM">AM</option>
+                  <option value="PM">PM</option>
+                </select>
+              </div>
             </div>
 
             <div className="md:col-span-2">

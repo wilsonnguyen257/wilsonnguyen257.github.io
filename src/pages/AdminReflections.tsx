@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useLanguage } from '../contexts/LanguageContext';
 import type { FilterState, DeleteConfirmState, ReflectionFormData, Reflection } from '../types/content';
 import { subscribeJson, saveJson } from '../lib/storage';
+import RichTextEditor from '../components/RichTextEditor';
 
 // Types moved to shared file: src/types/content.ts
 
@@ -368,12 +369,24 @@ const AdminReflections: React.FC = () => {
                 <input type="text" name="title.en" value={formData.title.en} onChange={handleInputChange} className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white" required />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Nội dung (Tiếng Việt) *' : 'Content (Vietnamese) *'}</label>
-                <textarea name="content.vi" value={formData.content.vi} onChange={handleInputChange} className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white" rows={6} required />
+                <RichTextEditor
+                  label={language === 'vi' ? 'Nội dung (Tiếng Việt) *' : 'Content (Vietnamese) *'}
+                  value={formData.content.vi}
+                  onChange={(value) => setFormData(prev => ({ ...prev, content: { ...prev.content, vi: value } }))}
+                  placeholder={language === 'vi' ? 'Nhập nội dung bài suy niệm...' : 'Enter reflection content...'}
+                  rows={8}
+                  required
+                />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Nội dung (Tiếng Anh) *' : 'Content (English) *'}</label>
-                <textarea name="content.en" value={formData.content.en} onChange={handleInputChange} className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white" rows={6} required />
+                <RichTextEditor
+                  label={language === 'vi' ? 'Nội dung (Tiếng Anh) *' : 'Content (English) *'}
+                  value={formData.content.en}
+                  onChange={(value) => setFormData(prev => ({ ...prev, content: { ...prev.content, en: value } }))}
+                  placeholder={language === 'vi' ? 'Nhập nội dung bài suy niệm...' : 'Enter reflection content...'}
+                  rows={8}
+                  required
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Ngày *' : 'Date *'}</label>

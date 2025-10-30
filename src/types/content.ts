@@ -38,7 +38,7 @@ export interface Event {
   date: string; // ISO yyyy-mm-dd
   time: string; // e.g., '5:00 PM'
   location: string;
-  description?: Translation;
+  content?: Translation; // Changed from description to content
   thumbnail?: string; // URL to event thumbnail image
   thumbnailPath?: string; // Firebase Storage path
 }

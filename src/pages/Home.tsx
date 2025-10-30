@@ -82,7 +82,7 @@ export default function Home() {
           date: d.date,
           time: d.time,
           location: d.location,
-          description: d.description ? { vi: d.description.vi || '', en: d.description.en || d.description.vi || '' } : undefined,
+          content: d.content ? { vi: d.content.vi || '', en: d.content.en || d.content.vi || '' } : undefined,
           thumbnail: d.thumbnail,
           thumbnailPath: d.thumbnailPath,
         })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -344,9 +344,9 @@ export default function Home() {
                     </div>
                   </div>
                   
-                  {upcomingEvents[0].description && (
+                  {upcomingEvents[0].content && (
                     <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed line-clamp-3">
-                      {upcomingEvents[0].description[language] || upcomingEvents[0].description.vi}
+                      {upcomingEvents[0].content[language] || upcomingEvents[0].content.vi}
                     </p>
                   )}
                   
@@ -405,9 +405,9 @@ export default function Home() {
                         </div>
                       </div>
                       
-                      {event.description && (
+                      {event.content && (
                         <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-2 mb-4">
-                          {event.description[language] || event.description.vi}
+                          {event.content[language] || event.content.vi}
                         </p>
                       )}
                       

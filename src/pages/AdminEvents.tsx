@@ -5,6 +5,7 @@ import type { Event } from '../types/content';
 import { getJson, saveJson } from '../lib/storage';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import RichTextEditor from '../components/RichTextEditor';
 
 const AdminEvents = () => {
   const { language } = useLanguage();
@@ -26,8 +27,8 @@ const AdminEvents = () => {
     date: initialDate,
     time: '5:00 PM', // Initialize with default time
     location: '',
-    descriptionVi: '',
-    descriptionEn: ''
+    contentVi: '',
+    contentEn: ''
   });
   const [editId, setEditId] = useState<string | null>(null);
   const [autoTranslate, setAutoTranslate] = useState(true);
@@ -63,8 +64,8 @@ const AdminEvents = () => {
       result = result.filter(event => 
         event.name.vi.toLowerCase().includes(searchLower) || 
         event.name.en.toLowerCase().includes(searchLower) ||
-        event.description?.vi?.toLowerCase().includes(searchLower) ||
-        event.description?.en?.toLowerCase().includes(searchLower)
+        event.content?.vi?.toLowerCase().includes(searchLower) ||
+        event.content?.en?.toLowerCase().includes(searchLower)
       );
     }
     
@@ -118,7 +119,7 @@ const AdminEvents = () => {
           date: d.date,
           time: d.time,
           location: d.location,
-          description: d.description ? { vi: d.description.vi || '', en: d.description.en || d.description.vi || '' } : undefined,
+          content: d.content ? { vi: d.content.vi || '', en: d.content.en || d.content.vi || '' } : undefined,
           thumbnail: d.thumbnail,
           thumbnailPath: d.thumbnailPath,
         })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -271,9 +272,9 @@ const AdminEvents = () => {
         date: formData.date,
         time: timeNormalized,
         location: formData.location,
-        description: formData.descriptionVi || formData.descriptionEn ? {
-          vi: formData.descriptionVi,
-          en: formData.descriptionEn || formData.descriptionVi
+        content: formData.contentVi || formData.contentEn ? {
+          vi: formData.contentVi,
+          en: formData.contentEn || formData.contentVi
         } : undefined,
         thumbnail: thumbnail || undefined,
         thumbnailPath: thumbnailPath
@@ -320,8 +321,8 @@ const AdminEvents = () => {
       date: event.date,
       time: event.time,
       location: event.location,
-      descriptionVi: event.description?.vi || '',
-      descriptionEn: event.description?.en || ''
+      contentVi: event.content?.vi || '',
+      contentEn: event.content?.en || ''
     });
     setThumbnailFile(null);
     setThumbnailPreview(event.thumbnail || '');
@@ -365,8 +366,8 @@ const AdminEvents = () => {
       date: `${currentYear}-${currentMonth.padStart(2, '0')}-${currentDay.padStart(2, '0')}`,
       time: '5:00 PM',
       location: '',
-      descriptionVi: '',
-      descriptionEn: ''
+      contentVi: '',
+      contentEn: ''
     });
     setTimeComponents({
       hour: '5',
@@ -523,29 +524,23 @@ const AdminEvents = () => {
               )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {language === 'vi' ? 'Mô tả (Tiếng Việt)' : 'Description (Vietnamese)'}
-              </label>
-              <textarea
-                name="descriptionVi"
-                value={formData.descriptionVi}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                rows={3}
+            <div className="md:col-span-2">
+              <RichTextEditor
+                label={language === 'vi' ? 'Nội dung (Tiếng Việt)' : 'Content (Vietnamese)'}
+                value={formData.contentVi}
+                onChange={(value) => setFormData(prev => ({ ...prev, contentVi: value }))}
+                placeholder={language === 'vi' ? 'Nhập nội dung sự kiện...' : 'Enter event content...'}
+                rows={6}
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {language === 'vi' ? 'Mô tả (Tiếng Anh)' : 'Description (English)'}
-              </label>
-              <textarea
-                name="descriptionEn"
-                value={formData.descriptionEn}
-                onChange={handleInputChange}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
-                rows={3}
+            <div className="md:col-span-2">
+              <RichTextEditor
+                label={language === 'vi' ? 'Nội dung (Tiếng Anh)' : 'Content (English)'}
+                value={formData.contentEn}
+                onChange={(value) => setFormData(prev => ({ ...prev, contentEn: value }))}
+                placeholder={language === 'vi' ? 'Nhập nội dung sự kiện...' : 'Enter event content...'}
+                rows={6}
               />
             </div>
           </div>
@@ -739,11 +734,11 @@ const AdminEvents = () => {
                       <div className="text-sm font-semibold text-slate-900 dark:text-white">
                         {event.name.vi}
                       </div>
-                      {event.description?.vi && (
+                      {event.content?.vi && (
                         <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                          {event.description.vi.length > 50 
-                            ? `${event.description.vi.substring(0, 50)}...` 
-                            : event.description.vi}
+                          {event.content.vi.length > 50 
+                            ? `${event.content.vi.substring(0, 50)}...` 
+                            : event.content.vi}
                         </div>
                       )}
                     </td>
@@ -751,11 +746,11 @@ const AdminEvents = () => {
                       <div className="text-sm font-semibold text-slate-900 dark:text-white">
                         {event.name.en}
                       </div>
-                      {event.description?.en && (
+                      {event.content?.en && (
                         <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-                          {event.description.en.length > 50 
-                            ? `${event.description.en.substring(0, 50)}...` 
-                            : event.description.en}
+                          {event.content.en.length > 50 
+                            ? `${event.content.en.substring(0, 50)}...` 
+                            : event.content.en}
                         </div>
                       )}
                     </td>

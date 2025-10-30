@@ -33,7 +33,7 @@ export default function Events() {
           date: d.date,
           time: d.time,
           location: d.location,
-          description: d.description ? { vi: d.description.vi || '', en: d.description.en || d.description.vi || '' } : undefined,
+          content: d.content ? { vi: d.content.vi || '', en: d.content.en || d.content.vi || '' } : undefined,
           thumbnail: d.thumbnail,
           thumbnailPath: d.thumbnailPath,
         })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
@@ -175,9 +175,9 @@ export default function Events() {
                       </div>
                     </div>
 
-                    {upcomingEvents[0].description && (
+                    {upcomingEvents[0].content && (
                       <p className="text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3 mb-4">
-                        {upcomingEvents[0].description[language] || upcomingEvents[0].description.vi}
+                        {upcomingEvents[0].content[language] || upcomingEvents[0].content.vi}
                       </p>
                     )}
 
@@ -331,10 +331,10 @@ export default function Events() {
                               </div>
                             </div>
 
-                            {/* Description */}
-                            {event.description && (
+                            {/* Content */}
+                            {event.content && (
                               <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
-                                {event.description[language] || event.description.vi}
+                                {event.content[language] || event.content.vi}
                               </p>
                             )}
                           </div>
@@ -457,10 +457,10 @@ export default function Events() {
                   <span className="font-medium text-slate-900 dark:text-slate-100">{selectedEvent.location}</span>
                 </div>
               </div>
-              {selectedEvent.description && (
+              {selectedEvent.content && (
                 <div className="prose dark:prose-invert max-w-none">
                   <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed whitespace-pre-wrap">
-                    {selectedEvent.description[language] || selectedEvent.description.vi}
+                    {selectedEvent.content[language] || selectedEvent.content.vi}
                   </p>
                 </div>
               )}

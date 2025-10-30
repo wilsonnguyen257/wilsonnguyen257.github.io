@@ -151,7 +151,10 @@ export default function Navbar() {
         </button>
       </div>
       {open && (
-        <div id="mobile-menu" className="md:hidden border-t border-slate-200 dark:border-slate-800">
+        <div 
+          id="mobile-menu" 
+          className="md:hidden border-t border-slate-200 dark:border-slate-800 animate-in slide-in-from-top duration-200"
+        >
           <div className="container-xl flex flex-col gap-1 py-2">
             {links.map((l) => navItem(l.to, l.key))}
             
@@ -175,14 +178,14 @@ export default function Navbar() {
             <div className="mt-2 space-y-2">
               <button
                 onClick={toggleTheme}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 dark:border-slate-600"
                 aria-label="Toggle theme"
               >
                 {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
               </button>
               <button
                 onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition"
+                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 dark:border-slate-600"
                 aria-label="Toggle language"
               >
                 {language === 'vi' ? '🇺🇸 EN' : '🇻🇳 VI'}
@@ -190,7 +193,7 @@ export default function Navbar() {
               {IS_FIREBASE_CONFIGURED && user && (
                 <button
                   onClick={() => void logout()}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition"
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 dark:border-slate-600"
                 >
                   Sign out
                 </button>

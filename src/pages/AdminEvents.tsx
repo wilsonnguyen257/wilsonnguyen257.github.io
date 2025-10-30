@@ -592,14 +592,16 @@ const AdminEvents = () => {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {language === 'vi' ? 'Ngày *' : 'Date *'}
               </label>
-                <input
-                  type="date"
-                  value={formData.date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                  className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
-                  required
-                />
-              </div>            <div>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+                required
+              />
+            </div>
+            
+            <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 {language === 'vi' ? 'Giờ *' : 'Time *'}
               </label>

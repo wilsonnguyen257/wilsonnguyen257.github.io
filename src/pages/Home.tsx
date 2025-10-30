@@ -222,7 +222,7 @@ export default function Home() {
                   </div>
                 </div>
                 {upcomingEvents[0].description && (
-                  <p className="p-muted mb-4 text-lg">{upcomingEvents[0].description[language] || upcomingEvents[0].description.vi}</p>
+                  <p className="p-muted mb-4 text-lg line-clamp-3">{upcomingEvents[0].description[language] || upcomingEvents[0].description.vi}</p>
                 )}
                 <EventCountdown 
                   eventDate={upcomingEvents[0].date} 
@@ -259,7 +259,7 @@ export default function Home() {
                           </div>
                         </div>
                         {event.description && (
-                          <p className="p-muted mt-2">{event.description[language] || event.description.vi}</p>
+                          <p className="p-muted mt-2 line-clamp-2">{event.description[language] || event.description.vi}</p>
                         )}
                       </div>
                       <Link to="/events" className="btn btn-outline whitespace-nowrap">

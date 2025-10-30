@@ -197,7 +197,7 @@ export default function Events() {
                       </h4>
                       <div className="space-y-2 text-sm mb-3">
                         <div className="flex items-center text-slate-600 dark:text-slate-300">
-                          <span className="mr-2">�</span>
+                          <span className="mr-2">📅</span>
                           <span>{new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
                             weekday: 'long',
                             day: 'numeric',

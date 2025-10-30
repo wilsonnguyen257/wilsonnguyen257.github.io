@@ -328,23 +328,35 @@ const AdminReflections: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-900 py-8 px-4 sm:px-6 lg:px-8 transition-colors">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-2xl md:text-3xl font-bold mb-6 text-gray-900 dark:text-white">{language === 'vi' ? 'Quản lý Bài Suy Niệm' : 'Manage Reflections'}</h1>
         {error && (
-          <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-700 text-red-700 dark:text-red-200 px-4 py-3 rounded mb-4">
-            {error}
+          <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-200 px-6 py-4 rounded-r-lg mb-6 flex items-start gap-3 shadow-md">
+            <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+            </svg>
+            <span>{error}</span>
           </div>
         )}
         {success && (
-          <div className="bg-green-100 dark:bg-green-900/30 border border-green-400 dark:border-green-700 text-green-700 dark:text-green-200 px-4 py-3 rounded mb-4">
-            {success}
+          <div className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 text-green-700 dark:text-green-200 px-6 py-4 rounded-r-lg mb-6 flex items-start gap-3 shadow-md">
+            <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+            </svg>
+            <span>{success}</span>
           </div>
         )}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow p-6 mb-8 border border-gray-200 dark:border-slate-700">
-          <h2 className="text-xl font-semibold mb-4">
-            {editingId ? (language === 'vi' ? 'Chỉnh sửa bài suy niệm' : 'Edit Reflection') : (language === 'vi' ? 'Thêm bài suy niệm mới' : 'Add New Reflection')}
-          </h2>
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-8 border border-slate-200 dark:border-slate-700">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-rose-100 dark:bg-rose-900/30 rounded-lg flex items-center justify-center">
+              <svg className="w-6 h-6 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+              {editingId ? (language === 'vi' ? 'Chỉnh sửa bài suy niệm' : 'Edit Reflection') : (language === 'vi' ? 'Thêm bài suy niệm mới' : 'Add New Reflection')}
+            </h2>
+          </div>
           <form onSubmit={handleSubmit}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
               <div>
@@ -378,13 +390,28 @@ const AdminReflections: React.FC = () => {
                 <input type="text" name="author" value={formData.author} onChange={handleInputChange} className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white" required />
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              {/* Translate buttons removed, auto-translate checkbox is used instead */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
               <button
                 type="submit"
-                className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-brand-600 hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
+                disabled={isLoading}
+                className="inline-flex items-center gap-2 py-2.5 px-6 border border-transparent shadow-lg text-sm font-semibold rounded-lg text-white bg-brand-600 hover:bg-brand-700 transition-all duration-300 hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {editingId ? (language === 'vi' ? 'Lưu thay đổi' : 'Save Changes') : (language === 'vi' ? 'Tạo mới' : 'Create')}
+                {isLoading ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>{language === 'vi' ? 'Đang xử lý...' : 'Processing...'}</span>
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>{editingId ? (language === 'vi' ? 'Lưu thay đổi' : 'Save Changes') : (language === 'vi' ? 'Tạo mới' : 'Create')}</span>
+                  </>
+                )}
               </button>
               {editingId && (
                 <button
@@ -393,20 +420,23 @@ const AdminReflections: React.FC = () => {
                     setEditingId(null);
                     setFormData(defaultFormData);
                   }}
-                  className="text-gray-600 hover:text-gray-800"
+                  className="inline-flex items-center gap-2 py-2.5 px-6 text-sm font-semibold rounded-lg text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all duration-300"
                 >
-                  {language === 'vi' ? 'Hủy' : 'Cancel'}
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  <span>{language === 'vi' ? 'Hủy' : 'Cancel'}</span>
                 </button>
               )}
-              <div className="flex items-center ml-auto">
+              <div className="flex items-center ml-auto bg-slate-50 dark:bg-slate-700/50 rounded-lg px-4 py-2">
                 <input
                   type="checkbox"
                   id="auto-translate"
                   checked={autoTranslate}
                   onChange={(e) => setAutoTranslate(e.target.checked)}
-                  className="mr-2"
+                  className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500 mr-2"
                 />
-                <label htmlFor="auto-translate" className="text-sm text-gray-700 dark:text-gray-300">
+                <label htmlFor="auto-translate" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
                   {language === 'vi' ? 'Tự động dịch sang tiếng Anh' : 'Auto-translate to English'}
                 </label>
               </div>
@@ -415,9 +445,16 @@ const AdminReflections: React.FC = () => {
         </div>
 
         {/* Filters Section - refactored to match AdminEvents */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden mb-6 border border-gray-200 dark:border-slate-700">
-          <div className="p-6 border-b border-gray-200 dark:border-slate-700">
-            <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">{language === 'vi' ? 'Bộ lọc' : 'Filters'}</h2>
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden mb-6 border border-slate-200 dark:border-slate-700">
+          <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">{language === 'vi' ? 'Bộ lọc' : 'Filters'}</h2>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Tìm kiếm' : 'Search'}</label>
@@ -466,82 +503,103 @@ const AdminReflections: React.FC = () => {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-slate-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                className="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 dark:border-slate-600 shadow-sm text-sm font-semibold rounded-lg text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 transition-all duration-300"
               >
-                {language === 'vi' ? 'Xóa tất cả bộ lọc' : 'Clear all filters'}
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span>{language === 'vi' ? 'Xóa tất cả bộ lọc' : 'Clear all filters'}</span>
               </button>
             </div>
           </div>
         </div>
 
         {/* Reflections List - refactored to table style like AdminEvents */}
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden border border-gray-200 dark:border-slate-700">
-          <div className="p-6 border-b border-gray-200 dark:border-slate-700 flex justify-between items-center bg-white dark:bg-slate-800">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {language === 'vi' ? 'Danh sách Bài Suy Niệm' : 'Reflections List'}
-            </h2>
-            <span className="text-sm text-gray-600 dark:text-gray-300">{language === 'vi' ? `Tổng cộng: ${displayedReflections.length} bài` : `Total: ${displayedReflections.length} reflections`}</span>
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden border border-slate-200 dark:border-slate-700">
+          <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                {language === 'vi' ? 'Danh sách Bài Suy Niệm' : 'Reflections List'}
+              </h2>
+            </div>
+            <span className="text-sm font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-3 py-1.5 rounded-full">{language === 'vi' ? `Tổng cộng: ${displayedReflections.length} bài` : `Total: ${displayedReflections.length} reflections`}</span>
           </div>
           {displayedReflections.length === 0 ? (
-            <div className="p-6 text-gray-500 dark:text-gray-400">{language === 'vi' ? 'Không có bài suy niệm nào' : 'No reflections found'}</div>
+            <div className="p-12 text-center">
+              <svg className="w-16 h-16 mx-auto text-slate-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+              <p className="text-slate-500 dark:text-slate-400 font-medium">{language === 'vi' ? 'Không có bài suy niệm nào' : 'No reflections found'}</p>
+            </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 dark:bg-slate-700/30">
+              <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
+                <thead className="bg-slate-50 dark:bg-slate-700/50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{language === 'vi' ? 'Tiêu đề (VI)' : 'Title (VI)'}</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{language === 'vi' ? 'Tiêu đề (EN)' : 'Title (EN)'}</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{language === 'vi' ? 'Ngày' : 'Date'}</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{language === 'vi' ? 'Tác giả' : 'Author'}</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">{language === 'vi' ? 'Hành động' : 'Actions'}</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{language === 'vi' ? 'Tiêu đề (VI)' : 'Title (VI)'}</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{language === 'vi' ? 'Tiêu đề (EN)' : 'Title (EN)'}</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{language === 'vi' ? 'Ngày' : 'Date'}</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{language === 'vi' ? 'Tác giả' : 'Author'}</th>
+                    <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">{language === 'vi' ? 'Hành động' : 'Actions'}</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-slate-800 divide-y divide-gray-200 dark:divide-slate-700">
+                <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
                   {displayedReflections.map((reflection) => (
-                    <tr key={reflection.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
+                    <tr key={reflection.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-semibold text-slate-900 dark:text-white">
                           {reflection.title.vi}
                         </div>
                         {reflection.content.vi && (
-                          <div className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+                          <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                             {reflection.content.vi.length > 50 ? `${reflection.content.vi.substring(0, 50)}...` : reflection.content.vi}
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-white">
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-semibold text-slate-900 dark:text-white">
                           {reflection.title.en}
                         </div>
                         {reflection.content.en && (
-                          <div className="text-sm text-gray-500 dark:text-gray-300 mt-1">
+                          <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                             {reflection.content.en.length > 50 ? `${reflection.content.en.substring(0, 50)}...` : reflection.content.en}
                           </div>
                         )}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900 dark:text-white">
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-slate-900 dark:text-white">
                           {formatDate(reflection.date)}
                         </div>
-                        <div className="text-sm text-gray-500 dark:text-gray-300">
+                        <div className="text-sm text-slate-500 dark:text-slate-400">
                           {language === 'vi' ? 'Cập nhật:' : 'Updated:'} {new Date(reflection.updatedAt).toLocaleString(language === 'vi' ? 'vi-VN' : 'en-AU')}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-300">
+                      <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                         {reflection.author}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-6 py-4 text-right text-sm font-medium">
                         <button
                           onClick={() => handleEdit(reflection)}
-                          className="text-indigo-600 hover:text-indigo-900 mr-4"
+                          className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold mr-4 transition-colors"
                         >
-                          {language === 'vi' ? 'Sửa' : 'Edit'}
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                          <span>{language === 'vi' ? 'Sửa' : 'Edit'}</span>
                         </button>
                         <button
                           onClick={() => handleShowDeleteConfirm(reflection.id)}
-                          className="text-red-600 hover:text-red-900"
+                          className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-semibold transition-colors"
                         >
-                          {language === 'vi' ? 'Xóa' : 'Delete'}
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                          <span>{language === 'vi' ? 'Xóa' : 'Delete'}</span>
                         </button>
                       </td>
                     </tr>
@@ -556,7 +614,7 @@ const AdminReflections: React.FC = () => {
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 p-3 bg-blue-600 text-white rounded-full shadow-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          className="fixed bottom-6 right-6 p-3 bg-brand-600 text-white rounded-full shadow-lg hover:bg-brand-700 transition-all duration-300 hover:shadow-xl hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-500"
           aria-label={language === 'vi' ? 'Lên đầu trang' : 'Scroll to top'}
         >
           <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

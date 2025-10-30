@@ -15,6 +15,10 @@ const AdminEvents = () => {
   const [error, setError] = useState('');
   const [migrating, setMigrating] = useState(false);
   const [migrationResult, setMigrationResult] = useState<string>('');
+  const [showMigrationTool, setShowMigrationTool] = useState(() => {
+    // Check if user has dismissed the migration tool
+    return localStorage.getItem('events-migration-dismissed') !== 'true';
+  });
   
   // Initialize with current date
   const today = new Date();
@@ -464,7 +468,7 @@ const AdminEvents = () => {
       )}
 
       {/* Migration Tool */}
-      {!migrating && !migrationResult && (
+      {showMigrationTool && !migrating && !migrationResult && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 px-6 py-4 rounded-r-lg mb-6 shadow-md">
           <div className="flex items-start gap-3">
             <svg className="w-6 h-6 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
@@ -479,16 +483,28 @@ const AdminEvents = () => {
                   ? 'Nếu sự kiện cũ của bạn không hiển thị nội dung, nhấp vào nút bên dưới để chuyển đổi từ "description" sang "content".'
                   : 'If your old events don\'t show content, click the button below to migrate from "description" to "content" field.'}
               </p>
-              <button
-                type="button"
-                onClick={migrateDescriptionToContent}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                {language === 'vi' ? 'Chuyển đổi dữ liệu' : 'Migrate Data'}
-              </button>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={migrateDescriptionToContent}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                  {language === 'vi' ? 'Chuyển đổi dữ liệu' : 'Migrate Data'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.setItem('events-migration-dismissed', 'true');
+                    setShowMigrationTool(false);
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg font-medium transition-colors"
+                >
+                  {language === 'vi' ? 'Đóng' : 'Dismiss'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

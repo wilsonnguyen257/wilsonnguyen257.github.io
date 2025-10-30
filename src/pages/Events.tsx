@@ -101,7 +101,7 @@ export default function Events() {
                 </div>
               </div>
               {upcomingEvents[0].description && (
-                <p className="mt-4 p-muted text-lg">{upcomingEvents[0].description[language] || upcomingEvents[0].description.vi}</p>
+                <p className="mt-4 p-muted text-lg line-clamp-3">{upcomingEvents[0].description[language] || upcomingEvents[0].description.vi}</p>
               )}
               <EventCountdown 
                 eventDate={upcomingEvents[0].date} 
@@ -262,6 +262,14 @@ export default function Events() {
                   </svg>
                 </button>
               )}
+              {new Date(selectedEvent.date) >= now && (
+                <div className="mb-6">
+                  <EventCountdown 
+                    eventDate={selectedEvent.date} 
+                    eventTime={selectedEvent.time.replace(' PM', ':00')}
+                  />
+                </div>
+              )}
               <div className="mb-4">
                 {new Date(selectedEvent.date) >= now ? (
                   <span className="inline-block bg-brand-100 text-brand-700 rounded-full px-3 py-1 text-sm font-medium dark:bg-brand-900 dark:text-brand-100">
@@ -304,14 +312,6 @@ export default function Events() {
                   <p className="text-slate-600 dark:text-slate-300 text-lg leading-relaxed whitespace-pre-wrap">
                     {selectedEvent.description[language] || selectedEvent.description.vi}
                   </p>
-                </div>
-              )}
-              {new Date(selectedEvent.date) >= now && (
-                <div className="mt-8">
-                  <EventCountdown 
-                    eventDate={selectedEvent.date} 
-                    eventTime={selectedEvent.time.replace(' PM', ':00')}
-                  />
                 </div>
               )}
             </div>

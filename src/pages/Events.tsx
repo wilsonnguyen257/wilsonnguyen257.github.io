@@ -74,6 +74,11 @@ export default function Events() {
                   src={upcomingEvents[0].thumbnail} 
                   alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
                   className="w-full h-64 object-cover rounded-xl mb-6 group-hover:scale-[1.02] transition-transform duration-300"
+                  loading="lazy"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = 'none';
+                  }}
                 />
               )}
               <div className="inline-block bg-brand-100 text-brand-700 rounded-full px-4 py-1 text-sm font-medium dark:bg-brand-900 dark:text-brand-100">
@@ -146,7 +151,7 @@ export default function Events() {
                   {monthEvents.map((event) => (
                     <div 
                       key={event.id} 
-                      className="card hover:shadow-lg transition-all cursor-pointer group"
+                      className="card hover:shadow-lg transition-all cursor-pointer group relative"
                       onClick={() => setSelectedEvent(event)}
                     >
                       {event.thumbnail && (
@@ -155,6 +160,11 @@ export default function Events() {
                             src={event.thumbnail} 
                             alt={event.name[language] || event.name.vi}
                             className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300"
+                            loading="lazy"
+                            onError={(e) => {
+                              const target = e.target as HTMLImageElement;
+                              target.parentElement!.style.display = 'none';
+                            }}
                           />
                           <div className="absolute top-3 right-3">
                             {new Date(event.date) >= now ? (
@@ -244,6 +254,11 @@ export default function Events() {
                   src={selectedEvent.thumbnail} 
                   alt={selectedEvent.name[language] || selectedEvent.name.vi}
                   className="w-full h-full object-cover"
+                  loading="eager"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.parentElement!.style.display = 'none';
+                  }}
                 />
                 <button
                   onClick={() => setSelectedEvent(null)}

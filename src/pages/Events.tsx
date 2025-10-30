@@ -111,7 +111,7 @@ export default function Events() {
                 eventTime={upcomingEvents[0].time.replace(' PM', ':00')}
               />
               <div className="mt-4 text-brand-600 dark:text-brand-400 text-sm font-medium flex items-center group-hover:translate-x-1 transition-transform">
-                {t('events.view_details') || 'View Details'} →
+                {t('events.view_details')} →
               </div>
             </div>
           </div>
@@ -209,7 +209,7 @@ export default function Events() {
                         </p>
                       )}
                       <div className="mt-4 text-brand-600 dark:text-brand-400 text-sm font-medium flex items-center group-hover:translate-x-1 transition-transform">
-                        {t('events.view_details') || 'View Details'} →
+                        {t('events.view_details')} →
                       </div>
                     </div>
                   ))}

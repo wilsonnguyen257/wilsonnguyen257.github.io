@@ -62,6 +62,7 @@ const translations = {
     'events.all': 'Tất cả sự kiện',
     'events.next_event': 'Sự Kiện Sắp Diễn Ra',
     'events.latest_event': 'Sự kiện gần nhất',
+    'events.view_details': 'Xem thêm...',
     'events.no_upcoming': 'Không có sự kiện sắp tới.',
     'events.no_events': 'Chưa có sự kiện nào được tạo.',
     
@@ -272,6 +273,7 @@ const translations = {
     'events.all': 'All Events',
     'events.next_event': 'Upcoming Events',
     'events.latest_event': 'Next event',
+    'events.view_details': 'Read more...',
     'events.no_upcoming': 'No upcoming events.',
     'events.no_events': 'No events have been created yet.',
     

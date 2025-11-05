@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { createMelbourneEventDate } from '../lib/timezone';
 
 type CountdownProps = {
   eventDate: string;
@@ -17,21 +18,24 @@ export default function EventCountdown({ eventDate, eventTime }: CountdownProps)
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const [hours, minutes] = eventTime.split(':').map(num => parseInt(num));
-      const eventDateTime = new Date(eventDate);
-      eventDateTime.setHours(hours, minutes, 0);
-      
-      const now = new Date();
-      const difference = eventDateTime.getTime() - now.getTime();
-      
-      if (difference > 0) {
-        setTimeLeft({
-          days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          minutes: Math.floor((difference / 1000 / 60) % 60),
-          seconds: Math.floor((difference / 1000) % 60)
-        });
-      } else {
+      try {
+        // Use Melbourne timezone utilities to create proper event date
+        const eventDateTime = createMelbourneEventDate(eventDate, eventTime);
+        const now = new Date();
+        const difference = eventDateTime.getTime() - now.getTime();
+        
+        if (difference > 0) {
+          setTimeLeft({
+            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+            hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+            minutes: Math.floor((difference / 1000 / 60) % 60),
+            seconds: Math.floor((difference / 1000) % 60)
+          });
+        } else {
+          setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
+        }
+      } catch (error) {
+        console.error('Error calculating event countdown:', error);
         setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 });
       }
     };

@@ -3,6 +3,7 @@ import type { Event } from "../types/content";
 import { subscribeJson } from "../lib/storage";
 import EventCountdown from "../components/EventCountdown";
 import { useLanguage } from "../contexts/LanguageContext";
+import { hasEventPassed } from "../lib/timezone";
 
 function groupEventsByMonth(events: Event[], language: string): Record<string, Event[]> {
   return events.reduce((groups: Record<string, Event[]>, event) => {
@@ -51,7 +52,16 @@ export default function Events() {
   }, []);
 
   const now = new Date();
-  const upcomingEvents = events.filter(e => new Date(e.date) >= now);
+  const upcomingEvents = events.filter(e => {
+    try {
+      // Use Melbourne timezone to check if event has passed
+      return !hasEventPassed(e.date, e.time || '11:59 PM');
+    } catch (error) {
+      console.error('Error filtering upcoming events:', error);
+      // Fallback to date-only comparison
+      return new Date(e.date) >= now;
+    }
+  });
   const displayEvents = activeTab === 'upcoming' ? upcomingEvents : events;
   const groupedEvents = groupEventsByMonth(displayEvents, language);
 
@@ -107,7 +117,7 @@ export default function Events() {
                 <div className="mb-6">
                   <EventCountdown 
                     eventDate={upcomingEvents[0].date} 
-                    eventTime={upcomingEvents[0].time.replace(' PM', ':00')}
+                    eventTime={upcomingEvents[0].time}
                   />
                 </div>
 
@@ -270,7 +280,7 @@ export default function Events() {
                             />
                             {/* Status Badge on Image */}
                             <div className="absolute top-3 right-3">
-                              {new Date(event.date) >= now ? (
+                              {!hasEventPassed(event.date, event.time || '11:59 PM') ? (
                                 <div className="bg-green-500 text-white rounded-lg px-3 py-1.5 text-xs font-bold shadow-lg backdrop-blur-sm">
                                   {t('events.upcoming')}
                                 </div>
@@ -291,7 +301,7 @@ export default function Events() {
                             {/* Status Badge (for no thumbnail) */}
                             {!event.thumbnail && (
                               <div className="mb-3">
-                                {new Date(event.date) >= now ? (
+                                {!hasEventPassed(event.date, event.time || '11:59 PM') ? (
                                   <span className="inline-block bg-green-100 text-green-700 rounded-lg px-3 py-1 text-xs font-bold dark:bg-green-900 dark:text-green-100">
                                     {t('events.upcoming')}
                                   </span>
@@ -419,16 +429,16 @@ export default function Events() {
                   </svg>
                 </button>
               )}
-              {new Date(selectedEvent.date) >= now && (
+              {!hasEventPassed(selectedEvent.date, selectedEvent.time || '11:59 PM') && (
                 <div className="mb-6">
                   <EventCountdown 
                     eventDate={selectedEvent.date} 
-                    eventTime={selectedEvent.time.replace(' PM', ':00')}
+                    eventTime={selectedEvent.time}
                   />
                 </div>
               )}
               <div className="mb-4">
-                {new Date(selectedEvent.date) >= now ? (
+                {!hasEventPassed(selectedEvent.date, selectedEvent.time || '11:59 PM') ? (
                   <span className="inline-block bg-brand-100 text-brand-700 rounded-full px-3 py-1 text-sm font-medium dark:bg-brand-900 dark:text-brand-100">
                     {t('events.upcoming')}
                   </span>

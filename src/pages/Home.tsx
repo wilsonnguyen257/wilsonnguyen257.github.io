@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import EventCountdown from '../components/EventCountdown';
 import { useLanguage } from '../contexts/LanguageContext';
 import { subscribeJson } from '../lib/storage';
+import { hasEventPassed } from '../lib/timezone';
 
 type Reflection = { 
   title: {
@@ -29,34 +30,11 @@ const stripHtml = (html: string): string => {
 
 export default function Home() {
   const { t, language } = useLanguage();
-  // Helpers to parse/compare dates
-  const parseEventStart = (dateISO: string, timeStr: string) => {
-    // timeStr like '5:00 PM' or '10:30 AM'
-    const match = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
-    let hours = 0, minutes = 0;
-    if (match) {
-      hours = parseInt(match[1], 10);
-      minutes = parseInt(match[2], 10);
-      const meridiem = match[3].toUpperCase();
-      if (meridiem === 'PM' && hours !== 12) hours += 12;
-      if (meridiem === 'AM' && hours === 12) hours = 0;
-    }
-    const d = new Date(dateISO);
-    d.setHours(hours, minutes, 0, 0);
-    return d;
-  };
-
-  const endOfEventDay = (dateISO: string) => {
-    const d = new Date(dateISO);
-    d.setHours(23, 59, 59, 999);
-    return d;
-  };
 
   const [events, setEvents] = useState<Event[]>([]);
-  const now = new Date();
 
-  // Find index of the current event: first event whose day hasn't ended yet
-  const currentIndex = events.findIndex(ev => now.getTime() <= endOfEventDay(ev.date).getTime());
+  // Find index of the current event: first event that hasn't passed yet (using Melbourne timezone)
+  const currentIndex = events.findIndex(ev => !hasEventPassed(ev.date, ev.time || '11:59 PM'));
   const startIndex = currentIndex === -1 ? events.length : currentIndex;
   const upcomingEvents = events.slice(startIndex, startIndex + 3);
   const [latestReflections, setLatestReflections] = useState<Reflection[]>([]);
@@ -359,7 +337,7 @@ export default function Home() {
                   
                   <EventCountdown 
                     eventDate={upcomingEvents[0].date} 
-                    eventTime={`${String(parseEventStart(upcomingEvents[0].date, upcomingEvents[0].time).getHours()).padStart(2, '0')}:${String(parseEventStart(upcomingEvents[0].date, upcomingEvents[0].time).getMinutes()).padStart(2, '0')}`}
+                    eventTime={upcomingEvents[0].time}
                   />
                 </div>
               </div>

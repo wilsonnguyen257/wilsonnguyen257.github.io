@@ -5,6 +5,8 @@ import EventCountdown from '../components/EventCountdown';
 import { useLanguage } from '../contexts/LanguageContext';
 import { subscribeJson } from '../lib/storage';
 import { hasEventPassed } from '../lib/timezone';
+import { db } from '../lib/firebase';
+import { doc, onSnapshot } from 'firebase/firestore';
 
 type Reflection = { 
   title: {
@@ -28,16 +30,150 @@ const stripHtml = (html: string): string => {
   return tmp.textContent || tmp.innerText || '';
 };
 
+// Background pattern types
+export type BackgroundPattern = 'dots' | 'grid' | 'diagonal' | 'waves' | 'crosses' | 'none';
+
+// Extend Window interface for global function
+declare global {
+  interface Window {
+    changeHeroBackground?: (pattern: BackgroundPattern) => void;
+  }
+}
+
+/**
+ * Get background pattern style for the hero section
+ * @param pattern - The pattern type to use
+ * @returns Style object for the background pattern
+ */
+function getBackgroundPatternStyle(pattern: BackgroundPattern): React.CSSProperties {
+  switch (pattern) {
+    case 'dots':
+      return {
+        backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+        backgroundSize: '40px 40px'
+      };
+    case 'grid':
+      return {
+        backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
+        backgroundSize: '50px 50px'
+      };
+    case 'diagonal':
+      return {
+        backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, white 35px, white 37px)',
+        backgroundSize: '100% 100%'
+      };
+    case 'waves':
+      return {
+        backgroundImage: 'radial-gradient(circle at 100% 50%, transparent 20%, white 21%, white 22%, transparent 22%, transparent), radial-gradient(circle at 0% 50%, transparent 20%, white 21%, white 22%, transparent 22%, transparent)',
+        backgroundSize: '80px 80px',
+        backgroundPosition: '0 0, 40px 40px'
+      };
+    case 'crosses':
+      return {
+        backgroundImage: 'linear-gradient(white 2px, transparent 2px), linear-gradient(90deg, white 2px, transparent 2px)',
+        backgroundSize: '20px 20px',
+        backgroundPosition: 'center center'
+      };
+    case 'none':
+      return {};
+    default:
+      return {
+        backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
+        backgroundSize: '40px 40px'
+      };
+  }
+}
+
 export default function Home() {
   const { t, language } = useLanguage();
 
   const [events, setEvents] = useState<Event[]>([]);
+  
+  // State to control the hero background pattern (can be changed dynamically)
+  const [heroBackgroundPattern, setHeroBackgroundPattern] = useState<BackgroundPattern>('dots');
+  const [heroBackgroundImage, setHeroBackgroundImage] = useState<string>('');
+
+  // Load saved pattern and image from Firestore with real-time updates
+  useEffect(() => {
+    if (!db) {
+      // Fallback to localStorage if Firebase not configured
+      const savedPattern = localStorage.getItem('heroBackgroundPattern') as BackgroundPattern;
+      const savedImageUrl = localStorage.getItem('heroBackgroundImageUrl');
+      if (savedPattern) setHeroBackgroundPattern(savedPattern);
+      if (savedImageUrl) setHeroBackgroundImage(savedImageUrl);
+      return;
+    }
+
+    // Subscribe to real-time updates from Firestore
+    const settingsRef = doc(db, 'site-settings', 'homepage');
+    const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.heroBackgroundPattern) {
+          setHeroBackgroundPattern(data.heroBackgroundPattern);
+          localStorage.setItem('heroBackgroundPattern', data.heroBackgroundPattern);
+        }
+        if (data.heroBackgroundImageUrl) {
+          setHeroBackgroundImage(data.heroBackgroundImageUrl);
+          localStorage.setItem('heroBackgroundImageUrl', data.heroBackgroundImageUrl);
+        } else {
+          setHeroBackgroundImage('');
+          localStorage.removeItem('heroBackgroundImageUrl');
+        }
+      } else {
+        // No settings in Firestore, try localStorage
+        const savedPattern = localStorage.getItem('heroBackgroundPattern') as BackgroundPattern;
+        const savedImageUrl = localStorage.getItem('heroBackgroundImageUrl');
+        if (savedPattern) setHeroBackgroundPattern(savedPattern);
+        if (savedImageUrl) setHeroBackgroundImage(savedImageUrl);
+      }
+    }, (error) => {
+      console.error('Error loading settings:', error);
+      // Fallback to localStorage on error
+      const savedPattern = localStorage.getItem('heroBackgroundPattern') as BackgroundPattern;
+      const savedImageUrl = localStorage.getItem('heroBackgroundImageUrl');
+      if (savedPattern) setHeroBackgroundPattern(savedPattern);
+      if (savedImageUrl) setHeroBackgroundImage(savedImageUrl);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Find index of the current event: first event that hasn't passed yet (using Melbourne timezone)
   const currentIndex = events.findIndex(ev => !hasEventPassed(ev.date, ev.time || '11:59 PM'));
   const startIndex = currentIndex === -1 ? events.length : currentIndex;
   const upcomingEvents = events.slice(startIndex, startIndex + 3);
   const [latestReflections, setLatestReflections] = useState<Reflection[]>([]);
+  
+  // Function to change the hero background pattern
+  const changeHeroBackground = (pattern: BackgroundPattern) => {
+    setHeroBackgroundPattern(pattern);
+  };
+
+  // Make changeHeroBackground function available globally for easy access
+  useEffect(() => {
+    // Expose function to window object for console access
+    window.changeHeroBackground = changeHeroBackground;
+    
+    // Log usage instructions to console for developers
+    console.log(
+      '%c🎨 Homepage Background Pattern Changer',
+      'font-size: 16px; font-weight: bold; color: #4f46e5;'
+    );
+    console.log(
+      '%cAvailable patterns: dots, grid, diagonal, waves, crosses, none',
+      'font-size: 12px; color: #6b7280;'
+    );
+    console.log(
+      '%cUsage: window.changeHeroBackground("grid")',
+      'font-size: 12px; color: #059669; font-family: monospace;'
+    );
+    
+    return () => {
+      // Cleanup on unmount
+      delete window.changeHeroBackground;
+    };
+  }, []);
 
   useEffect(() => {
     // Live reflections
@@ -83,12 +219,20 @@ export default function Home() {
     <>
       {/* Hero - Modern Gradient Design */}
       <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-20 md:py-24 overflow-hidden">
+        {/* Custom Background Image (if set) */}
+        {heroBackgroundImage && (
+          <div className="absolute inset-0">
+            <img 
+              src={heroBackgroundImage} 
+              alt="Hero background" 
+              className="w-full h-full object-cover opacity-30"
+            />
+          </div>
+        )}
+        
         {/* Background Pattern */}
         <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-            backgroundSize: '40px 40px'
-          }}></div>
+          <div className="absolute inset-0" style={getBackgroundPatternStyle(heroBackgroundPattern)}></div>
         </div>
         
         <div className="container-xl relative z-10">

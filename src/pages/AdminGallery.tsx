@@ -3,10 +3,12 @@ import { getJson, saveJson } from '../lib/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { useLanguage } from '../contexts/LanguageContext';
 
 type GalleryItem = { id: string; url: string; name: string; created: number; path?: string };
 
 export default function AdminGallery() {
+  const { t } = useLanguage();
   const [images, setImages] = useState<GalleryItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
@@ -24,7 +26,7 @@ export default function AdminGallery() {
         const items = await getJson<GalleryItem[]>('gallery');
         if (active) setImages(items || []);
       } catch {
-        setError('Failed to load gallery images');
+        setError(t('admin.gallery.error_load'));
       } finally {
         if (active) setUploading(false);
       }
@@ -67,7 +69,7 @@ export default function AdminGallery() {
       setImages(updated);
       setFile(null);
     } catch (err) {
-      setError('Failed to upload image. Please try again.');
+      setError(t('admin.gallery.error_upload'));
       console.error('Upload error:', err);
     } finally {
       setUploading(false);
@@ -103,13 +105,13 @@ export default function AdminGallery() {
       setImages(updated);
       cancelEdit();
     } catch (err) {
-      setError('Failed to update image');
+      setError(t('admin.gallery.error_update'));
       console.error('Update error:', err);
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (!window.confirm('Delete this image and remove from gallery?')) return;
+    if (!window.confirm(t('admin.gallery.confirm_delete'))) return;
     setError(null);
     try {
       const image = images.find(i => i.id === id);
@@ -126,7 +128,7 @@ export default function AdminGallery() {
       await saveJson('gallery', updated);
       setImages(updated);
     } catch (err) {
-      setError('Failed to delete image');
+      setError(t('admin.gallery.error_delete'));
       console.error('Delete error:', err);
     }
   };
@@ -151,22 +153,36 @@ export default function AdminGallery() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Upload New Image</h2>
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{t('admin.gallery.upload_new')}</h2>
           </div>
           <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 flex items-start gap-2">
             <svg className="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
             </svg>
-            <span>{IS_FIREBASE_CONFIGURED ? 'Images are uploaded to Firebase Storage and indexed for display.' : 'Firebase not configured — images are stored as data URLs locally for preview only.'}</span>
+            <span>{IS_FIREBASE_CONFIGURED ? t('admin.gallery.firebase_desc') : t('admin.gallery.no_firebase')}</span>
           </p>
           <div className="flex flex-col md:flex-row gap-4">
-            <input
-              type="file"
-              onChange={handleFileChange}
-              accept="image/*"
-              className="flex-1 p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 dark:file:bg-brand-900/30 dark:file:text-brand-400"
-              disabled={uploading}
-            />
+            <div className="flex-1 relative">
+              <input
+                id="file-upload"
+                type="file"
+                onChange={handleFileChange}
+                accept="image/*"
+                className="hidden"
+                disabled={uploading}
+              />
+              <label
+                htmlFor="file-upload"
+                className="flex items-center gap-3 p-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 cursor-pointer hover:border-brand-500 dark:hover:border-brand-500 transition-colors"
+              >
+                <span className="px-4 py-2 rounded-lg border-0 text-sm font-semibold bg-brand-50 text-brand-700 hover:bg-brand-100 dark:bg-brand-900/30 dark:text-brand-400 transition-colors">
+                  {t('admin.gallery.choose_file')}
+                </span>
+                <span className="flex-1 text-sm truncate">
+                  {file ? file.name : t('admin.gallery.no_file')}
+                </span>
+              </label>
+            </div>
             <button
               onClick={handleUpload}
               disabled={!file || uploading}
@@ -178,14 +194,14 @@ export default function AdminGallery() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <span>Uploading...</span>
+                  <span>{t('admin.gallery.uploading')}</span>
                 </>
               ) : (
                 <>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  <span>Upload</span>
+                  <span>{t('admin.gallery.upload_button')}</span>
                 </>
               )}
             </button>
@@ -197,7 +213,7 @@ export default function AdminGallery() {
             <svg className="w-20 h-20 mx-auto text-slate-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">No images in the gallery yet. Upload some images to get started.</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">{t('admin.gallery.no_images')}</p>
           </div>
         ) : (
           <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
@@ -221,7 +237,7 @@ export default function AdminGallery() {
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
                         className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg text-sm dark:bg-slate-700 dark:text-white focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-                        placeholder="Image name"
+                        placeholder={t('admin.gallery.name')}
                       />
                       <input
                         type="date"
@@ -237,7 +253,7 @@ export default function AdminGallery() {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                           </svg>
-                          <span>Save</span>
+                          <span>{t('admin.gallery.save')}</span>
                         </button>
                         <button
                           onClick={cancelEdit}
@@ -246,7 +262,7 @@ export default function AdminGallery() {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                           </svg>
-                          <span>Cancel</span>
+                          <span>{t('admin.gallery.cancel')}</span>
                         </button>
                       </div>
                     </div>
@@ -270,7 +286,7 @@ export default function AdminGallery() {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
-                          <span>Edit</span>
+                          <span>{t('admin.gallery.edit')}</span>
                         </button>
                         <button
                           onClick={() => handleDelete(img.id)}
@@ -280,7 +296,7 @@ export default function AdminGallery() {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
-                          <span>Delete</span>
+                          <span>{t('admin.gallery.delete')}</span>
                         </button>
                       </div>
                     </>

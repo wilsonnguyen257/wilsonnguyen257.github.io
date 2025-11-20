@@ -178,6 +178,7 @@ const translations = {
     
     // Contact
     'contact.title': 'Liên hệ',
+    'contact.get_in_touch': 'Liên Hệ Ngay',
     'contact.description': 'Nếu bạn có câu hỏi hoặc cần hỗ trợ, hãy liên hệ với chúng tôi qua các thông tin dưới đây hoặc đến tham dự Thánh Lễ vào Chủ Nhật hàng tuần.',
     'contact.address': 'Địa chỉ',
     'contact.address_value': '17 Stevens Rd, Vermont VIC 3133',
@@ -479,6 +480,7 @@ const translations = {
     
     // Contact
     'contact.title': 'Contact',
+    'contact.get_in_touch': 'Get in Touch',
     'contact.description': 'If you have questions or need support, please contact us through the information below or attend Sunday Mass weekly.',
     'contact.address': 'Address',
     'contact.address_value': '17 Stevens Rd, Vermont VIC 3133',

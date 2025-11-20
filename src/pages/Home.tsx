@@ -218,7 +218,7 @@ export default function Home() {
   return (
     <>
       {/* Hero - Modern Gradient Design */}
-      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-20 md:py-24 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-24 md:py-32 overflow-hidden">
         {/* Custom Background Image (if set) */}
         {heroBackgroundImage && (
           <div className="absolute inset-0">
@@ -236,41 +236,47 @@ export default function Home() {
         </div>
         
         <div className="container-xl relative z-10">
-          <div className="grid items-center gap-12 lg:grid-cols-2">
+          <div className="grid items-center gap-16 lg:grid-cols-2">
             {/* Content */}
-            <div className="text-white">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-6">
+            <div className="text-white animate-fadeIn">
+              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-100">
                 {t('home.title')}
               </h1>
-              <p className="text-lg md:text-xl text-brand-100 mb-4 leading-relaxed">
+              <p className="text-xl md:text-2xl text-brand-100 mb-5 leading-relaxed font-medium">
                 {t('home.subtitle')}
               </p>
-              <p className="text-base text-brand-200 mb-6">
+              <p className="text-base md:text-lg text-brand-200 mb-8">
                 {t('home.description')}
               </p>
-              <div className="flex items-center gap-3 mb-8 p-4 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20">
-                <span className="text-2xl">⛪</span>
+              <div className="flex items-center gap-4 mb-10 p-5 bg-white/10 backdrop-blur-md rounded-2xl border-2 border-white/20 hover:bg-white/15 transition-all duration-300 shadow-2xl">
+                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
+                  <span className="text-3xl">⛪</span>
+                </div>
                 <div>
-                  <p className="font-semibold text-brand-100">{t('home.mass')}</p>
-                  <p className="text-brand-200">{t('home.mass_time')}</p>
+                  <p className="font-bold text-white text-lg">{t('home.mass')}</p>
+                  <p className="text-brand-100 font-medium">{t('home.mass_time')}</p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-4">
-                <Link to="/about" className="px-6 py-3 bg-white text-brand-700 font-semibold rounded-xl hover:bg-brand-50 transition-colors shadow-lg">
+                <Link to="/about" className="px-8 py-4 bg-white text-brand-700 font-bold rounded-2xl hover:bg-brand-50 hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-white/30 inline-flex items-center gap-2">
                   {t('home.learn_more')}
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                  </svg>
                 </Link>
-                <Link to="/contact" className="px-6 py-3 bg-transparent text-white font-semibold rounded-xl border-2 border-white hover:bg-white/10 transition-colors">
+                <Link to="/contact" className="px-8 py-4 bg-transparent text-white font-bold rounded-2xl border-2 border-white hover:bg-white/15 hover:scale-105 transition-all duration-300 shadow-xl">
                   {t('home.contact_us')}
                 </Link>
               </div>
             </div>
 
             {/* Map Card */}
-            <div className="relative">
-              <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div className="relative animate-slideInRight">
+              <div className="absolute -inset-4 bg-gradient-to-r from-brand-400 to-brand-600 rounded-3xl blur-2xl opacity-20"></div>
+              <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border-2 border-white/50 dark:border-slate-700 hover:scale-105 transition-transform duration-500">
                 <iframe 
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.9741339657257!2d145.19334571531906!3d-37.83350797974801!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad63bfb7b1e1b75%3A0x27d1a68aa5308e0!2s17%20Stevens%20Rd%2C%20Vermont%20VIC%203133!5e0!3m2!1sen!2sau!4v1629185943012!5m2!1sen!2sau"
-                  className="w-full h-80"
+                  className="w-full h-96"
                   style={{ border: 0 }}
                   loading="lazy"
                   referrerPolicy="no-referrer-when-downgrade"
@@ -282,24 +288,30 @@ export default function Home() {
       </section>
 
       {/* Welcome Message - Elevated Cards */}
-      <section className="py-20 bg-white dark:bg-slate-900">
+      <section className="py-24 bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-800">
         <div className="container-xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+          <div className="text-center mb-16 animate-fadeIn">
+            <div className="inline-flex items-center gap-2 bg-brand-100 dark:bg-brand-900/30 rounded-full px-5 py-2.5 mb-6">
+              <svg className="w-5 h-5 text-brand-600 dark:text-brand-400" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+              </svg>
+              <span className="font-bold text-brand-700 dark:text-brand-300">Welcome</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-5">
               {t('home.welcome_title')}
             </h2>
           </div>
           <div className="grid gap-8 md:grid-cols-3">
             {[
-              { icon: '🙏', title: t('home.faith_title'), desc: t('home.faith_desc'), color: 'from-blue-500 to-blue-600' },
-              { icon: '❤️', title: t('home.community_title'), desc: t('home.community_desc'), color: 'from-red-500 to-red-600' },
-              { icon: '✨', title: t('home.service_title'), desc: t('home.service_desc'), color: 'from-amber-500 to-amber-600' }
+              { icon: '🙏', title: t('home.faith_title'), desc: t('home.faith_desc'), color: 'from-blue-500 to-blue-600', delay: 'delay-100' },
+              { icon: '❤️', title: t('home.community_title'), desc: t('home.community_desc'), color: 'from-red-500 to-red-600', delay: 'delay-200' },
+              { icon: '✨', title: t('home.service_title'), desc: t('home.service_desc'), color: 'from-amber-500 to-amber-600', delay: 'delay-300' }
             ].map((item, idx) => (
-              <div key={idx} className="group relative bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border border-slate-200 dark:border-slate-700">
-                <div className={`absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r ${item.color} rounded-t-2xl`}></div>
-                <div className="text-5xl mb-6 group-hover:scale-110 transition-transform duration-300">{item.icon}</div>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">{item.title}</h3>
-                <p className="text-slate-600 dark:text-slate-300 leading-relaxed">{item.desc}</p>
+              <div key={idx} className={`group relative bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border-2 border-slate-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-600 hover:-translate-y-2 animate-scaleIn ${item.delay}`}>
+                <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${item.color} rounded-t-3xl`}></div>
+                <div className="text-6xl mb-6 group-hover:scale-125 transition-transform duration-500 inline-block">{item.icon}</div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{item.title}</h3>
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -307,65 +319,71 @@ export default function Home() {
       </section>
 
       {/* Mass Times & Location - Modern Information Cards */}
-      <section className="py-20 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-900">
+      <section className="py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800">
         <div className="container-xl">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+          <div className="text-center mb-16 animate-fadeIn">
+            <div className="inline-flex items-center gap-2 bg-brand-100 dark:bg-brand-900/30 rounded-full px-5 py-2.5 mb-6">
+              <svg className="w-5 h-5 text-brand-600 dark:text-brand-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
+              </svg>
+              <span className="font-bold text-brand-700 dark:text-brand-300">Schedule</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-5">
               {t('home.mass_schedule_title')}
             </h2>
           </div>
-          <div className="grid gap-8 lg:grid-cols-2 max-w-5xl mx-auto">
+          <div className="grid gap-8 lg:grid-cols-2 max-w-6xl mx-auto">
             {/* Mass Times */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-brand-100 dark:bg-brand-900 rounded-xl">
-                  <span className="text-2xl">📅</span>
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-10 shadow-2xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-600 transition-all duration-300 hover:-translate-y-1 animate-slideInLeft">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-4 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl shadow-lg">
+                  <span className="text-3xl">📅</span>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{t('home.mass_schedule_subtitle')}</h3>
+                <h3 className="text-3xl font-bold text-slate-900 dark:text-white">{t('home.mass_schedule_subtitle')}</h3>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                  <span className="text-xl">⛪</span>
+              <div className="space-y-5">
+                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30 rounded-2xl hover:scale-105 transition-transform">
+                  <span className="text-2xl">⛪</span>
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">{t('home.sunday')}</p>
-                    <p className="text-slate-600 dark:text-slate-300">{t('home.sunday_time')}</p>
+                    <p className="font-bold text-lg text-slate-900 dark:text-white">{t('home.sunday')}</p>
+                    <p className="text-slate-600 dark:text-slate-300 font-medium">{t('home.sunday_time')}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                  <span className="text-xl">🎉</span>
+                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30 rounded-2xl hover:scale-105 transition-transform">
+                  <span className="text-2xl">🎉</span>
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">{t('home.special_days')}</p>
-                    <p className="text-slate-600 dark:text-slate-300">{t('home.special_days_desc')}</p>
+                    <p className="font-bold text-lg text-slate-900 dark:text-white">{t('home.special_days')}</p>
+                    <p className="text-slate-600 dark:text-slate-300 font-medium">{t('home.special_days_desc')}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                  <span className="text-xl">🙏</span>
+                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30 rounded-2xl hover:scale-105 transition-transform">
+                  <span className="text-2xl">🙏</span>
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">{t('home.confession')}</p>
-                    <p className="text-slate-600 dark:text-slate-300">{t('home.confession_time')}</p>
+                    <p className="font-bold text-lg text-slate-900 dark:text-white">{t('home.confession')}</p>
+                    <p className="text-slate-600 dark:text-slate-300 font-medium">{t('home.confession_time')}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Contact Info */}
-            <div className="bg-white dark:bg-slate-800 rounded-2xl p-8 shadow-lg border border-slate-200 dark:border-slate-700">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="p-3 bg-brand-100 dark:bg-brand-900 rounded-xl">
-                  <span className="text-2xl">📍</span>
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-10 shadow-2xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-600 transition-all duration-300 hover:-translate-y-1 animate-slideInRight">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="p-4 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl shadow-lg">
+                  <span className="text-3xl">📍</span>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{t('home.info_title')}</h3>
+                <h3 className="text-3xl font-bold text-slate-900 dark:text-white">{t('home.info_title')}</h3>
               </div>
-              <div className="space-y-4">
-                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                  <span className="text-xl">🏠</span>
+              <div className="space-y-5">
+                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30 rounded-2xl hover:scale-105 transition-transform">
+                  <span className="text-2xl">🏠</span>
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">{t('home.address_label')}</p>
-                    <p className="text-slate-600 dark:text-slate-300">{t('home.address_value')}</p>
+                    <p className="font-bold text-lg text-slate-900 dark:text-white">{t('home.address_label')}</p>
+                    <p className="text-slate-600 dark:text-slate-300 font-medium">{t('home.address_value')}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
-                  <span className="text-xl">🚗</span>
+                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30 rounded-2xl hover:scale-105 transition-transform">
+                  <span className="text-2xl">🚗</span>
                   <div>
                     <p className="font-semibold text-slate-900 dark:text-white">{t('home.parking_label')}</p>
                     <p className="text-slate-600 dark:text-slate-300">{t('home.parking_desc')}</p>

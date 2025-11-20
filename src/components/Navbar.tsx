@@ -48,10 +48,10 @@ export default function Navbar() {
       key={to}
       to={to}
       className={({ isActive }) =>
-        `rounded-xl px-3 py-2 text-sm font-medium ${
+        `rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
           isActive
-            ? "bg-brand-600 text-white"
-            : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+            ? "bg-brand-600 text-white shadow-md shadow-brand-600/30"
+            : "text-slate-700 hover:bg-slate-100 hover:text-brand-600 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-brand-400"
         }`
       }
       onClick={() => setOpen(false)}
@@ -61,10 +61,10 @@ export default function Navbar() {
   );
 
   return (
-    <header className="sticky top-0 z-40 border-b border-brand-200 bg-[var(--color-bg)] backdrop-blur">
-      <div className="container-xl flex h-[86px] items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 h-full">
-          <img src="/logo.png" alt="Logo" className="bg-white border border-[var(--color-border)] shadow-md max-h-full max-w-[90px] p-1.5 rounded-full" />
+    <header className="sticky top-0 z-50 border-b border-slate-200/80 dark:border-slate-700/50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-sm transition-all duration-300">
+      <div className="container-xl flex h-20 items-center justify-between">
+        <Link to="/" className="flex items-center gap-3 h-full group">
+          <img src="/logo.png" alt="Logo" className="bg-white border-2 border-brand-200 dark:border-brand-700 shadow-lg max-h-16 max-w-[80px] p-1.5 rounded-full transition-transform duration-300 group-hover:scale-105 group-hover:shadow-xl" />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">
@@ -75,10 +75,10 @@ export default function Navbar() {
             <NavLink
               to="/admin"
               className={({ isActive }) =>
-                `rounded-xl px-3 py-2 text-sm font-medium ${
+                `rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
                   isActive
-                    ? "bg-brand-600 text-white"
-                    : "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-800"
+                    ? "bg-brand-600 text-white shadow-md shadow-brand-600/30"
+                    : "text-slate-700 hover:bg-slate-100 hover:text-brand-600 dark:text-slate-200 dark:hover:bg-slate-800 dark:hover:text-brand-400"
                 }`
               }
             >
@@ -90,7 +90,7 @@ export default function Navbar() {
           <div className="ml-4">
             <button
               onClick={toggleTheme}
-              className="px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 dark:border-slate-600"
+              className="px-3 py-2.5 rounded-xl border-2 border-slate-200 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:border-brand-300 hover:shadow-md dark:hover:bg-slate-700 dark:border-slate-600 dark:hover:border-brand-600"
               aria-label="Toggle theme"
             >
               {theme === 'light' ? '🌙' : '☀️'}
@@ -101,7 +101,7 @@ export default function Navbar() {
           <div className="ml-2">
             <button
               onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-              className="px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 dark:border-slate-600"
+              className="px-3 py-2.5 rounded-xl border-2 border-slate-200 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:border-brand-300 hover:shadow-md dark:hover:bg-slate-700 dark:border-slate-600 dark:hover:border-brand-600 font-medium"
               aria-label="Toggle language"
             >
               {language === 'vi' ? '🇺🇸 EN' : '🇻🇳 VI'}
@@ -112,14 +112,14 @@ export default function Navbar() {
           {IS_FIREBASE_CONFIGURED && user && (
             <div className="ml-2 flex items-center gap-2">
               <span 
-                className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 text-xs font-bold" 
+                className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-white text-xs font-bold shadow-lg" 
                 title={user.email || ''}
               >
                 {getInitials(user.email)}
               </span>
               <button
                 onClick={() => void logout()}
-                className="px-3 py-2 rounded-xl border border-slate-300 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition hover:bg-slate-50 dark:hover:bg-slate-700 dark:border-slate-600"
+                className="px-3 py-2.5 rounded-xl border-2 border-slate-200 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-sm transition-all duration-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 hover:shadow-md dark:hover:bg-red-900/20 dark:border-slate-600 dark:hover:border-red-600 font-medium"
               >
                 Sign out
               </button>
@@ -128,7 +128,7 @@ export default function Navbar() {
         </nav>
 
         <button
-          className="md:hidden rounded-xl border border-[var(--color-border)] p-3 min-w-[44px] min-h-[44px]"
+          className="md:hidden rounded-xl border-2 border-slate-200 dark:border-slate-700 p-3 min-w-[44px] min-h-[44px] hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors duration-200"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle Menu"
           aria-expanded={open}
@@ -141,7 +141,7 @@ export default function Navbar() {
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="1.5"
+              strokeWidth="2"
               className="h-6 w-6 text-slate-700 dark:text-slate-200"
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -164,9 +164,9 @@ export default function Navbar() {
       {open && (
         <div 
           id="mobile-menu" 
-          className="md:hidden border-t border-slate-200 dark:border-slate-800 animate-in slide-in-from-top duration-200"
+          className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md shadow-lg animate-fadeIn"
         >
-          <div className="container-xl flex flex-col gap-1 py-2">
+          <div className="container-xl flex flex-col gap-2 py-4">
             {links.map((l) => navItem(l.to, l.key))}
             
             {/* Admin link for mobile (only shown when user is signed in) */}

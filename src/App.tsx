@@ -18,7 +18,6 @@ const Gallery = lazy(() => import('./pages/Gallery'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Reflections = lazy(() => import('./pages/Reflections'));
 const ReflectionDetail = lazy(() => import('./pages/ReflectionDetail'));
-const Login = lazy(() => import('./pages/Login'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Lazy load admin pages
@@ -51,7 +50,6 @@ export default function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/reflections" element={<Reflections />} />
                 <Route path="/reflections/:id" element={<ReflectionDetail />} />
-                <Route path="/login" element={<Login />} />
                 
                 {/* Admin Routes */}
                 <Route path="/admin" element={<AdminDashboard />} />

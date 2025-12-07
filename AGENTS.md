@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 - App uses React + TypeScript + Vite with Tailwind.
 - Key folders:
-  - `src/pages/` (route views), `src/components/` (reusable UI), `src/contexts/` (Theme/Language providers), `src/lib/` (Firebase, Cloudinary), `src/types/`, `src/data/`.
+  - `src/pages/` (route views), `src/components/` (reusable UI), `src/contexts/` (Theme/Language providers), `src/lib/` (Firebase utilities), `src/types/`.
   - Static assets: `public/`; entry: `index.html`, `src/main.tsx`.
   - GitHub Pages workflow: `.github/workflows/deploy.yml`.
 - Import alias: `@` maps to `/src` (e.g., `import X from '@/components/X'`).
@@ -33,6 +33,6 @@
 - Require: passing lint, no secrets committed, updated docs when user-facing changes.
 
 ## Security & Configuration Tips
-- Copy `.env.example` to `.env` and fill `VITE_*` vars (Firebase, optional Cloudinary). Never commit `.env`.
-- Do not expose Cloudinary API secret in client; generate signatures server-side (see `src/lib/cloudinary.ts` note).
-- SPA hosting: `vercel.json` rewrites and GitHub Pages workflow handle client-side routing.
+- Copy `.env.example` to `.env` and fill `VITE_*` vars for Firebase configuration. Never commit `.env`.
+- Firebase security rules (in `firestore.rules` and `storage.rules`) protect admin-only write operations.
+- SPA hosting: GitHub Pages workflow handles client-side routing via 404.html fallback.

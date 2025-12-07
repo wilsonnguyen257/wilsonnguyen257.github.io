@@ -1,6 +1,6 @@
 # Vietnamese Catholic Church Website (React + TypeScript + Vite)
 
-A multilingual church website with Vietnamese and English support, reflections and events, and light/dark theme toggle. Admin can manage content via dashboard. Language and theme preferences are persisted in localStorage. Content (events, reflections, gallery) can be stored in Firebase (recommended) or falls back to Vercel Blob/localStorage.
+A multilingual church website with Vietnamese and English support, reflections and events, and light/dark theme toggle. Admin can manage content via dashboard. Language and theme preferences are persisted in localStorage. Content (events, reflections, gallery) is stored in Firebase with real-time synchronization.
 
 ## 🚀 Quick Start
 

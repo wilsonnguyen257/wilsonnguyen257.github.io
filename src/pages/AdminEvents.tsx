@@ -377,11 +377,11 @@ const AdminEvents = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8 px-4 sm:px-6 lg:px-8 transition-colors">
+    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-7xl mx-auto">
       
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 text-red-700 dark:text-red-200 px-6 py-4 rounded-r-lg mb-6 flex items-start gap-3 shadow-md">
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-r-lg mb-6 flex items-start gap-3 shadow-md">
           <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
           </svg>
@@ -389,14 +389,14 @@ const AdminEvents = () => {
         </div>
       )}
 
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg p-6 mb-8 border border-slate-200 dark:border-slate-700">
+      <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-slate-200">
         <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-brand-100 dark:bg-brand-900/30 rounded-lg flex items-center justify-center">
-            <svg className="w-6 h-6 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
+            <svg className="w-6 h-6 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+          <h2 className="text-xl font-bold text-slate-900">
             {editId ? (language === 'vi' ? 'Chỉnh sửa sự kiện' : 'Edit Event') : (language === 'vi' ? 'Thêm Sự Kiện Mới' : 'Add New Event')}
           </h2>
         </div>
@@ -404,7 +404,7 @@ const AdminEvents = () => {
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Tên sự kiện (Tiếng Việt)' : 'Event Name (Vietnamese)'} <span className="text-red-500">*</span>
               </label>
               <input
@@ -412,13 +412,13 @@ const AdminEvents = () => {
                 name="nameVi"
                 value={formData.nameVi}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                className="w-full p-2 border rounded"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Tên sự kiện (Tiếng Anh)' : 'Event Name (English)'} <span className="text-red-500">*</span>
               </label>
               <input
@@ -426,33 +426,33 @@ const AdminEvents = () => {
                 name="nameEn"
                 value={formData.nameEn}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                className="w-full p-2 border rounded"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Ngày' : 'Date'} <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 value={formData.date}
                 onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+                className="w-full p-2 border rounded [color-scheme:light]"
                 required
               />
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Giờ' : 'Time'} <span className="text-red-500">*</span>
               </label>
               <div className="flex gap-2">
                 <select
                   value={timeComponents.hour}
                   onChange={(e) => handleTimeChange('hour', e.target.value)}
-                  className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                  className="flex-1 p-2 border rounded"
                   required
                 >
                   {Array.from({ length: 12 }, (_, i) => i + 1).map(h => (
@@ -463,7 +463,7 @@ const AdminEvents = () => {
                 <select
                   value={timeComponents.minute}
                   onChange={(e) => handleTimeChange('minute', e.target.value)}
-                  className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                  className="flex-1 p-2 border rounded"
                   required
                 >
                   {['00', '15', '30', '45'].map(m => (
@@ -473,7 +473,7 @@ const AdminEvents = () => {
                 <select
                   value={timeComponents.period}
                   onChange={(e) => handleTimeChange('period', e.target.value)}
-                  className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                  className="flex-1 p-2 border rounded"
                   required
                 >
                   <option value="AM">AM</option>
@@ -483,7 +483,7 @@ const AdminEvents = () => {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Địa điểm' : 'Location'} <span className="text-red-500">*</span>
               </label>
               <input
@@ -491,20 +491,20 @@ const AdminEvents = () => {
                 name="location"
                 value={formData.location}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                className="w-full p-2 border rounded"
                 required
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 {language === 'vi' ? 'Hình ảnh thumbnail' : 'Thumbnail Image'}
               </label>
               <input
                 type="file"
                 accept="image/*"
                 onChange={handleThumbnailChange}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                className="w-full p-2 border rounded"
                 disabled={uploading}
               />
               {thumbnailPreview && (
@@ -565,7 +565,7 @@ const AdminEvents = () => {
               <button
                 type="button"
                 onClick={resetForm}
-                className="inline-flex items-center gap-2 py-2.5 px-6 text-sm font-semibold rounded-lg text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all duration-300"
+                className="inline-flex items-center gap-2 py-2.5 px-6 text-sm font-semibold rounded-lg text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all duration-300"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -574,7 +574,7 @@ const AdminEvents = () => {
               </button>
             )}
             
-            <div className="flex items-center ml-auto bg-slate-50 dark:bg-slate-700/50 rounded-lg px-4 py-2">
+            <div className="flex items-center ml-auto bg-slate-50 rounded-lg px-4 py-2">
               <input
                 type="checkbox"
                 id="auto-translate"
@@ -582,7 +582,7 @@ const AdminEvents = () => {
                 onChange={(e) => setAutoTranslate(e.target.checked)}
                 className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500 mr-2"
               />
-              <label htmlFor="auto-translate" className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer">
+              <label htmlFor="auto-translate" className="text-sm font-medium text-slate-700 cursor-pointer">
                 {language === 'vi' ? 'Tự động dịch sang tiếng Anh' : 'Auto-translate to English'}
               </label>
             </div>
@@ -590,64 +590,64 @@ const AdminEvents = () => {
         </form>
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden mb-6 border border-slate-200 dark:border-slate-700">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden mb-6 border border-slate-200">
+        <div className="p-6 border-b border-slate-200">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">{language === 'vi' ? 'Bộ lọc' : 'Filters'}</h2>
+            <h2 className="text-xl font-bold text-slate-900">{language === 'vi' ? 'Bộ lọc' : 'Filters'}</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Tìm kiếm' : 'Search'}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{language === 'vi' ? 'Tìm kiếm' : 'Search'}</label>
               <input
                 type="text"
                 name="search"
                 value={filters.search}
                 onChange={handleFilterChange}
                 placeholder={language === 'vi' ? 'Tìm sự kiện...' : 'Search events...'}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                className="w-full p-2 border rounded"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Từ ngày' : 'From Date'}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{language === 'vi' ? 'Từ ngày' : 'From Date'}</label>
               <input
                 type="date"
                 name="startDate"
                 value={filters.startDate}
                 onChange={handleFilterChange}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+                className="w-full p-2 border rounded [color-scheme:light]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Đến ngày' : 'To Date'}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{language === 'vi' ? 'Đến ngày' : 'To Date'}</label>
               <input
                 type="date"
                 name="endDate"
                 value={filters.endDate}
                 onChange={handleFilterChange}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white [color-scheme:light] dark:[color-scheme:dark]"
+                className="w-full p-2 border rounded [color-scheme:light]"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">{language === 'vi' ? 'Địa điểm' : 'Location'}</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{language === 'vi' ? 'Địa điểm' : 'Location'}</label>
               <input
                 type="text"
                 name="location"
                 value={filters.location}
                 onChange={handleFilterChange}
                 placeholder={language === 'vi' ? 'Lọc theo địa điểm' : 'Filter by location'}
-                className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+                className="w-full p-2 border rounded"
               />
             </div>
           </div>
           <div className="mt-4">
             <button
               onClick={clearFilters}
-              className="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 dark:border-slate-600 shadow-sm text-sm font-semibold rounded-lg text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-700 hover:bg-slate-50 dark:hover:bg-slate-600 transition-all duration-300"
+              className="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 shadow-sm text-sm font-semibold rounded-lg text-slate-700 bg-white hover:bg-slate-50 transition-all duration-300"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -658,27 +658,27 @@ const AdminEvents = () => {
         </div>
       </div>
       
-      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-lg overflow-hidden border border-slate-200 dark:border-slate-700">
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-slate-800">
+      <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200">
+        <div className="p-6 border-b border-slate-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
-              <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+            <h2 className="text-xl font-bold text-slate-900">
               {language === 'vi' ? 'Danh sách Sự Kiện' : 'Events List'}
             </h2>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600 dark:text-gray-300">{language === 'vi' ? 'Sắp xếp theo:' : 'Sort by:'}</span>
+            <span className="text-sm text-gray-600">{language === 'vi' ? 'Sắp xếp theo:' : 'Sort by:'}</span>
             <select
               value={`${sortConfig.key}-${sortConfig.direction}`}
               onChange={(e) => {
                 const [key, direction] = e.target.value.split('-') as ['date' | 'name' | 'location', 'asc' | 'desc'];
                 setSortConfig({ key, direction });
               }}
-              className="border rounded p-2 text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-white"
+              className="border rounded p-2 text-sm"
             >
               <option value="date-asc">{language === 'vi' ? 'Ngày (Cũ đến mới)' : 'Date (Oldest First)'}</option>
               <option value="date-desc">{language === 'vi' ? 'Ngày (Mới đến cũ)' : 'Date (Newest First)'}</option>
@@ -692,42 +692,42 @@ const AdminEvents = () => {
         
         {filteredEvents.length === 0 ? (
           <div className="p-12 text-center">
-            <svg className="w-16 h-16 mx-auto text-slate-300 dark:text-slate-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-16 h-16 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <p className="text-slate-500 dark:text-slate-400 font-medium">{language === 'vi' ? 'Không có sự kiện nào' : 'No events found'}</p>
+            <p className="text-slate-500 font-medium">{language === 'vi' ? 'Không có sự kiện nào' : 'No events found'}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 dark:divide-slate-700">
-              <thead className="bg-slate-50 dark:bg-slate-700/50">
+            <table className="min-w-full divide-y divide-slate-200">
+              <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                     {language === 'vi' ? 'Tên (VI)' : 'Name (VI)'}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                     {language === 'vi' ? 'Tên (EN)' : 'Name (EN)'}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                     {language === 'vi' ? 'Ngày & Giờ' : 'Date & Time'}
                   </th>
-                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                     {language === 'vi' ? 'Địa điểm' : 'Location'}
                   </th>
-                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider">
+                  <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">
                     {language === 'vi' ? 'Hành động' : 'Actions'}
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white dark:bg-slate-800 divide-y divide-slate-200 dark:divide-slate-700">
+              <tbody className="bg-white divide-y divide-slate-200">
                 {filteredEvents.map((event) => (
-                  <tr key={event.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
+                  <tr key={event.id} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-slate-900 dark:text-white">
+                      <div className="text-sm font-semibold text-slate-900">
                         {event.name.vi}
                       </div>
                       {event.content?.vi && (
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <div className="text-sm text-slate-500 mt-1">
                           {event.content.vi.length > 50 
                             ? `${event.content.vi.substring(0, 50)}...` 
                             : event.content.vi}
@@ -735,11 +735,11 @@ const AdminEvents = () => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-semibold text-slate-900 dark:text-white">
+                      <div className="text-sm font-semibold text-slate-900">
                         {event.name.en}
                       </div>
                       {event.content?.en && (
-                        <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        <div className="text-sm text-slate-500 mt-1">
                           {event.content.en.length > 50 
                             ? `${event.content.en.substring(0, 50)}...` 
                             : event.content.en}
@@ -747,21 +747,21 @@ const AdminEvents = () => {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-slate-900 dark:text-white">
+                      <div className="text-sm font-medium text-slate-900">
                         {new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-AU')}
                       </div>
-                      <div className="text-sm text-slate-500 dark:text-slate-400">
+                      <div className="text-sm text-slate-500">
                         {event.time}
                       </div>
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                    <td className="px-6 py-4 text-sm text-slate-600">
                       {event.location}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className={`flex gap-2 ${language === 'vi' ? 'flex-col' : 'flex-row justify-end'}`}>
                         <button
                           onClick={() => handleEdit(event.id)}
-                          className="inline-flex items-center justify-center gap-1.5 text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 font-semibold transition-colors"
+                          className="inline-flex items-center justify-center gap-1.5 text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -770,7 +770,7 @@ const AdminEvents = () => {
                         </button>
                         <button
                           onClick={() => handleDelete(event.id)}
-                          className="inline-flex items-center justify-center gap-1.5 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 font-semibold transition-colors"
+                          className="inline-flex items-center justify-center gap-1.5 text-red-600 hover:text-red-800 font-semibold transition-colors"
                         >
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />

@@ -218,7 +218,7 @@ export default function Home() {
   return (
     <>
       {/* Hero - Modern Gradient Design */}
-      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 py-24 md:py-32 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-24 md:py-32 overflow-hidden">
         {/* Custom Background Image (if set) */}
         {heroBackgroundImage && (
           <div className="absolute inset-0">
@@ -273,7 +273,7 @@ export default function Home() {
             {/* Map Card */}
             <div className="relative animate-slideInRight">
               <div className="absolute -inset-4 bg-gradient-to-r from-brand-400 to-brand-600 rounded-3xl blur-2xl opacity-20"></div>
-              <div className="relative bg-white dark:bg-slate-800 rounded-3xl shadow-2xl overflow-hidden border-2 border-white/50 dark:border-slate-700 hover:scale-105 transition-transform duration-500">
+              <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-white/50 hover:scale-105 transition-transform duration-500">
                 <iframe 
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.9741339657257!2d145.19334571531906!3d-37.83350797974801!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad63bfb7b1e1b75%3A0x27d1a68aa5308e0!2s17%20Stevens%20Rd%2C%20Vermont%20VIC%203133!5e0!3m2!1sen!2sau!4v1629185943012!5m2!1sen!2sau"
                   className="w-full h-96"
@@ -288,16 +288,16 @@ export default function Home() {
       </section>
 
       {/* Welcome Message - Elevated Cards */}
-      <section className="py-24 bg-gradient-to-b from-white to-slate-50 dark:from-slate-900 dark:to-slate-800">
+      <section className="py-24 bg-gradient-to-b from-white to-slate-50">
         <div className="container-xl">
           <div className="text-center mb-16 animate-fadeIn">
-            <div className="inline-flex items-center gap-2 bg-brand-100 dark:bg-brand-900/30 rounded-full px-5 py-2.5 mb-6">
-              <svg className="w-5 h-5 text-brand-600 dark:text-brand-400" fill="currentColor" viewBox="0 0 20 20">
+            <div className="inline-flex items-center gap-2 bg-brand-100 rounded-full px-5 py-2.5 mb-6">
+              <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
               </svg>
-              <span className="font-bold text-brand-700 dark:text-brand-300">Welcome</span>
+              <span className="font-bold text-brand-700">Welcome</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-5">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-5">
               {t('home.welcome_title')}
             </h2>
           </div>
@@ -307,11 +307,11 @@ export default function Home() {
               { icon: '❤️', title: t('home.community_title'), desc: t('home.community_desc'), color: 'from-red-500 to-red-600', delay: 'delay-200' },
               { icon: '✨', title: t('home.service_title'), desc: t('home.service_desc'), color: 'from-amber-500 to-amber-600', delay: 'delay-300' }
             ].map((item, idx) => (
-              <div key={idx} className={`group relative bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border-2 border-slate-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-600 hover:-translate-y-2 animate-scaleIn ${item.delay}`}>
+              <div key={idx} className={`group relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border-2 border-slate-100 hover:border-brand-300 hover:-translate-y-2 animate-scaleIn ${item.delay}`}>
                 <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${item.color} rounded-t-3xl`}></div>
                 <div className="text-6xl mb-6 group-hover:scale-125 transition-transform duration-500 inline-block">{item.icon}</div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{item.title}</h3>
-                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-base">{item.desc}</p>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4">{item.title}</h3>
+                <p className="text-slate-600 leading-relaxed text-base">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -319,81 +319,81 @@ export default function Home() {
       </section>
 
       {/* Mass Times & Location - Modern Information Cards */}
-      <section className="py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800">
+      <section className="py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50">
         <div className="container-xl">
           <div className="text-center mb-16 animate-fadeIn">
-            <div className="inline-flex items-center gap-2 bg-brand-100 dark:bg-brand-900/30 rounded-full px-5 py-2.5 mb-6">
-              <svg className="w-5 h-5 text-brand-600 dark:text-brand-400" fill="currentColor" viewBox="0 0 20 20">
+            <div className="inline-flex items-center gap-2 bg-brand-100 rounded-full px-5 py-2.5 mb-6">
+              <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
               </svg>
-              <span className="font-bold text-brand-700 dark:text-brand-300">Schedule</span>
+              <span className="font-bold text-brand-700">Schedule</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-5">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-5">
               {t('home.mass_schedule_title')}
             </h2>
           </div>
           <div className="grid gap-8 lg:grid-cols-2 max-w-6xl mx-auto">
             {/* Mass Times */}
-            <div className="bg-white dark:bg-slate-800 rounded-3xl p-10 shadow-2xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-600 transition-all duration-300 hover:-translate-y-1 animate-slideInLeft">
+            <div className="bg-white rounded-3xl p-10 shadow-2xl border-2 border-slate-100 hover:border-brand-300 transition-all duration-300 hover:-translate-y-1 animate-slideInLeft">
               <div className="flex items-center gap-4 mb-8">
                 <div className="p-4 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl shadow-lg">
                   <span className="text-3xl">📅</span>
                 </div>
-                <h3 className="text-3xl font-bold text-slate-900 dark:text-white">{t('home.mass_schedule_subtitle')}</h3>
+                <h3 className="text-3xl font-bold text-slate-900">{t('home.mass_schedule_subtitle')}</h3>
               </div>
               <div className="space-y-5">
-                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30 rounded-2xl hover:scale-105 transition-transform">
+                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl hover:scale-105 transition-transform">
                   <span className="text-2xl">⛪</span>
                   <div>
-                    <p className="font-bold text-lg text-slate-900 dark:text-white">{t('home.sunday')}</p>
-                    <p className="text-slate-600 dark:text-slate-300 font-medium">{t('home.sunday_time')}</p>
+                    <p className="font-bold text-lg text-slate-900">{t('home.sunday')}</p>
+                    <p className="text-slate-600 font-medium">{t('home.sunday_time')}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30 rounded-2xl hover:scale-105 transition-transform">
+                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl hover:scale-105 transition-transform">
                   <span className="text-2xl">🎉</span>
                   <div>
-                    <p className="font-bold text-lg text-slate-900 dark:text-white">{t('home.special_days')}</p>
-                    <p className="text-slate-600 dark:text-slate-300 font-medium">{t('home.special_days_desc')}</p>
+                    <p className="font-bold text-lg text-slate-900">{t('home.special_days')}</p>
+                    <p className="text-slate-600 font-medium">{t('home.special_days_desc')}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30 rounded-2xl hover:scale-105 transition-transform">
+                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl hover:scale-105 transition-transform">
                   <span className="text-2xl">🙏</span>
                   <div>
-                    <p className="font-bold text-lg text-slate-900 dark:text-white">{t('home.confession')}</p>
-                    <p className="text-slate-600 dark:text-slate-300 font-medium">{t('home.confession_time')}</p>
+                    <p className="font-bold text-lg text-slate-900">{t('home.confession')}</p>
+                    <p className="text-slate-600 font-medium">{t('home.confession_time')}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Contact Info */}
-            <div className="bg-white dark:bg-slate-800 rounded-3xl p-10 shadow-2xl border-2 border-slate-100 dark:border-slate-700 hover:border-brand-300 dark:hover:border-brand-600 transition-all duration-300 hover:-translate-y-1 animate-slideInRight">
+            <div className="bg-white rounded-3xl p-10 shadow-2xl border-2 border-slate-100 hover:border-brand-300 transition-all duration-300 hover:-translate-y-1 animate-slideInRight">
               <div className="flex items-center gap-4 mb-8">
                 <div className="p-4 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl shadow-lg">
                   <span className="text-3xl">📍</span>
                 </div>
-                <h3 className="text-3xl font-bold text-slate-900 dark:text-white">{t('home.info_title')}</h3>
+                <h3 className="text-3xl font-bold text-slate-900">{t('home.info_title')}</h3>
               </div>
               <div className="space-y-5">
-                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30 rounded-2xl hover:scale-105 transition-transform">
+                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl hover:scale-105 transition-transform">
                   <span className="text-2xl">🏠</span>
                   <div>
-                    <p className="font-bold text-lg text-slate-900 dark:text-white">{t('home.address_label')}</p>
-                    <p className="text-slate-600 dark:text-slate-300 font-medium">{t('home.address_value')}</p>
+                    <p className="font-bold text-lg text-slate-900">{t('home.address_label')}</p>
+                    <p className="text-slate-600 font-medium">{t('home.address_value')}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700/50 dark:to-slate-700/30 rounded-2xl hover:scale-105 transition-transform">
+                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl hover:scale-105 transition-transform">
                   <span className="text-2xl">🚗</span>
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">{t('home.parking_label')}</p>
-                    <p className="text-slate-600 dark:text-slate-300">{t('home.parking_desc')}</p>
+                    <p className="font-semibold text-slate-900">{t('home.parking_label')}</p>
+                    <p className="text-slate-600">{t('home.parking_desc')}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-xl">
+                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl">
                   <span className="text-xl">📞</span>
                   <div>
-                    <p className="font-semibold text-slate-900 dark:text-white">{t('home.contact_label')}</p>
-                    <a href="tel:0422-400-116" className="text-brand-600 dark:text-brand-400 hover:underline font-medium">
+                    <p className="font-semibold text-slate-900">{t('home.contact_label')}</p>
+                    <a href="tel:0422-400-116" className="text-brand-600 hover:underline font-medium">
                       0422-400-116
                     </a>
                   </div>
@@ -405,23 +405,23 @@ export default function Home() {
       </section>
 
       {/* Upcoming Events */}
-      <section className="py-20 bg-white dark:bg-slate-900">
+      <section className="py-20 bg-white">
         <div className="container-xl">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-brand-100 dark:bg-brand-900/30 rounded-full px-4 py-2 mb-4">
-              <svg className="w-5 h-5 text-brand-600 dark:text-brand-400" fill="currentColor" viewBox="0 0 20 20">
+            <div className="inline-flex items-center gap-2 bg-brand-100 rounded-full px-4 py-2 mb-4">
+              <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
               </svg>
-              <span className="font-medium text-brand-700 dark:text-brand-300">{t('home.upcoming_events')}</span>
+              <span className="font-medium text-brand-700">{t('home.upcoming_events')}</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
               {t('home.important_event')}
             </h2>
           </div>
 
           {upcomingEvents.length > 0 && (
             <div className="mb-12">
-              <div className="max-w-4xl mx-auto bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-700 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-600">
+              <div className="max-w-4xl mx-auto bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-xl overflow-hidden border border-slate-200">
                 {upcomingEvents[0].thumbnail && (
                   <div className="relative">
                     <img 
@@ -435,7 +435,7 @@ export default function Home() {
                 )}
                 <div className="p-8">
                   <div className="flex items-center gap-2 mb-4">
-                    <span className="inline-flex items-center gap-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-full px-3 py-1 text-sm font-semibold">
+                    <span className="inline-flex items-center gap-1.5 bg-brand-100 text-brand-700 rounded-full px-3 py-1 text-sm font-semibold">
                       <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                       </svg>
@@ -443,20 +443,20 @@ export default function Home() {
                     </span>
                   </div>
                   
-                  <h3 className="text-3xl font-bold text-slate-900 dark:text-white mb-4">
+                  <h3 className="text-3xl font-bold text-slate-900 mb-4">
                     {upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
                   </h3>
                   
                   <div className="grid sm:grid-cols-3 gap-4 mb-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{t('events.date')}</p>
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                        <p className="text-xs text-slate-500 font-medium">{t('events.date')}</p>
+                        <p className="text-sm font-semibold text-slate-900">
                           {new Date(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { 
                             month: 'short', 
                             day: 'numeric'
@@ -466,33 +466,33 @@ export default function Home() {
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{t('events.time')}</p>
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{upcomingEvents[0].time}</p>
+                        <p className="text-xs text-slate-500 font-medium">{t('events.time')}</p>
+                        <p className="text-sm font-semibold text-slate-900">{upcomingEvents[0].time}</p>
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-5 h-5 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                       </div>
                       <div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">{t('events.location')}</p>
-                        <p className="text-sm font-semibold text-slate-900 dark:text-white">{upcomingEvents[0].location}</p>
+                        <p className="text-xs text-slate-500 font-medium">{t('events.location')}</p>
+                        <p className="text-sm font-semibold text-slate-900">{upcomingEvents[0].location}</p>
                       </div>
                     </div>
                   </div>
                   
                   {upcomingEvents[0].content && (
-                    <p className="text-slate-600 dark:text-slate-300 mb-6 leading-relaxed line-clamp-3">
+                    <p className="text-slate-600 mb-6 leading-relaxed line-clamp-3">
                       {stripHtml(upcomingEvents[0].content[language] || upcomingEvents[0].content.vi)}
                     </p>
                   )}
@@ -509,14 +509,14 @@ export default function Home() {
           {upcomingEvents.length > 1 && (
             <>
               <div className="mb-8">
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white text-center">{t('home.other_events')}</h3>
+                <h3 className="text-2xl font-bold text-slate-900 text-center">{t('home.other_events')}</h3>
               </div>
               <div className="grid gap-6 md:grid-cols-2 max-w-5xl mx-auto">
                 {upcomingEvents.slice(1).map(event => (
                   <Link
                     key={event.id}
                     to="/events"
-                    className="group bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-200 dark:border-slate-700 hover:-translate-y-1"
+                    className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-200 hover:-translate-y-1"
                   >
                     {event.thumbnail && (
                       <div className="relative overflow-hidden">
@@ -529,12 +529,12 @@ export default function Home() {
                       </div>
                     )}
                     <div className="p-6">
-                      <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                      <h4 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-brand-600 transition-colors">
                         {event.name[language] || event.name.vi}
                       </h4>
                       
                       <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
@@ -544,7 +544,7 @@ export default function Home() {
                             day: 'numeric'
                           })}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                        <div className="flex items-center gap-2 text-sm text-slate-600">
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                           </svg>
@@ -553,12 +553,12 @@ export default function Home() {
                       </div>
                       
                       {event.content && (
-                        <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-2 mb-4">
+                        <p className="text-slate-600 text-sm line-clamp-2 mb-4">
                           {stripHtml(event.content[language] || event.content.vi)}
                         </p>
                       )}
                       
-                      <span className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 font-semibold text-sm group-hover:gap-3 transition-all">
+                      <span className="inline-flex items-center gap-2 text-brand-600 font-semibold text-sm group-hover:gap-3 transition-all">
                         {t('home.details')}
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -582,16 +582,16 @@ export default function Home() {
       </section>
 
       {/* Ministries */}
-      <section className="py-20 bg-gradient-to-b from-slate-50 to-white dark:from-slate-800 dark:to-slate-900">
+      <section className="py-20 bg-gradient-to-b from-slate-50 to-white">
         <div className="container-xl">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-brand-100 dark:bg-brand-900/30 rounded-full px-4 py-2 mb-4">
-              <svg className="w-5 h-5 text-brand-600 dark:text-brand-400" fill="currentColor" viewBox="0 0 20 20">
+            <div className="inline-flex items-center gap-2 bg-brand-100 rounded-full px-4 py-2 mb-4">
+              <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
               </svg>
-              <span className="font-medium text-brand-700 dark:text-brand-300">{t('home.ministries_title')}</span>
+              <span className="font-medium text-brand-700">{t('home.ministries_title')}</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
               {t('ministries.serving_together')}
             </h2>
           </div>
@@ -604,27 +604,27 @@ export default function Home() {
               { icon: '🎵', title: t('home.choir_ministry'), desc: t('home.choir_desc'), color: 'amber' as const }
             ].map((ministry, idx) => {
               const colorMap = {
-                blue: { border: 'border-blue-600', bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-600 dark:text-blue-400' },
-                purple: { border: 'border-purple-600', bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-600 dark:text-purple-400' },
-                rose: { border: 'border-rose-600', bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-600 dark:text-rose-400' },
-                amber: { border: 'border-amber-600', bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-600 dark:text-amber-400' }
+                blue: { border: 'border-blue-600', bg: 'bg-blue-100', text: 'text-blue-600' },
+                purple: { border: 'border-purple-600', bg: 'bg-purple-100', text: 'text-purple-600' },
+                rose: { border: 'border-rose-600', bg: 'bg-rose-100', text: 'text-rose-600' },
+                amber: { border: 'border-amber-600', bg: 'bg-amber-100', text: 'text-amber-600' }
               };
               const colors = colorMap[ministry.color];
               
               return (
-                <div key={idx} className={`group bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-t-4 ${colors.border}`}>
+                <div key={idx} className={`group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-t-4 ${colors.border}`}>
                   <div className={`w-14 h-14 ${colors.bg} ${colors.text} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-2xl`}>
                     {ministry.icon}
                   </div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{ministry.title}</h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{ministry.desc}</p>
+                  <h3 className="text-lg font-bold text-slate-900 mb-2">{ministry.title}</h3>
+                  <p className="text-sm text-slate-600 leading-relaxed">{ministry.desc}</p>
                 </div>
               );
             })}
           </div>
 
           <div className="text-center mt-8">
-            <Link to="/ministries" className="inline-flex items-center gap-2 px-8 py-3 bg-transparent border-2 border-brand-600 text-brand-600 dark:text-brand-400 hover:bg-brand-600 hover:text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
+            <Link to="/ministries" className="inline-flex items-center gap-2 px-8 py-3 bg-transparent border-2 border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
               {t('home.learn_more_about')}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -635,16 +635,16 @@ export default function Home() {
       </section>
 
       {/* Latest Content */}
-      <section className="py-20 bg-white dark:bg-slate-900">
+      <section className="py-20 bg-white">
         <div className="container-xl">
           <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-brand-100 dark:bg-brand-900/30 rounded-full px-4 py-2 mb-4">
-              <svg className="w-5 h-5 text-brand-600 dark:text-brand-400" fill="currentColor" viewBox="0 0 20 20">
+            <div className="inline-flex items-center gap-2 bg-brand-100 rounded-full px-4 py-2 mb-4">
+              <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
               </svg>
-              <span className="font-medium text-brand-700 dark:text-brand-300">{t('home.latest_content')}</span>
+              <span className="font-medium text-brand-700">{t('home.latest_content')}</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
               {t('home.gospel')}
             </h2>
           </div>
@@ -656,23 +656,23 @@ export default function Home() {
                 <Link
                   key={index}
                   to={`/reflections`}
-                  className="group block bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-slate-200 dark:border-slate-700 hover:-translate-y-1"
+                  className="group block bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-slate-200 hover:-translate-y-1"
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="inline-flex items-center gap-1.5 bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 rounded-full px-3 py-1 text-xs font-semibold">
+                    <span className="inline-flex items-center gap-1.5 bg-brand-100 text-brand-700 rounded-full px-3 py-1 text-xs font-semibold">
                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
                       </svg>
                       {t('reflections.gospel')}
                     </span>
                   </div>
-                  <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors line-clamp-2">
+                  <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-brand-600 transition-colors line-clamp-2">
                     {reflection.title[language] || reflection.title.vi}
                   </h4>
-                  <p className="text-slate-600 dark:text-slate-300 text-sm line-clamp-3 leading-relaxed mb-4">
+                  <p className="text-slate-600 text-sm line-clamp-3 leading-relaxed mb-4">
                     {stripHtml(reflection.content[language] || reflection.content.vi)}
                   </p>
-                  <span className="inline-flex items-center gap-2 text-brand-600 dark:text-brand-400 font-semibold text-sm group-hover:gap-3 transition-all">
+                  <span className="inline-flex items-center gap-2 text-brand-600 font-semibold text-sm group-hover:gap-3 transition-all">
                     {t('home.read_more')}
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -692,13 +692,13 @@ export default function Home() {
 
             {/* Connect Section */}
             <div>
-              <div className="bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-700 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-600">
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">{t('home.connect')}</h3>
-                <p className="text-slate-600 dark:text-slate-300 mb-6">{t('home.follow_us')}</p>
+              <div className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-xl p-8 border border-slate-200">
+                <h3 className="text-2xl font-bold text-slate-900 mb-6">{t('home.connect')}</h3>
+                <p className="text-slate-600 mb-6">{t('home.follow_us')}</p>
                 <div className="space-y-4">
                   <a 
                     href="https://www.facebook.com/sttimvn" 
-                    className="flex items-center gap-4 p-4 bg-white dark:bg-slate-700/50 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 border border-slate-200 dark:border-slate-600 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300 group"
+                    className="flex items-center gap-4 p-4 bg-white rounded-lg hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition-all duration-300 group"
                     target="_blank"
                     rel="noopener noreferrer"
                   >
@@ -708,8 +708,8 @@ export default function Home() {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-white">Facebook</p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">facebook.com/sttimvn</p>
+                      <p className="font-semibold text-slate-900">Facebook</p>
+                      <p className="text-sm text-slate-600">facebook.com/sttimvn</p>
                     </div>
                     <svg className="w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -718,7 +718,7 @@ export default function Home() {
 
                   <a 
                     href="mailto:sttimvn2013@gmail.com"
-                    className="flex items-center gap-4 p-4 bg-white dark:bg-slate-700/50 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 border border-slate-200 dark:border-slate-600 hover:border-red-300 dark:hover:border-red-700 transition-all duration-300 group"
+                    className="flex items-center gap-4 p-4 bg-white rounded-lg hover:bg-red-50 border border-slate-200 hover:border-red-300 transition-all duration-300 group"
                   >
                     <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -726,8 +726,8 @@ export default function Home() {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-white">Email</p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400 break-all">sttimvn2013@gmail.com</p>
+                      <p className="font-semibold text-slate-900">Email</p>
+                      <p className="text-sm text-slate-600 break-all">sttimvn2013@gmail.com</p>
                     </div>
                     <svg className="w-5 h-5 text-slate-400 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -736,7 +736,7 @@ export default function Home() {
 
                   <Link 
                     to="/contact"
-                    className="flex items-center gap-4 p-4 bg-white dark:bg-slate-700/50 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 border border-slate-200 dark:border-slate-600 hover:border-brand-300 dark:hover:border-brand-700 transition-all duration-300 group"
+                    className="flex items-center gap-4 p-4 bg-white rounded-lg hover:bg-brand-50 border border-slate-200 hover:border-brand-300 transition-all duration-300 group"
                   >
                     <div className="w-12 h-12 bg-brand-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                       <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -744,8 +744,8 @@ export default function Home() {
                       </svg>
                     </div>
                     <div className="flex-1">
-                      <p className="font-semibold text-slate-900 dark:text-white">{t('home.contact_direct')}</p>
-                      <p className="text-sm text-slate-600 dark:text-slate-400">0422-400-116</p>
+                      <p className="font-semibold text-slate-900">{t('home.contact_direct')}</p>
+                      <p className="text-sm text-slate-600">0422-400-116</p>
                     </div>
                     <svg className="w-5 h-5 text-slate-400 group-hover:text-brand-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

@@ -1,7 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./contexts/LanguageContext";
-import { ThemeProvider } from "./contexts/ThemeContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from './components/ProtectedRoute';
@@ -34,12 +33,11 @@ const LoadingFallback = () => (
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <div className="flex min-h-screen flex-col">
-          <Navbar />
-          <main className="flex-1">
-            <Suspense fallback={<LoadingFallback />}>
+    <LanguageProvider>
+      <div className="flex min-h-screen flex-col">
+        <Navbar />
+        <main className="flex-1">
+          <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
@@ -80,11 +78,10 @@ export default function App() {
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </Suspense>
-          </main>
-          <Footer />
-        </div>
-      </LanguageProvider>
-    </ThemeProvider>
+          </Suspense>
+        </main>
+        <Footer />
+      </div>
+    </LanguageProvider>
   );
 }

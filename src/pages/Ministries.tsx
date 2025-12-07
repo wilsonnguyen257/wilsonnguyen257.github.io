@@ -60,38 +60,38 @@ const ministries = [
 const colorClasses = {
   blue: {
     border: 'border-blue-600',
-    bg: 'bg-blue-100 dark:bg-blue-900/30',
-    text: 'text-blue-600 dark:text-blue-400',
+    bg: 'bg-blue-100',
+    text: 'text-blue-600',
     hover: 'hover:border-blue-700',
   },
   purple: {
     border: 'border-purple-600',
-    bg: 'bg-purple-100 dark:bg-purple-900/30',
-    text: 'text-purple-600 dark:text-purple-400',
+    bg: 'bg-purple-100',
+    text: 'text-purple-600',
     hover: 'hover:border-purple-700',
   },
   rose: {
     border: 'border-rose-600',
-    bg: 'bg-rose-100 dark:bg-rose-900/30',
-    text: 'text-rose-600 dark:text-rose-400',
+    bg: 'bg-rose-100',
+    text: 'text-rose-600',
     hover: 'hover:border-rose-700',
   },
   emerald: {
     border: 'border-emerald-600',
-    bg: 'bg-emerald-100 dark:bg-emerald-900/30',
-    text: 'text-emerald-600 dark:text-emerald-400',
+    bg: 'bg-emerald-100',
+    text: 'text-emerald-600',
     hover: 'hover:border-emerald-700',
   },
   amber: {
     border: 'border-amber-600',
-    bg: 'bg-amber-100 dark:bg-amber-900/30',
-    text: 'text-amber-600 dark:text-amber-400',
+    bg: 'bg-amber-100',
+    text: 'text-amber-600',
     hover: 'hover:border-amber-700',
   },
   indigo: {
     border: 'border-indigo-600',
-    bg: 'bg-indigo-100 dark:bg-indigo-900/30',
-    text: 'text-indigo-600 dark:text-indigo-400',
+    bg: 'bg-indigo-100',
+    text: 'text-indigo-600',
     hover: 'hover:border-indigo-700',
   },
 };
@@ -100,7 +100,7 @@ export default function Ministries() {
   const { t } = useLanguage();
   
   return (
-    <div className="bg-slate-50 dark:bg-slate-900">
+    <div className="bg-slate-50">
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-brand-600 to-brand-800 text-white py-20">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
@@ -119,12 +119,12 @@ export default function Ministries() {
       </section>
 
       {/* Call to Service Section */}
-      <section className="py-12 bg-white dark:bg-slate-800">
+      <section className="py-12 bg-white">
         <div className="container-xl">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-gradient-to-br from-slate-50 to-white dark:from-slate-700 dark:to-slate-800 rounded-2xl shadow-xl p-8 border-l-4 border-brand-600">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">{t('ministries.join_title')}</h2>
-              <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+            <div className="bg-gradient-to-br from-slate-50 to-white rounded-2xl shadow-xl p-8 border-l-4 border-brand-600">
+              <h2 className="text-2xl font-bold text-slate-900 mb-4">{t('ministries.join_title')}</h2>
+              <p className="text-lg text-slate-600 leading-relaxed">
                 {t('ministries.join_desc')}
               </p>
             </div>
@@ -141,28 +141,28 @@ export default function Ministries() {
               return (
                 <div
                   key={ministry.key}
-                  className={`group bg-white dark:bg-slate-800 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border-t-4 ${colors.border} ${colors.hover}`}
+                  className={`group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-8 border-t-4 ${colors.border} ${colors.hover}`}
                 >
                   <div className={`w-16 h-16 ${colors.bg} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${colors.text}`}>
                     {ministry.icon}
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4">
                     {t(`ministries.${ministry.key}`)}
                   </h3>
                   
-                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
+                  <p className="text-slate-600 leading-relaxed mb-6">
                     {t(`ministries.${ministry.key}_desc`)}
                   </p>
 
                   {/* Activities List */}
                   <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-400 uppercase tracking-wide mb-3">
+                    <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">
                       {t('ministries.activities')}
                     </h4>
                     <ul className="space-y-2">
                       {[1, 2, 3].map((num) => (
-                        <li key={num} className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-300">
+                        <li key={num} className="flex items-start gap-2 text-sm text-slate-600">
                           <svg className={`w-5 h-5 flex-shrink-0 mt-0.5 ${colors.text}`} fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
                           </svg>

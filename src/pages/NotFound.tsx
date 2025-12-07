@@ -2,22 +2,22 @@ import { Link } from "react-router-dom";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white dark:from-slate-900 dark:to-slate-800 flex items-center justify-center px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center px-4">
       <div className="max-w-2xl mx-auto text-center">
         {/* 404 Illustration */}
         <div className="mb-8">
-          <svg className="w-64 h-64 mx-auto text-brand-200 dark:text-brand-900/30" fill="currentColor" viewBox="0 0 24 24">
+          <svg className="w-64 h-64 mx-auto text-brand-200" fill="currentColor" viewBox="0 0 24 24">
             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
           </svg>
         </div>
 
         {/* Error Message */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-12 border border-slate-200 dark:border-slate-700">
-          <h1 className="text-8xl md:text-9xl font-bold text-brand-600 dark:text-brand-400 mb-4">404</h1>
-          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+        <div className="bg-white rounded-2xl shadow-2xl p-12 border border-slate-200">
+          <h1 className="text-8xl md:text-9xl font-bold text-brand-600 mb-4">404</h1>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
             Page Not Found
           </h2>
-          <p className="text-lg text-slate-600 dark:text-slate-300 mb-8 max-w-md mx-auto">
+          <p className="text-lg text-slate-600 mb-8 max-w-md mx-auto">
             Oops! The page you're looking for doesn't exist. It might have been moved or deleted.
           </p>
           
@@ -34,7 +34,7 @@ export default function NotFound() {
             </Link>
             <Link 
               to="/contact" 
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold rounded-lg border-2 border-slate-300 dark:border-slate-600 hover:border-brand-600 dark:hover:border-brand-400 hover:scale-105 transition-all duration-300"
+              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-slate-700 font-bold rounded-lg border-2 border-slate-300 hover:border-brand-600 hover:scale-105 transition-all duration-300"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -55,12 +55,12 @@ export default function NotFound() {
             <Link 
               key={link.path}
               to={link.path} 
-              className="group p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-brand-600 dark:hover:border-brand-400 hover:shadow-lg transition-all duration-300"
+              className="group p-4 bg-white rounded-lg border border-slate-200 hover:border-brand-600 hover:shadow-lg transition-all duration-300"
             >
-              <svg className="w-6 h-6 mx-auto mb-2 text-slate-400 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6 mx-auto mb-2 text-slate-400 group-hover:text-brand-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={link.icon} />
               </svg>
-              <p className="text-sm font-medium text-slate-600 dark:text-slate-300 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{link.name}</p>
+              <p className="text-sm font-medium text-slate-600 group-hover:text-brand-600 transition-colors">{link.name}</p>
             </Link>
           ))}
         </div>

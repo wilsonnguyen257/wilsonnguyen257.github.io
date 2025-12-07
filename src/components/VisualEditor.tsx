@@ -76,22 +76,22 @@ export default function VisualEditor({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label className="block text-sm font-medium text-gray-700">
           {label} {required && <span className="text-red-500">*</span>}
         </label>
       )}
       
       {/* Toolbar */}
-      <div className="bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-t-lg p-2 flex flex-wrap gap-1">
+      <div className="bg-slate-100 border border-slate-300 rounded-t-lg p-2 flex flex-wrap gap-1">
         {/* Format buttons */}
-        <div className="flex gap-1 border-r border-slate-300 dark:border-slate-600 pr-2">
+        <div className="flex gap-1 border-r border-slate-300 pr-2">
           {formatButtons.map((btn) => (
             <button
               key={btn.command}
               type="button"
               onClick={() => execCommand(btn.command)}
               title={btn.title}
-              className="px-3 py-1.5 text-sm font-semibold bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 rounded transition-colors"
+              className="px-3 py-1.5 text-sm font-semibold bg-white hover:bg-slate-200 border border-slate-300 rounded transition-colors"
             >
               {btn.icon}
             </button>
@@ -99,14 +99,14 @@ export default function VisualEditor({
         </div>
 
         {/* Heading buttons */}
-        <div className="flex gap-1 border-r border-slate-300 dark:border-slate-600 pr-2">
+        <div className="flex gap-1 border-r border-slate-300 pr-2">
           {headingButtons.map((btn) => (
             <button
               key={btn.value}
               type="button"
               onClick={() => execCommand(btn.command, btn.value)}
               title={btn.title}
-              className="px-3 py-1.5 text-sm font-semibold bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 rounded transition-colors"
+              className="px-3 py-1.5 text-sm font-semibold bg-white hover:bg-slate-200 border border-slate-300 rounded transition-colors"
             >
               {btn.label}
             </button>
@@ -114,14 +114,14 @@ export default function VisualEditor({
         </div>
 
         {/* List buttons */}
-        <div className="flex gap-1 border-r border-slate-300 dark:border-slate-600 pr-2">
+        <div className="flex gap-1 border-r border-slate-300 pr-2">
           {listButtons.map((btn) => (
             <button
               key={btn.command}
               type="button"
               onClick={() => execCommand(btn.command)}
               title={btn.title}
-              className="px-3 py-1.5 text-xs bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 rounded transition-colors"
+              className="px-3 py-1.5 text-xs bg-white hover:bg-slate-200 border border-slate-300 rounded transition-colors"
             >
               {btn.icon}
             </button>
@@ -129,14 +129,14 @@ export default function VisualEditor({
         </div>
 
         {/* Align buttons */}
-        <div className="flex gap-1 border-r border-slate-300 dark:border-slate-600 pr-2">
+        <div className="flex gap-1 border-r border-slate-300 pr-2">
           {alignButtons.map((btn) => (
             <button
               key={btn.command}
               type="button"
               onClick={() => execCommand(btn.command)}
               title={btn.title}
-              className={`px-3 py-1.5 text-sm bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 rounded transition-colors ${btn.style || ''}`}
+              className={`px-3 py-1.5 text-sm bg-white hover:bg-slate-200 border border-slate-300 rounded transition-colors ${btn.style || ''}`}
             >
               {btn.icon}
             </button>
@@ -148,7 +148,7 @@ export default function VisualEditor({
           type="button"
           onClick={insertLink}
           title="Insert Link"
-          className="px-3 py-1.5 text-sm bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 rounded transition-colors"
+          className="px-3 py-1.5 text-sm bg-white hover:bg-slate-200 border border-slate-300 rounded transition-colors"
         >
           🔗
         </button>
@@ -158,7 +158,7 @@ export default function VisualEditor({
           type="button"
           onClick={() => execCommand('removeFormat')}
           title="Clear Formatting"
-          className="px-3 py-1.5 text-sm bg-white dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600 rounded transition-colors"
+          className="px-3 py-1.5 text-sm bg-white hover:bg-slate-200 border border-slate-300 rounded transition-colors"
         >
           ✕
         </button>
@@ -169,7 +169,7 @@ export default function VisualEditor({
         ref={editorRef}
         contentEditable
         onInput={handleInput}
-        className="w-full min-h-[200px] p-4 border border-slate-300 dark:border-slate-600 rounded-b-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 dark:focus:ring-brand-400 overflow-auto"
+        className="w-full min-h-[200px] p-4 border border-slate-300 rounded-b-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 overflow-auto"
         data-placeholder={placeholder}
         suppressContentEditableWarning
       />

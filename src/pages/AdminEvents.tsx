@@ -5,6 +5,7 @@ import { getJson, saveJson } from '../lib/storage';
 import { logAuditAction } from '../lib/audit';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import VisualEditor from '../components/VisualEditor';
 import type { Event } from '../types/content';
 
 export default function AdminEvents() {
@@ -186,19 +187,27 @@ export default function AdminEvents() {
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <textarea
-              placeholder={language === 'vi' ? 'Mô tả (VI)' : 'Description (Vietnamese)'}
-              value={formData.contentVi}
-              onChange={e => setFormData({ ...formData, contentVi: e.target.value })}
-              className="border rounded px-3 py-2 h-32"
-            />
-            <textarea
-              placeholder={language === 'vi' ? 'Mô tả (EN)' : 'Description (English)'}
-              value={formData.contentEn}
-              onChange={e => setFormData({ ...formData, contentEn: e.target.value })}
-              className="border rounded px-3 py-2 h-32"
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                {language === 'vi' ? 'Mô tả (VI)' : 'Description (Vietnamese)'}
+              </label>
+              <VisualEditor
+                value={formData.contentVi}
+                onChange={(value) => setFormData({ ...formData, contentVi: value })}
+                placeholder={language === 'vi' ? 'Nhập mô tả...' : 'Enter description...'}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                {language === 'vi' ? 'Mô tả (EN)' : 'Description (English)'}
+              </label>
+              <VisualEditor
+                value={formData.contentEn}
+                onChange={(value) => setFormData({ ...formData, contentEn: value })}
+                placeholder={language === 'vi' ? 'Nhập mô tả...' : 'Enter description...'}
+              />
+            </div>
           </div>
 
           <div>

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useLanguage } from '../contexts/LanguageContext';
 import { subscribeJson, saveJson } from '../lib/storage';
 import { logAuditAction } from '../lib/audit';
+import VisualEditor from '../components/VisualEditor';
 import type { Reflection } from '../types/content';
 
 export default function AdminReflections() {
@@ -120,19 +121,27 @@ export default function AdminReflections() {
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-4">
-            <textarea
-              placeholder={language === 'vi' ? 'Nội dung (VI)' : 'Content (Vietnamese)'}
-              value={formData.contentVi}
-              onChange={e => setFormData({ ...formData, contentVi: e.target.value })}
-              className="border rounded px-3 py-2 h-32"
-            />
-            <textarea
-              placeholder={language === 'vi' ? 'Nội dung (EN)' : 'Content (English)'}
-              value={formData.contentEn}
-              onChange={e => setFormData({ ...formData, contentEn: e.target.value })}
-              className="border rounded px-3 py-2 h-32"
-            />
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                {language === 'vi' ? 'Nội dung (VI)' : 'Content (Vietnamese)'}
+              </label>
+              <VisualEditor
+                value={formData.contentVi}
+                onChange={(value) => setFormData({ ...formData, contentVi: value })}
+                placeholder={language === 'vi' ? 'Nhập nội dung...' : 'Enter content...'}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                {language === 'vi' ? 'Nội dung (EN)' : 'Content (English)'}
+              </label>
+              <VisualEditor
+                value={formData.contentEn}
+                onChange={(value) => setFormData({ ...formData, contentEn: value })}
+                placeholder={language === 'vi' ? 'Nhập nội dung...' : 'Enter content...'}
+              />
+            </div>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4">

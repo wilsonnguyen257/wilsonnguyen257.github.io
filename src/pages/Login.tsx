@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { auth, signInWithEmailAndPassword, IS_FIREBASE_CONFIGURED } from '../lib/firebase';
+import { auth, signInWithEmailAndPassword, onAuthStateChanged, logout, IS_FIREBASE_CONFIGURED, type User } from '../lib/firebase';
 import { logAuditAction } from '../lib/audit';
 
 export default function Login() {
@@ -10,9 +10,37 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   // Get the page user was trying to access, default to /admin
   const from = (location.state as { from?: string })?.from || '/admin';
+
+  // Check if user is already logged in
+  useEffect(() => {
+    if (!IS_FIREBASE_CONFIGURED) {
+      setCheckingAuth(false);
+      return;
+    }
+
+    const unsubscribe = onAuthStateChanged((user) => {
+      setCurrentUser(user);
+      setCheckingAuth(false);
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setCurrentUser(null);
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,6 +112,53 @@ export default function Login() {
           <p className="text-red-700">
             Firebase authentication is not configured. Please set up your environment variables.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (checkingAuth) {
+    return (
+      <div className="container-xl py-12 text-center text-slate-500">
+        Checking authentication...
+      </div>
+    );
+  }
+
+  // If already logged in, show logged in state
+  if (currentUser) {
+    return (
+      <div className="container-xl py-12">
+        <div className="mx-auto max-w-md">
+          <div className="rounded-lg border border-slate-200 bg-white p-8 shadow-sm text-center">
+            <div className="mb-6">
+              <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-slate-800 mb-2">Already Logged In</h1>
+              <p className="text-slate-600">
+                You're signed in as <strong>{currentUser.email}</strong>
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <button
+                onClick={() => navigate('/admin')}
+                className="w-full rounded-md bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+              >
+                Go to Admin Dashboard
+              </button>
+              
+              <button
+                onClick={handleLogout}
+                className="w-full rounded-md bg-slate-100 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     );

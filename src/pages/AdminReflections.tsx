@@ -18,6 +18,33 @@ export default function AdminReflections() {
     author: '',
     date: new Date().toISOString().split('T')[0],
   });
+  const [showPasteHelper, setShowPasteHelper] = useState(false);
+  const [rawPaste, setRawPaste] = useState('');
+
+  // Clean pasted content from various platforms
+  const cleanPastedContent = (text: string): string => {
+    return text
+      // Remove extra whitespace
+      .replace(/\s+/g, ' ')
+      // Remove weird characters from email/web
+      .replace(/[\u200B-\u200D\uFEFF]/g, '')
+      // Fix common email formatting
+      .replace(/\r\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      // Remove Gmail/Outlook quoting marks
+      .replace(/^[>|\s]+/gm, '')
+      // Trim each line
+      .split('\n').map(line => line.trim()).join('\n')
+      .trim();
+  };
+
+  // Process pasted content
+  const handlePasteProcess = () => {
+    const cleaned = cleanPastedContent(rawPaste);
+    setFormData({ ...formData, contentVi: cleaned });
+    setRawPaste('');
+    setShowPasteHelper(false);
+  };
 
   // Load reflections
   useEffect(() => {
@@ -38,6 +65,8 @@ export default function AdminReflections() {
       date: new Date().toISOString().split('T')[0],
     });
     setEditingId(null);
+    setShowPasteHelper(false);
+    setRawPaste('');
   };
 
   // Edit reflection
@@ -123,9 +152,51 @@ export default function AdminReflections() {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                {language === 'vi' ? 'Nội dung (VI)' : 'Content (Vietnamese)'}
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-sm font-medium">
+                  {language === 'vi' ? 'Nội dung (VI)' : 'Content (Vietnamese)'}
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowPasteHelper(!showPasteHelper)}
+                  className="text-sm text-blue-600 hover:underline"
+                >
+                  📋 {language === 'vi' ? 'Dán từ nguồn khác' : 'Paste from source'}
+                </button>
+              </div>
+              
+              {showPasteHelper && (
+                <div className="mb-3 p-3 border border-blue-200 bg-blue-50 rounded">
+                  <p className="text-sm text-blue-800 mb-2">
+                    {language === 'vi' 
+                      ? 'Dán nội dung từ Facebook, Gmail, website... (sẽ tự động làm sạch)'
+                      : 'Paste content from Facebook, Gmail, website... (will auto-clean)'}
+                  </p>
+                  <textarea
+                    value={rawPaste}
+                    onChange={(e) => setRawPaste(e.target.value)}
+                    placeholder={language === 'vi' ? 'Dán nội dung ở đây...' : 'Paste content here...'}
+                    className="w-full border rounded px-3 py-2 h-32 mb-2"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={handlePasteProcess}
+                      className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                    >
+                      {language === 'vi' ? 'Làm sạch & Sử dụng' : 'Clean & Use'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { setShowPasteHelper(false); setRawPaste(''); }}
+                      className="bg-gray-300 text-gray-700 px-3 py-1 rounded text-sm hover:bg-gray-400"
+                    >
+                      {language === 'vi' ? 'Hủy' : 'Cancel'}
+                    </button>
+                  </div>
+                </div>
+              )}
+              
               <VisualEditor
                 value={formData.contentVi}
                 onChange={(value) => setFormData({ ...formData, contentVi: value })}

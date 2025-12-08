@@ -4,6 +4,7 @@ import { LanguageProvider } from "./contexts/LanguageContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from './components/ProtectedRoute';
+import ErrorBoundary from './components/ErrorBoundary';
 
 // Eager load critical pages
 import Home from "./pages/Home";
@@ -20,6 +21,7 @@ const ReflectionDetail = lazy(() => import('./pages/ReflectionDetail'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Lazy load admin pages
+const Login = lazy(() => import('./pages/Login'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminReflections = lazy(() => import('./pages/AdminReflections'));
 const AdminEvents = lazy(() => import('./pages/AdminEvents'));
@@ -33,11 +35,12 @@ const LoadingFallback = () => (
 
 export default function App() {
   return (
-    <LanguageProvider>
-      <div className="flex min-h-screen flex-col">
-        <Navbar />
-        <main className="flex-1">
-          <Suspense fallback={<LoadingFallback />}>
+    <ErrorBoundary>
+      <LanguageProvider>
+        <div className="flex min-h-screen flex-col">
+          <Navbar />
+          <main className="flex-1">
+            <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/about" element={<About />} />
@@ -49,8 +52,18 @@ export default function App() {
                 <Route path="/reflections" element={<Reflections />} />
                 <Route path="/reflections/:id" element={<ReflectionDetail />} />
                 
+                {/* Admin Login */}
+                <Route path="/login" element={<Login />} />
+                
                 {/* Admin Routes */}
-                <Route path="/admin" element={<AdminDashboard />} />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }
+                />
                 <Route
                   path="/admin/reflections"
                   element={
@@ -83,5 +96,6 @@ export default function App() {
         <Footer />
       </div>
     </LanguageProvider>
+    </ErrorBoundary>
   );
 }

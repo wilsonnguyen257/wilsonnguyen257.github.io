@@ -1,27 +1,105 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
+import { onAuthStateChanged, logout, type User } from "../lib/firebase";
+import { startSessionTimeout, stopSessionTimeout } from "../lib/sessionTimeout";
+import { logAuditAction } from "../lib/audit";
+import SessionTimeoutWarning from "../components/SessionTimeoutWarning";
 import AdminReflections from "./AdminReflections";
 import AdminEvents from "./AdminEvents";
 import AdminGallery from "./AdminGallery";
-// No routing deps needed while auth is disabled
 
 export default function AdminDashboard() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [view, setView] = useState<'reflections' | 'events' | 'gallery'>('reflections');
-  // Auth removed; always show admin tools. Use with care.
+  const [user, setUser] = useState<User | null>(null);
+  const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
+
+  // Track auth state and session timeout
+  useEffect(() => {
+    const unsub = onAuthStateChanged((u) => {
+      setUser(u);
+      if (u) {
+        // User logged in - start session timeout tracking
+        startSessionTimeout({
+          onWarning: () => setShowTimeoutWarning(true),
+          onTimeout: () => {
+            void logAuditAction('auth.logout', { reason: 'session_timeout' });
+          }
+        });
+      } else {
+        // User logged out - stop tracking
+        stopSessionTimeout();
+      }
+    });
+
+    return () => {
+      unsub();
+      stopSessionTimeout();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logAuditAction('auth.logout', { reason: 'manual' });
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
+  const getInitials = (email: string | null | undefined): string => {
+    if (!email) return 'AD';
+    const username = email.split('@')[0];
+    if (username.length <= 2) return username.toUpperCase();
+    return username.substring(0, 2).toUpperCase();
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* Session Timeout Warning Modal */}
+      {showTimeoutWarning && (
+        <SessionTimeoutWarning onDismiss={() => setShowTimeoutWarning(false)} />
+      )}
+
       {/* Header */}
       <section className="relative bg-gradient-to-br from-brand-600 to-brand-800 text-white py-12">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
         <div className="container-xl relative">
-          <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-4">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            <span className="font-medium">Admin Panel</span>
+          <div className="flex justify-between items-start mb-4">
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <span className="font-medium">Admin Panel</span>
+            </div>
+            
+            {/* User Info & Logout */}
+            {user && (
+              <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2">
+                <div className="flex items-center gap-2">
+                  <span 
+                    className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-white/30 text-white text-xs font-bold" 
+                    title={user.email || ''}
+                  >
+                    {getInitials(user.email)}
+                  </span>
+                  <div className="hidden sm:block">
+                    <div className="text-xs text-white/80">{language === 'vi' ? 'Đăng nhập với' : 'Signed in as'}</div>
+                    <div className="text-sm font-medium">{user.email}</div>
+                  </div>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="ml-2 px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-sm font-medium transition-colors"
+                  title={language === 'vi' ? 'Đăng xuất' : 'Logout'}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </button>
+              </div>
+            )}
           </div>
           <h1 className="text-3xl md:text-4xl font-bold">{t('admin.dashboard')}</h1>
         </div>

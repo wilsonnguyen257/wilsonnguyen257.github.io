@@ -41,7 +41,6 @@ const translations = {
     'admin.manage_reflections': 'Quản lý Phúc Âm',
     'admin.manage_events': 'Quản lý Sự kiện',
     'admin.manage_gallery': 'Quản lý Hình ảnh',
-    'admin.settings': 'Cài Đặt',
   // Navigation
   'nav.home': 'Trang chủ',
   'nav.about': 'Giới thiệu',
@@ -343,7 +342,6 @@ const translations = {
     'admin.manage_reflections': 'Manage Gospel',
     'admin.manage_events': 'Manage Events',
     'admin.manage_gallery': 'Manage Gallery',
-    'admin.settings': 'Settings',
   // Navigation
   'nav.home': 'Home',
   'nav.about': 'About',

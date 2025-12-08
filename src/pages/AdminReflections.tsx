@@ -2,9 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 // Theme and language are managed globally via Navbar; we still consume language to localize labels
 import { useLanguage } from '../contexts/LanguageContext';
+import { logAuditAction } from '../lib/audit';
 import type { FilterState, DeleteConfirmState, ReflectionFormData, Reflection } from '../types/content';
+import type { ToastType } from '../components/Toast';
 import { subscribeJson, saveJson } from '../lib/storage';
 import VisualEditor from '../components/VisualEditor';
+import Toast from '../components/Toast';
+import ConfirmDialog from '../components/ConfirmDialog';
+import PreviewModal from '../components/PreviewModal';
 
 // Types moved to shared file: src/types/content.ts
 
@@ -14,7 +19,8 @@ const defaultFormData: ReflectionFormData = {
   title: { vi: '', en: '' },
   content: { vi: '', en: '' },
   date: new Date().toISOString().split('T')[0],
-  author: 'Cộng đoàn'
+  author: 'Cộng đoàn',
+  status: 'draft'
 };
 
 // Storage now handled by Firestore via helpers above
@@ -38,9 +44,10 @@ const AdminReflections: React.FC = () => {
   });
   
   // UI state
-  const [success, setSuccess] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<DeleteConfirmState>({ show: false, id: null });
+  const [preview, setPreview] = useState<Reflection | null>(null);
+  const [selectedReflections, setSelectedReflections] = useState<Set<string>>(new Set());
   const [autoTranslate, setAutoTranslate] = useState(true);
 
   // Load and keep in sync with Firebase Storage JSON
@@ -55,6 +62,7 @@ const AdminReflections: React.FC = () => {
           content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },
           date: it.date || new Date().toISOString().split('T')[0],
           author: it.author || (language === 'vi' ? 'Cộng đoàn' : 'Community'),
+          status: it.status || 'published',
           createdAt: it.createdAt || new Date().toISOString(),
           updatedAt: it.updatedAt || new Date().toISOString(),
         }));
@@ -62,7 +70,7 @@ const AdminReflections: React.FC = () => {
       },
       (err) => {
         console.error('Failed to load reflections from Storage JSON:', err);
-        setError(language === 'vi' ? 'Không thể tải bài suy niệm' : 'Failed to load reflections');
+        setToast({ message: language === 'vi' ? 'Không thể tải bài suy niệm' : 'Failed to load reflections', type: 'error' });
       }
     );
     return () => { unsubscribe(); };
@@ -123,38 +131,39 @@ const AdminReflections: React.FC = () => {
       author: ''
     });
   };
-  
-  // Handle delete confirmation
-  const handleShowDeleteConfirm = (id: string) => {
-    setDeleteConfirm({ show: true, id });
-  };
-
-  // Handle cancel delete
-  const handleCancelDelete = () => {
-    setDeleteConfirm({ show: false, id: null });
-  };
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.title.vi.trim() || !formData.content.vi.trim()) {
-      setError(language === 'vi' ? 'Vui lòng điền đầy đủ thông tin bắt buộc (tiêu đề và nội dung tiếng Việt)' : 'Please fill in required fields (Vietnamese title and content)');
+    // Validate required fields
+    if (!formData.title.vi.trim()) {
+      setToast({ message: language === 'vi' ? 'Tiêu đề tiếng Việt là bắt buộc' : 'Vietnamese title is required', type: 'error' });
       return;
     }
-    // Simple content length check
-    const contentLen = formData.content.vi.trim().length;
-    if (contentLen < 20) {
-      setError(language === 'vi' ? 'Nội dung quá ngắn (ít nhất 20 ký tự)' : 'Content too short (minimum 20 characters)');
+    if (!formData.content.vi.trim()) {
+      setToast({ message: language === 'vi' ? 'Nội dung tiếng Việt là bắt buộc' : 'Vietnamese content is required', type: 'error' });
       return;
     }
-    if (contentLen > 5000) {
-      setError(language === 'vi' ? 'Nội dung quá dài (tối đa 5000 ký tự)' : 'Content too long (max 5000 characters)');
+    if (!formData.date) {
+      setToast({ message: language === 'vi' ? 'Ngày đăng là bắt buộc' : 'Date is required', type: 'error' });
+      return;
+    }
+    if (!formData.author.trim()) {
+      setToast({ message: language === 'vi' ? 'Tác giả là bắt buộc' : 'Author is required', type: 'error' });
       return;
     }
     
-    setError(null);
-    setSuccess(null);
+    // Validate content length
+    const contentLen = formData.content.vi.trim().length;
+    if (contentLen < 20) {
+      setToast({ message: language === 'vi' ? 'Nội dung quá ngắn (ít nhất 20 ký tự)' : 'Content too short (minimum 20 characters)', type: 'error' });
+      return;
+    }
+    if (contentLen > 5000) {
+      setToast({ message: language === 'vi' ? 'Nội dung quá dài (tối đa 5000 ký tự)' : 'Content too long (max 5000 characters)', type: 'error' });
+      return;
+    }
     
     try {
       const now = new Date().toISOString();
@@ -167,6 +176,7 @@ const AdminReflections: React.FC = () => {
             content: { vi: formData.content.vi, en: formData.content.en || formData.content.vi },
             date: formData.date,
             author: formData.author,
+            status: formData.status || 'draft',
             createdAt: now,
             updatedAt: now,
           }, ...reflections];
@@ -174,32 +184,36 @@ const AdminReflections: React.FC = () => {
       await saveJson('reflections', updated);
       setReflections(updated);
 
-      // Show success message
-      setSuccess(editingId ? (language === 'vi' ? 'Đã cập nhật bài suy niệm thành công!' : 'Reflection updated successfully!') : (language === 'vi' ? 'Đã thêm bài suy niệm mới thành công!' : 'New reflection added successfully!'));
+      // Log audit action
+      await logAuditAction(editingId ? 'reflection.update' : 'reflection.create', {
+        reflectionId: idToUse,
+        title: formData.title.vi,
+        status: formData.status
+      });
+
+      // Show success toast
+      setToast({ 
+        message: editingId 
+          ? (language === 'vi' ? 'Đã cập nhật bài suy niệm thành công!' : 'Reflection updated successfully!') 
+          : (language === 'vi' ? 'Đã thêm bài suy niệm mới thành công!' : 'New reflection added successfully!'),
+        type: 'success'
+      });
       
       // Reset form
-      
-      setFormData(defaultFormData);
+      setFormData({ ...defaultFormData, author: language === 'vi' ? 'Cộng đoàn' : 'Community' });
       setEditingId(null);
       
       // Scroll to top of the form
       window.scrollTo({ top: 0, behavior: 'smooth' });
-      
-      // Clear success message after 5 seconds
-      setTimeout(() => {
-        setSuccess(null);
-      }, 5000);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       console.error('Error saving reflection:', errorMessage);
-      setError(language === 'vi' ? 
-        `Có lỗi xảy ra khi lưu bài suy niệm: ${errorMessage}` : 
-        `Error saving reflection: ${errorMessage}`);
-      
-      // Clear error message after 5 seconds
-      setTimeout(() => {
-        setError(null);
-      }, 5000);
+      setToast({ 
+        message: language === 'vi' ? 
+          `Có lỗi xảy ra khi lưu bài suy niệm: ${errorMessage}` : 
+          `Error saving reflection: ${errorMessage}`,
+        type: 'error'
+      });
     }
   };
   
@@ -218,33 +232,126 @@ const AdminReflections: React.FC = () => {
         en: reflection.content?.en || '' 
       },
       date: reflectionDate,
-      author: reflection.author || ''
+      author: reflection.author || '',
+      status: reflection.status || 'draft'
     });
     setEditingId(reflection.id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle duplicate reflection
+  const handleDuplicate = (reflection: Reflection) => {
+    setFormData({
+      id: null,
+      title: { 
+        vi: `${reflection.title?.vi || ''} (Copy)`,
+        en: `${reflection.title?.en || ''} (Copy)` 
+      },
+      content: { 
+        vi: reflection.content?.vi || '',
+        en: reflection.content?.en || '' 
+      },
+      date: new Date().toISOString().split('T')[0],
+      author: reflection.author || '',
+      status: 'draft'
+    });
+    setEditingId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Log audit action
+    void logAuditAction('reflection.duplicate', {
+      sourceReflectionId: reflection.id,
+      title: reflection.title.vi
+    });
+    
+    setToast({ message: language === 'vi' ? 'Đã sao chép bài suy niệm. Vui lòng chỉnh sửa và lưu.' : 'Reflection duplicated. Please edit and save.', type: 'info' });
+  };
+
+  // Bulk selection functions
+  const toggleSelectReflection = (id: string) => {
+    const newSelected = new Set(selectedReflections);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedReflections(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedReflections.size === displayedReflections.length) {
+      setSelectedReflections(new Set());
+    } else {
+      setSelectedReflections(new Set(displayedReflections.map(r => r.id)));
+    }
+  };
+
+  const confirmBulkDelete = () => {
+    if (selectedReflections.size === 0) return;
+    setDeleteConfirm({ show: true, id: 'bulk' });
+  };
+
+  const handleBulkDelete = async () => {
+    try {
+      const updated = reflections.filter(r => !selectedReflections.has(r.id));
+      await saveJson('reflections', updated);
+      setReflections(updated);
+      
+      // Log audit action
+      await logAuditAction('reflection.bulk_delete', {
+        count: selectedReflections.size,
+        reflectionIds: Array.from(selectedReflections)
+      });
+      
+      setSelectedReflections(new Set());
+      setDeleteConfirm({ show: false, id: null });
+      setToast({ 
+        message: language === 'vi' ? 
+          `Đã xóa ${selectedReflections.size} bài suy niệm thành công!` : 
+          `Successfully deleted ${selectedReflections.size} reflections!`,
+        type: 'success'
+      });
+    } catch (err) {
+      console.error('Error deleting reflections:', err);
+      setToast({ 
+        message: language === 'vi' ? 'Có lỗi xảy ra khi xóa' : 'Error deleting reflections',
+        type: 'error'
+      });
+    }
   };
 
   // Handle deletion of a reflection
   const handleDelete = async () => {
     if (!deleteConfirm.id) return;
     
+    if (deleteConfirm.id === 'bulk') {
+      await handleBulkDelete();
+      return;
+    }
+    
     try {
+      const reflectionToDelete = reflections.find(r => r.id === deleteConfirm.id);
       const filtered = reflections.filter(r => r.id !== deleteConfirm.id);
       await saveJson('reflections', filtered);
       setReflections(filtered);
-      setSuccess(language === 'vi' ? 'Đã xóa bài suy niệm thành công' : 'Reflection deleted successfully');
+      
+      // Log audit action
+      await logAuditAction('reflection.delete', {
+        reflectionId: deleteConfirm.id,
+        title: reflectionToDelete?.title.vi || 'Unknown'
+      });
+      
+      setToast({ message: language === 'vi' ? 'Đã xóa bài suy niệm thành công' : 'Reflection deleted successfully', type: 'success' });
       setDeleteConfirm({ show: false, id: null });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : String(err);
       console.error('Error deleting reflection:', errorMessage);
-      setError(language === 'vi' ? 
-        `Có lỗi xảy ra khi xóa bài suy niệm: ${errorMessage}` : 
-        `Error deleting reflection: ${errorMessage}`);
-      
-      // Clear error message after 5 seconds
-      setTimeout(() => {
-        setError(null);
-      }, 5000);
+      setToast({ 
+        message: language === 'vi' ? 
+          `Có lỗi xảy ra khi xóa bài suy niệm: ${errorMessage}` : 
+          `Error deleting reflection: ${errorMessage}`,
+        type: 'error'
+      });
     }
   };
 
@@ -313,22 +420,45 @@ const AdminReflections: React.FC = () => {
   return (
     <div className="min-h-screen bg-white transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-r-lg mb-6 flex items-start gap-3 shadow-md">
-            <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-            </svg>
-            <span>{error}</span>
-          </div>
-        )}
-        {success && (
-          <div className="bg-green-50 border-l-4 border-green-500 text-green-700 px-6 py-4 rounded-r-lg mb-6 flex items-start gap-3 shadow-md">
-            <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-            </svg>
-            <span>{success}</span>
-          </div>
-        )}
+      
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+
+      {/* Confirm Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.show}
+        title={deleteConfirm.id === 'bulk' 
+          ? (language === 'vi' ? `Xóa ${selectedReflections.size} bài suy niệm?` : `Delete ${selectedReflections.size} reflections?`)
+          : (language === 'vi' ? 'Xóa bài suy niệm?' : 'Delete reflection?')
+        }
+        message={deleteConfirm.id === 'bulk'
+          ? (language === 'vi' ? 'Bạn có chắc muốn xóa các bài suy niệm đã chọn? Hành động này không thể hoàn tác.' : 'Are you sure you want to delete the selected reflections? This action cannot be undone.')
+          : (language === 'vi' ? 'Bạn có chắc muốn xóa bài suy niệm này? Hành động này không thể hoàn tác.' : 'Are you sure you want to delete this reflection? This action cannot be undone.')
+        }
+        confirmText={language === 'vi' ? 'Xóa' : 'Delete'}
+        cancelText={language === 'vi' ? 'Hủy' : 'Cancel'}
+        onConfirm={handleDelete}
+        onCancel={() => setDeleteConfirm({ show: false, id: null })}
+        type="danger"
+      />
+
+      {/* Preview Modal */}
+      {preview && (
+        <PreviewModal
+          isOpen={true}
+          title={preview.title[language]}
+          content={preview.content[language]}
+          onClose={() => setPreview(null)}
+          language={language}
+        />
+      )}
+
         <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-slate-200">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-rose-100 rounded-lg flex items-center justify-center">
@@ -381,6 +511,19 @@ const AdminReflections: React.FC = () => {
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{language === 'vi' ? 'Tác giả' : 'Author'} <span className="text-red-500">*</span></label>
                 <input type="text" name="author" value={formData.author} onChange={handleInputChange} className="w-full p-2 border rounded" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{language === 'vi' ? 'Trạng thái' : 'Status'} <span className="text-red-500">*</span></label>
+                <select
+                  name="status"
+                  value={formData.status}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border rounded"
+                  required
+                >
+                  <option value="draft">{language === 'vi' ? 'Bản nháp' : 'Draft'}</option>
+                  <option value="published">{language === 'vi' ? 'Đã xuất bản' : 'Published'}</option>
+                </select>
               </div>
             </div>
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -507,7 +650,20 @@ const AdminReflections: React.FC = () => {
                 {language === 'vi' ? 'Danh sách Bài Suy Niệm' : 'Reflections List'}
               </h2>
             </div>
-            <span className="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full">{language === 'vi' ? `Tổng cộng: ${displayedReflections.length} bài` : `Total: ${displayedReflections.length} reflections`}</span>
+            <div className="flex items-center gap-2">
+              {selectedReflections.size > 0 && (
+                <button
+                  onClick={confirmBulkDelete}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                  {language === 'vi' ? `Xóa (${selectedReflections.size})` : `Delete (${selectedReflections.size})`}
+                </button>
+              )}
+              <span className="text-sm font-medium text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full">{language === 'vi' ? `Tổng cộng: ${displayedReflections.length} bài` : `Total: ${displayedReflections.length} reflections`}</span>
+            </div>
           </div>
           {displayedReflections.length === 0 ? (
             <div className="p-12 text-center">
@@ -521,16 +677,33 @@ const AdminReflections: React.FC = () => {
               <table className="min-w-full divide-y divide-slate-200">
                 <thead className="bg-slate-50">
                   <tr>
+                    <th className="px-4 py-4 w-12">
+                      <input
+                        type="checkbox"
+                        checked={selectedReflections.size === displayedReflections.length && displayedReflections.length > 0}
+                        onChange={toggleSelectAll}
+                        className="w-4 h-4 text-brand-600 border-slate-300 rounded"
+                      />
+                    </th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">{language === 'vi' ? 'Tiêu đề (VI)' : 'Title (VI)'}</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">{language === 'vi' ? 'Tiêu đề (EN)' : 'Title (EN)'}</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">{language === 'vi' ? 'Ngày' : 'Date'}</th>
                     <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">{language === 'vi' ? 'Tác giả' : 'Author'}</th>
+                    <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">{language === 'vi' ? 'Trạng thái' : 'Status'}</th>
                     <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">{language === 'vi' ? 'Hành động' : 'Actions'}</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-slate-200">
                   {displayedReflections.map((reflection) => (
                     <tr key={reflection.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedReflections.has(reflection.id)}
+                          onChange={() => toggleSelectReflection(reflection.id)}
+                          className="w-4 h-4 text-brand-600 border-slate-300 rounded"
+                        />
+                      </td>
                       <td className="px-6 py-4">
                         <div className="text-sm font-semibold text-slate-900">
                           {reflection.title.vi}
@@ -562,25 +735,62 @@ const AdminReflections: React.FC = () => {
                       <td className="px-6 py-4 text-sm text-slate-600">
                         {reflection.author}
                       </td>
-                      <td className="px-6 py-4 text-right text-sm font-medium">
-                        <button
-                          onClick={() => handleEdit(reflection)}
-                          className="inline-flex items-center gap-1.5 text-indigo-600 hover:text-indigo-800 font-semibold mr-4 transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                          <span>{language === 'vi' ? 'Sửa' : 'Edit'}</span>
-                        </button>
-                        <button
-                          onClick={() => handleShowDeleteConfirm(reflection.id)}
-                          className="inline-flex items-center gap-1.5 text-red-600 hover:text-red-800 font-semibold transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          <span>{language === 'vi' ? 'Xóa' : 'Delete'}</span>
-                        </button>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          reflection.status === 'published' 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}>
+                          {reflection.status === 'published' 
+                            ? (language === 'vi' ? 'Đã xuất bản' : 'Published') 
+                            : (language === 'vi' ? 'Bản nháp' : 'Draft')
+                          }
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => setPreview(reflection)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
+                            title={language === 'vi' ? 'Xem trước' : 'Preview'}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <span>{language === 'vi' ? 'Xem' : 'Preview'}</span>
+                          </button>
+                          <button
+                            onClick={() => handleDuplicate(reflection)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-blue-700 hover:text-blue-900 bg-blue-100 hover:bg-blue-200 rounded-lg transition-colors"
+                            title={language === 'vi' ? 'Sao chép' : 'Duplicate'}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            <span>{language === 'vi' ? 'Sao' : 'Copy'}</span>
+                          </button>
+                          <button
+                            onClick={() => handleEdit(reflection)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-700 hover:text-indigo-900 bg-indigo-100 hover:bg-indigo-200 rounded-lg transition-colors"
+                            title={language === 'vi' ? 'Chỉnh sửa' : 'Edit'}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span>{language === 'vi' ? 'Sửa' : 'Edit'}</span>
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirm({ show: true, id: reflection.id })}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors"
+                            title={language === 'vi' ? 'Xóa' : 'Delete'}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span>{language === 'vi' ? 'Xóa' : 'Delete'}</span>
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -601,51 +811,6 @@ const AdminReflections: React.FC = () => {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
           </svg>
         </button>
-
-        {/* Delete Confirmation Modal */}
-        {deleteConfirm.show && (
-          <div className="fixed z-10 inset-0 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" onClick={handleCancelDelete}></div>
-
-              <span className="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-
-              <div className="inline-block align-bottom bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
-                <div className="sm:flex sm:items-start">
-                  <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
-                    <svg className="h-6 w-6 text-red-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </div>
-                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-title">{language === 'vi' ? 'Xác nhận xóa' : 'Delete confirmation'}</h3>
-                    <div className="mt-2">
-                      <p className="text-sm text-gray-500">
-                        {language === 'vi' ? 'Bạn có chắc chắn muốn xóa bài suy niệm này? Hành động này không thể hoàn tác.' : 'Are you sure you want to delete this reflection? This action cannot be undone.'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                  <button
-                    type="button"
-                    onClick={handleDelete}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-                  >
-                    {language === 'vi' ? 'Xóa' : 'Delete'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancelDelete}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:w-auto sm:text-sm"
-                  >
-                    {language === 'vi' ? 'Hủy' : 'Cancel'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

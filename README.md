@@ -1,6 +1,6 @@
 # Vietnamese Catholic Church Website (React + TypeScript + Vite)
 
-A multilingual church website with Vietnamese and English support, reflections and events, and light/dark theme toggle. Admin can manage content via dashboard. Language and theme preferences are persisted in localStorage. Content (events, reflections, gallery) is stored in Firebase with real-time synchronization.
+A multilingual church website with Vietnamese and English support, reflections and events. Admin can manage content via dashboard. Language preference is persisted in localStorage. Content (events, reflections, gallery) is stored in Firebase with real-time synchronization.
 
 ## 🚀 Quick Start
 
@@ -15,16 +15,15 @@ For local development, continue reading below.
 - Multilingual UI and content (vi/en) with smart fallback to Vietnamese.
 - Reflections list and detail pages with search, author filter, and sorting.
 - Events with localized date formatting.
-- Light/Dark theme toggle via context and Tailwind “class” strategy.
 - Admin dashboard for Events, Reflections, and Gallery with bilingual fields.
 - Optional auto-translation (mock dictionary) and text formatting utilities.
-- Clean, responsive UI built with Tailwind CSS.
+- Clean, bright UI built with Tailwind CSS.
 
 ## Tech Stack
 
 - React + TypeScript + Vite
-- Tailwind CSS (darkMode: 'class')
-- Context API for language (`src/contexts/LanguageContext.tsx`) and theme (`src/contexts/ThemeContext.tsx`)
+- Tailwind CSS
+- Context API for language (`src/contexts/LanguageContext.tsx`)
 - Optional Firebase Auth + Firestore backend (`src/lib/firebase.ts` + `src/lib/storage.ts`)
 
 ## Getting Started
@@ -90,12 +89,11 @@ This project follows modern TypeScript and React best practices:
 ## Project Structure
 
 - `src/contexts/LanguageContext.tsx` — language state, `t()` translator, vi/en resources, default `vi` with localStorage persistence.
-- `src/contexts/ThemeContext.tsx` — theme state, toggles `dark` class on `document.documentElement`, localStorage persistence.
-- `src/components/Navbar.tsx` — language and theme toggles.
-- `src/pages/Reflections.tsx` — search, author filter, sorting, dark-mode-friendly inputs.
+- `src/components/Navbar.tsx` — language toggle and navigation.
+- `src/pages/Reflections.tsx` — search, author filter, sorting.
 - `src/pages/ReflectionDetail.tsx` — bilingual rendering with language fallback.
 - `src/pages/AdminReflections.tsx`, `src/pages/AdminEvents.tsx` — bilingual forms, mock auto-translate, formatting helpers.
-- `tailwind.config.js` — `darkMode: 'class'` enabled.
+- `tailwind.config.js` — Tailwind configuration with brand colors.
 
 ## Internationalization (i18n)
 
@@ -105,12 +103,6 @@ type Localized = { vi: string; en?: string };
 ```
 When rendering: use `content[language] || content.vi` to ensure fallback.
 Dates format via `toLocaleDateString()` with `vi-VN` or `en-US` based on current language.
-
-## Theme
-
-- Tailwind dark mode is configured using the class strategy.
-- `ThemeProvider` stores preference and toggles the `dark` class.
-- Components use `dark:` utilities, e.g., inputs in `Reflections.tsx` use `dark:bg-slate-700 dark:text-white` and `dark:placeholder-slate-300`.
 
 ## Admin Usage
 
@@ -174,9 +166,11 @@ The repo contains example rules:
 
 Finally, in Firebase Authentication → Settings, add your production domain (e.g., `https://<username>.github.io`) to Authorized Domains so sign-in works in production.
 
-### Sign In
+### Admin Access
 
-- Visit `/login` to sign in with Email/Password (Firebase). Admin pages are wrapped with a protected route that requires auth when Firebase is configured. Without Firebase, the app allows access and stores data locally.
+- Admin pages (`/admin/*`) are protected and require Firebase Authentication.
+- Sign in using Firebase Email/Password authentication through the navbar when signed out.
+- If Firebase is not configured, admin features are accessible without authentication (development mode).
 
 ## Git & GitHub
 

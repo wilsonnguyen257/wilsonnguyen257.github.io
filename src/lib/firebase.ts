@@ -3,7 +3,6 @@ import { initializeApp, type FirebaseApp } from 'firebase/app';
 import {
   getAuth,
   onAuthStateChanged as fbOnAuthStateChanged,
-  signInWithEmailAndPassword,
   signOut,
   type User as FirebaseUser,
   type Auth,
@@ -44,58 +43,70 @@ if (isConfigured) {
 
 export { app, auth, db, storage };
 
+// Re-export Firebase Auth functions for direct use
+export { signInWithEmailAndPassword, signOut } from 'firebase/auth';
+
 // Auth helpers with fallback to local stub when Firebase is not configured
 
-type LoginResult = { success: true } | { success: false; error: string };
+/**
+ * Local user type for fallback authentication when Firebase is not configured
+ */
+type LocalUser = Pick<FirebaseUser, 'email'> & { uid?: string };
 
 // Local stub state for non-configured environments
-let localUser: { email: string } | null = null;
-const localListeners = new Set<(user: { email: string } | null) => void>();
-function notifyLocal() { for (const cb of localListeners) cb(localUser); }
+let localUser: LocalUser | null = null;
+const localListeners = new Set<(user: LocalUser | null) => void>();
 
-export async function login(email: string, password: string): Promise<LoginResult> {
-  if (auth) {
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-      return { success: true };
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Login failed';
-      return { success: false, error: msg };
-    }
-  }
-  // Fallback (no Firebase): accept any credentials and persist in localStorage
-  try { localStorage.setItem('admin:email', email); } catch { /* ignore */ }
-  localUser = { email };
-  notifyLocal();
-  return { success: true };
+/**
+ * Notify all local listeners of auth state changes
+ */
+function notifyLocal(): void {
+  for (const cb of localListeners) cb(localUser);
 }
 
-export async function logout(): Promise<LoginResult> {
+/**
+ * Logout the current user
+ * Works with Firebase auth or falls back to localStorage
+ */
+export async function logout(): Promise<void> {
   if (auth) {
+    await signOut(auth);
+  } else {
+    // Fallback (no Firebase)
     try {
-      await signOut(auth);
-      return { success: true };
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Sign out failed';
-      return { success: false, error: msg };
+      localStorage.removeItem('admin:email');
+    } catch {
+      /* ignore */
     }
+    localUser = null;
+    notifyLocal();
   }
-  // Fallback (no Firebase)
-  try { localStorage.removeItem('admin:email'); } catch { /* ignore */ }
-  localUser = null;
-  notifyLocal();
-  return { success: true };
 }
 
-export function onAuthStateChanged(callback: (user: User) => void) {
+/**
+ * Subscribe to authentication state changes
+ * @param callback - Function called when auth state changes
+ * @returns Unsubscribe function
+ */
+export function onAuthStateChanged(callback: (user: User) => void): () => void {
   if (auth) {
     return fbOnAuthStateChanged(auth, callback);
   }
   // Fallback: simulate auth state via localStorage
-  localListeners.add(callback as (u: { email: string } | null) => void);
+  const localCallback = callback as (u: LocalUser | null) => void;
+  localListeners.add(localCallback);
+  
   if (!localUser) {
-    try { const email = localStorage.getItem('admin:email'); if (email) localUser = { email }; } catch { /* ignore */ }
+    try {
+      const email = localStorage.getItem('admin:email');
+      if (email) localUser = { email };
+    } catch {
+      /* ignore */
+    }
   }
-  callback(localUser as unknown as User);
-  return () => { localListeners.delete(callback as (u: { email: string } | null) => void); };
+  callback(localUser as User);
+  
+  return () => {
+    localListeners.delete(localCallback);
+  };
 }

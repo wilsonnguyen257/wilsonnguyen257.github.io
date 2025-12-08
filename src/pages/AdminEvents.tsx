@@ -3,15 +3,23 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { v4 as uuidv4 } from 'uuid';
 import type { Event } from '../types/content';
 import { getJson, saveJson } from '../lib/storage';
+import { logAuditAction } from '../lib/audit';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import VisualEditor from '../components/VisualEditor';
+import Toast from '../components/Toast';
+import type { ToastType } from '../components/Toast';
+import ConfirmDialog from '../components/ConfirmDialog';
+import PreviewModal from '../components/PreviewModal';
 
 const AdminEvents = () => {
   const { language } = useLanguage();
   const [events, setEvents] = useState<Event[]>([]);
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([]);
-  const [error, setError] = useState('');
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ show: boolean; id: string | null }>({ show: false, id: null });
+  const [preview, setPreview] = useState<{ show: boolean; title: string; content: string } | null>(null);
+  const [selectedEvents, setSelectedEvents] = useState<Set<string>>(new Set());
   
   // Initialize with current date
   const today = new Date();
@@ -27,7 +35,8 @@ const AdminEvents = () => {
     time: '5:00 PM', // Initialize with default time
     location: '',
     contentVi: '',
-    contentEn: ''
+    contentEn: '',
+    status: 'published' as 'draft' | 'published'
   });
   const [editId, setEditId] = useState<string | null>(null);
   const [autoTranslate, setAutoTranslate] = useState(true);
@@ -120,6 +129,7 @@ const AdminEvents = () => {
           content: d.content ? { vi: d.content.vi || '', en: d.content.en || d.content.vi || '' } : undefined,
           thumbnail: d.thumbnail,
           thumbnailPath: d.thumbnailPath,
+          status: d.status || 'published'
         })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         
         if (active) {
@@ -128,7 +138,7 @@ const AdminEvents = () => {
         }
       } catch (err) {
         console.error('Failed to load events from Storage JSON:', err);
-        setError(language === 'vi' ? 'Không thể tải sự kiện' : 'Failed to load events');
+        setToast({ message: language === 'vi' ? 'Không thể tải sự kiện' : 'Failed to load events', type: 'error' });
         if (active) {
           setEvents([]);
           setFilteredEvents([]);
@@ -227,14 +237,27 @@ const AdminEvents = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Basic validation
-    if (!formData.nameVi || !formData.date || !formData.time || !formData.location) {
-      setError(language === 'vi' ? 'Vui lòng điền đầy đủ các trường bắt buộc' : 'Please fill in all required fields');
-      return;
+    // Reset errors
+    const errors: Record<string, string> = {};
+    
+    // Validation
+    if (!formData.nameVi.trim()) {
+      errors.nameVi = language === 'vi' ? 'Tên tiếng Việt là bắt buộc' : 'Vietnamese name is required';
     }
-    // Time format validation (e.g., 5:00 PM or 07:30PM)
-    if (!isValidTime(formData.time)) {
-      setError(language === 'vi' ? 'Giờ không hợp lệ. Định dạng đúng: 5:00 PM hoặc 07:30PM' : 'Invalid time. Expected format: 5:00 PM or 07:30PM');
+    if (!formData.date) {
+      errors.date = language === 'vi' ? 'Ngày là bắt buộc' : 'Date is required';
+    }
+    if (!formData.time) {
+      errors.time = language === 'vi' ? 'Giờ là bắt buộc' : 'Time is required';
+    } else if (!isValidTime(formData.time)) {
+      errors.time = language === 'vi' ? 'Giờ không hợp lệ. Định dạng đúng: 5:00 PM hoặc 07:30PM' : 'Invalid time. Expected format: 5:00 PM or 07:30PM';
+    }
+    if (!formData.location.trim()) {
+      errors.location = language === 'vi' ? 'Địa điểm là bắt buộc' : 'Location is required';
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setToast({ message: language === 'vi' ? 'Vui lòng kiểm tra các trường bắt buộc' : 'Please check required fields', type: 'error' });
       return;
     }
     const timeNormalized = normalizeTime(formData.time);
@@ -273,7 +296,8 @@ const AdminEvents = () => {
           en: formData.contentEn || formData.contentVi
         } : undefined,
         thumbnail: thumbnail || undefined,
-        thumbnailPath: thumbnailPath
+        thumbnailPath: thumbnailPath,
+        status: formData.status
       };
 
       const updated = editId
@@ -286,11 +310,26 @@ const AdminEvents = () => {
       // Persist all events to Firebase Storage JSON
       await saveJson('events', sorted);
       setEvents(sorted);
+      
+      // Log audit action
+      await logAuditAction(editId ? 'event.update' : 'event.create', {
+        eventId,
+        eventName: formData.nameVi,
+        status: formData.status
+      });
+      
+      // Show success toast
+      setToast({
+        message: editId 
+          ? (language === 'vi' ? 'Đã cập nhật sự kiện thành công!' : 'Event updated successfully!')
+          : (language === 'vi' ? 'Đã thêm sự kiện mới thành công!' : 'New event added successfully!'),
+        type: 'success'
+      });
 
       // Reset form
       resetForm();
     } catch (err) {
-      setError(language === 'vi' ? 'Có lỗi xảy ra khi lưu sự kiện' : 'Error saving event');
+      setToast({ message: language === 'vi' ? 'Có lỗi xảy ra khi lưu sự kiện' : 'Error saving event', type: 'error' });
       console.error(err);
     } finally {
       setUploading(false);
@@ -318,35 +357,135 @@ const AdminEvents = () => {
       time: event.time,
       location: event.location,
       contentVi: event.content?.vi || '',
-      contentEn: event.content?.en || ''
+      contentEn: event.content?.en || '',
+      status: event.status || 'published'
     });
     setThumbnailFile(null);
     setThumbnailPreview(event.thumbnail || '');
     setEditId(id);
-    setError('');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm(language === 'vi' ? 'Bạn có chắc chắn muốn xóa sự kiện này?' : 'Are you sure you want to delete this event?')) {
-      try {
-        const eventToDelete = events.find(ev => ev.id === id);
-        
-        // Delete thumbnail from Firebase Storage if exists
-        if (eventToDelete?.thumbnailPath && IS_FIREBASE_CONFIGURED && fbStorage) {
+    setDeleteConfirm({ show: true, id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm.id) return;
+    
+    try {
+      const eventToDelete = events.find(ev => ev.id === deleteConfirm.id);
+      
+      // Delete thumbnail from Firebase Storage if exists
+      if (eventToDelete?.thumbnailPath && IS_FIREBASE_CONFIGURED && fbStorage) {
+        try {
+          await deleteObject(ref(fbStorage, eventToDelete.thumbnailPath));
+        } catch (err) {
+          console.warn('Failed to delete thumbnail from storage:', err);
+        }
+      }
+      
+      const remaining = events.filter(ev => ev.id !== deleteConfirm.id);
+      await saveJson('events', remaining);
+      setEvents(remaining);
+      
+      // Log audit action
+      await logAuditAction('event.delete', {
+        eventId: deleteConfirm.id,
+        eventName: eventToDelete?.name.vi || 'Unknown'
+      });
+      
+      setToast({ message: language === 'vi' ? 'Đã xóa sự kiện thành công!' : 'Event deleted successfully!', type: 'success' });
+      setDeleteConfirm({ show: false, id: null });
+    } catch (err) {
+      setToast({ message: language === 'vi' ? 'Có lỗi xảy ra khi xóa sự kiện' : 'Error deleting event', type: 'error' });
+      console.error(err);
+    }
+  };
+
+  const handleDuplicate = (id: string) => {
+    const event = events.find(ev => ev.id === id);
+    if (!event) return;
+
+    setFormData({
+      nameVi: event.name.vi + ' (Copy)',
+      nameEn: event.name.en + ' (Copy)',
+      date: event.date,
+      time: event.time,
+      location: event.location,
+      contentVi: event.content?.vi || '',
+      contentEn: event.content?.en || '',
+      status: 'draft'
+    });
+    setThumbnailFile(null);
+    setThumbnailPreview(event.thumbnail || '');
+    setEditId(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Log audit action
+    void logAuditAction('event.duplicate', {
+      sourceEventId: id,
+      eventName: event.name.vi
+    });
+    
+    setToast({ message: language === 'vi' ? 'Đã sao chép sự kiện. Vui lòng chỉnh sửa và lưu.' : 'Event duplicated. Please edit and save.', type: 'info' });
+  };
+
+  const toggleSelectEvent = (id: string) => {
+    const newSelected = new Set(selectedEvents);
+    if (newSelected.has(id)) {
+      newSelected.delete(id);
+    } else {
+      newSelected.add(id);
+    }
+    setSelectedEvents(newSelected);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedEvents.size === filteredEvents.length) {
+      setSelectedEvents(new Set());
+    } else {
+      setSelectedEvents(new Set(filteredEvents.map(e => e.id)));
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedEvents.size === 0) return;
+    setDeleteConfirm({ show: true, id: 'bulk' });
+  };
+
+  const confirmBulkDelete = async () => {
+    try {
+      // Delete thumbnails from storage
+      for (const id of selectedEvents) {
+        const event = events.find(ev => ev.id === id);
+        if (event?.thumbnailPath && IS_FIREBASE_CONFIGURED && fbStorage) {
           try {
-            await deleteObject(ref(fbStorage, eventToDelete.thumbnailPath));
+            await deleteObject(ref(fbStorage, event.thumbnailPath));
           } catch (err) {
-            console.warn('Failed to delete thumbnail from storage:', err);
+            console.warn('Failed to delete thumbnail:', err);
           }
         }
-        
-        const remaining = events.filter(ev => ev.id !== id);
-        await saveJson('events', remaining);
-        setEvents(remaining);
-      } catch (err) {
-        setError(language === 'vi' ? 'Có lỗi xảy ra khi xóa sự kiện' : 'Error deleting event');
-        console.error(err);
       }
+      
+      const eventNames = events.filter(ev => selectedEvents.has(ev.id)).map(ev => ev.name.vi);
+      const remaining = events.filter(ev => !selectedEvents.has(ev.id));
+      await saveJson('events', remaining);
+      setEvents(remaining);
+      
+      // Log audit action
+      await logAuditAction('event.bulk_delete', {
+        count: selectedEvents.size,
+        eventIds: Array.from(selectedEvents),
+        eventNames
+      });
+      
+      setToast({ message: language === 'vi' ? `Đã xóa ${selectedEvents.size} sự kiện` : `Deleted ${selectedEvents.size} events`, type: 'success' });
+      setSelectedEvents(new Set());
+      setDeleteConfirm({ show: false, id: null });
+    } catch (err) {
+      setToast({ message: language === 'vi' ? 'Có lỗi xảy ra khi xóa sự kiện' : 'Error deleting events', type: 'error' });
+      console.error(err);
     }
   };
 
@@ -363,7 +502,8 @@ const AdminEvents = () => {
       time: '5:00 PM',
       location: '',
       contentVi: '',
-      contentEn: ''
+      contentEn: '',
+      status: 'published'
     });
     setTimeComponents({
       hour: '5',
@@ -371,22 +511,50 @@ const AdminEvents = () => {
       period: 'PM'
     });
     setThumbnailFile(null);
+    setThumbnailFile(null);
     setThumbnailPreview('');
     setEditId(null);
-    setError('');
   };
-
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6 lg:px-8 transition-colors">
       <div className="max-w-7xl mx-auto">
       
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-r-lg mb-6 flex items-start gap-3 shadow-md">
-          <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-          </svg>
-          <span>{error}</span>
-        </div>
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
+      
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirm.show}
+        title={deleteConfirm.id === 'bulk' 
+          ? (language === 'vi' ? 'Xóa nhiều sự kiện?' : 'Delete multiple events?')
+          : (language === 'vi' ? 'Xóa sự kiện?' : 'Delete event?')
+        }
+        message={deleteConfirm.id === 'bulk'
+          ? (language === 'vi' ? `Bạn có chắc chắn muốn xóa ${selectedEvents.size} sự kiện đã chọn?` : `Are you sure you want to delete ${selectedEvents.size} selected events?`)
+          : (language === 'vi' ? 'Hành động này không thể hoàn tác.' : 'This action cannot be undone.')
+        }
+        confirmText={language === 'vi' ? 'Xóa' : 'Delete'}
+        cancelText={language === 'vi' ? 'Hủy' : 'Cancel'}
+        onConfirm={deleteConfirm.id === 'bulk' ? confirmBulkDelete : confirmDelete}
+        onCancel={() => setDeleteConfirm({ show: false, id: null })}
+        type="danger"
+      />
+      
+      {/* Preview Modal */}
+      {preview && (
+        <PreviewModal
+          isOpen={preview.show}
+          title={preview.title}
+          content={preview.content}
+          onClose={() => setPreview(null)}
+          language={language}
+        />
       )}
 
       <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-slate-200">
@@ -516,6 +684,20 @@ const AdminEvents = () => {
                   />
                 </div>
               )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                {language === 'vi' ? 'Trạng thái' : 'Status'} <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as 'draft' | 'published' }))}
+                className="w-full p-2 border rounded"
+              >
+                <option value="published">{language === 'vi' ? '✓ Đã xuất bản' : '✓ Published'}</option>
+                <option value="draft">{language === 'vi' ? '📝 Bản nháp' : '📝 Draft'}</option>
+              </select>
             </div>
 
             <div className="md:col-span-2">
@@ -666,23 +848,42 @@ const AdminEvents = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-slate-900">
-              {language === 'vi' ? 'Danh sách Sự Kiện' : 'Events List'}
-            </h2>
+            <div>
+              <h2 className="text-xl font-bold text-slate-900">
+                {language === 'vi' ? 'Danh sách Sự Kiện' : 'Events List'}
+              </h2>
+              {selectedEvents.size > 0 && (
+                <p className="text-sm text-brand-600 font-medium">
+                  {selectedEvents.size} {language === 'vi' ? 'đã chọn' : 'selected'}
+                </p>
+              )}
+            </div>
           </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">{language === 'vi' ? 'Sắp xếp theo:' : 'Sort by:'}</span>
-            <select
-              value={`${sortConfig.key}-${sortConfig.direction}`}
-              onChange={(e) => {
-                const [key, direction] = e.target.value.split('-') as ['date' | 'name' | 'location', 'asc' | 'desc'];
-                setSortConfig({ key, direction });
-              }}
-              className="border rounded p-2 text-sm"
-            >
-              <option value="date-asc">{language === 'vi' ? 'Ngày (Cũ đến mới)' : 'Date (Oldest First)'}</option>
-              <option value="date-desc">{language === 'vi' ? 'Ngày (Mới đến cũ)' : 'Date (Newest First)'}</option>
-              <option value="name-asc">{language === 'vi' ? 'Tên (A-Z)' : 'Name (A-Z)'}</option>
+          <div className="flex items-center gap-3 flex-wrap">
+            {selectedEvents.size > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-semibold transition-all duration-200 shadow-sm"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                {language === 'vi' ? `Xóa ${selectedEvents.size}` : `Delete ${selectedEvents.size}`}
+              </button>
+            )}
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-600">{language === 'vi' ? 'Sắp xếp:' : 'Sort:'}</span>
+              <select
+                value={`${sortConfig.key}-${sortConfig.direction}`}
+                onChange={(e) => {
+                  const [key, direction] = e.target.value.split('-') as ['date' | 'name' | 'location', 'asc' | 'desc'];
+                  setSortConfig({ key, direction });
+                }}
+                className="border rounded px-3 py-1.5 text-sm"
+              >
+                <option value="date-asc">{language === 'vi' ? 'Ngày (Cũ đến mới)' : 'Date (Oldest First)'}</option>
+                <option value="date-desc">{language === 'vi' ? 'Ngày (Mới đến cũ)' : 'Date (Newest First)'}</option>
+                <option value="name-asc">{language === 'vi' ? 'Tên (A-Z)' : 'Name (A-Z)'}</option>
               <option value="name-desc">{language === 'vi' ? 'Tên (Z-A)' : 'Name (Z-A)'}</option>
               <option value="location-asc">{language === 'vi' ? 'Địa điểm (A-Z)' : 'Location (A-Z)'}</option>
               <option value="location-desc">{language === 'vi' ? 'Địa điểm (Z-A)' : 'Location (Z-A)'}</option>
@@ -702,6 +903,14 @@ const AdminEvents = () => {
             <table className="min-w-full divide-y divide-slate-200">
               <thead className="bg-slate-50">
                 <tr>
+                  <th className="px-4 py-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedEvents.size === filteredEvents.length && filteredEvents.length > 0}
+                      onChange={toggleSelectAll}
+                      className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
+                    />
+                  </th>
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                     {language === 'vi' ? 'Tên (VI)' : 'Name (VI)'}
                   </th>
@@ -714,6 +923,9 @@ const AdminEvents = () => {
                   <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">
                     {language === 'vi' ? 'Địa điểm' : 'Location'}
                   </th>
+                  <th className="px-6 py-4 text-center text-xs font-bold text-slate-600 uppercase tracking-wider">
+                    {language === 'vi' ? 'Trạng thái' : 'Status'}
+                  </th>
                   <th className="px-6 py-4 text-right text-xs font-bold text-slate-600 uppercase tracking-wider">
                     {language === 'vi' ? 'Hành động' : 'Actions'}
                   </th>
@@ -722,6 +934,14 @@ const AdminEvents = () => {
               <tbody className="bg-white divide-y divide-slate-200">
                 {filteredEvents.map((event) => (
                   <tr key={event.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-4">
+                      <input
+                        type="checkbox"
+                        checked={selectedEvents.has(event.id)}
+                        onChange={() => toggleSelectEvent(event.id)}
+                        className="w-4 h-4 text-brand-600 border-slate-300 rounded focus:ring-brand-500"
+                      />
+                    </td>
                     <td className="px-6 py-4">
                       <div className="text-sm font-semibold text-slate-900">
                         {event.name.vi}
@@ -757,8 +977,31 @@ const AdminEvents = () => {
                     <td className="px-6 py-4 text-sm text-slate-600">
                       {event.location}
                     </td>
+                    <td className="px-6 py-4 text-center">
+                      {event.status === 'published' ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          ✓ {language === 'vi' ? 'Đã xuất bản' : 'Published'}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          📝 {language === 'vi' ? 'Bản nháp' : 'Draft'}
+                        </span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-sm font-medium">
-                      <div className={`flex gap-2 ${language === 'vi' ? 'flex-col' : 'flex-row justify-end'}`}>
+                      <div className="flex gap-2 flex-wrap justify-end">
+                        {event.content?.vi && (
+                          <button
+                            onClick={() => setPreview({ show: true, title: event.name.vi, content: event.content?.vi || '' })}
+                            className="inline-flex items-center justify-center gap-1.5 text-blue-600 hover:text-blue-800 font-semibold transition-colors"
+                            title={language === 'vi' ? 'Xem trước' : 'Preview'}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+                        )}
                         <button
                           onClick={() => handleEdit(event.id)}
                           className="inline-flex items-center justify-center gap-1.5 text-indigo-600 hover:text-indigo-800 font-semibold transition-colors"
@@ -767,6 +1010,15 @@ const AdminEvents = () => {
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                           <span>{language === 'vi' ? 'Sửa' : 'Edit'}</span>
+                        </button>
+                        <button
+                          onClick={() => handleDuplicate(event.id)}
+                          className="inline-flex items-center justify-center gap-1.5 text-green-600 hover:text-green-800 font-semibold transition-colors"
+                          title={language === 'vi' ? 'Sao chép' : 'Duplicate'}
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
                         </button>
                         <button
                           onClick={() => handleDelete(event.id)}
@@ -785,6 +1037,7 @@ const AdminEvents = () => {
             </table>
           </div>
         )}
+      </div>
       </div>
       </div>
     </div>

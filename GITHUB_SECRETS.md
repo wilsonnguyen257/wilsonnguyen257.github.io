@@ -119,10 +119,11 @@ Option B: Manual trigger
 2. Navigate to Events, Reflections, Gallery
 3. **Expected**: Content loads (may be empty initially)
 
-### Test 2: Admin Login
-1. Visit: `https://wilsonnguyen257.github.io/login`
-2. Sign in with your Firebase admin credentials
-3. **Expected**: Successfully logged in, redirected to `/admin`
+### Test 2: Admin Access
+1. Visit: `https://wilsonnguyen257.github.io/admin`
+2. If not signed in, click the sign-in button in the navbar
+3. Sign in with your Firebase admin credentials
+4. **Expected**: Successfully logged in and can access admin dashboard
 
 ### Test 3: Add Content
 1. While logged in as admin, go to `/admin/events`

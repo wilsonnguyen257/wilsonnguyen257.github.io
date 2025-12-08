@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 - App uses React + TypeScript + Vite with Tailwind.
 - Key folders:
-  - `src/pages/` (route views), `src/components/` (reusable UI), `src/contexts/` (Theme/Language providers), `src/lib/` (Firebase utilities), `src/types/`.
+  - `src/pages/` (route views), `src/components/` (reusable UI), `src/contexts/` (Language provider), `src/lib/` (Firebase utilities), `src/types/`.
   - Static assets: `public/`; entry: `index.html`, `src/main.tsx`.
   - GitHub Pages workflow: `.github/workflows/deploy.yml`.
 - Import alias: `@` maps to `/src` (e.g., `import X from '@/components/X'`).
@@ -19,7 +19,7 @@
 - TypeScript for all code; 2-space indent; prefer explicit types for public APIs.
 - Components/pages: PascalCase files (`Navbar.tsx`, `AdminEvents.tsx`).
 - Variables/functions: camelCase; constants UPPER_SNAKE_CASE; contexts `XxxContext.tsx`.
-- Tailwind with `dark` class strategy; prefer utility-first styles.
+- Tailwind CSS with light mode only; prefer utility-first styles.
 - Lint before pushing: `npm run lint`. No Prettier; follow ESLint-recommended/TS rules in `eslint.config.js`.
 
 ## Testing Guidelines

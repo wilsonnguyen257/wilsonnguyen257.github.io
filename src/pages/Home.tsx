@@ -206,7 +206,8 @@ export default function Home() {
           content: d.content ? { vi: d.content.vi || '', en: d.content.en || d.content.vi || '' } : undefined,
           thumbnail: d.thumbnail,
           thumbnailPath: d.thumbnailPath,
-        })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          status: d.status || 'published',
+        })).filter(e => e.status === 'published').sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         setEvents(mapped);
       },
       () => setEvents([])

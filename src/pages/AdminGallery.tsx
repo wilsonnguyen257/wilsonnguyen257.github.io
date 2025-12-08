@@ -32,7 +32,7 @@ export default function AdminGallery() {
       }
     })();
     return () => { active = false; };
-  }, []);
+  }, [t]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFile(e.target.files?.[0] || null);

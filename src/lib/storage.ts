@@ -1,4 +1,12 @@
+/**
+ * Storage utility for managing site data (events, reflections, gallery)
+ * Supports multiple backends: Firebase Firestore, API endpoints, and localStorage
+ * Provides real-time synchronization across tabs and users
+ */
+
+/** Valid JSON data types that can be stored */
 export type JsonName = 'events' | 'reflections' | 'gallery';
+
 import { IS_FIREBASE_CONFIGURED, db } from './firebase';
 import { doc, getDoc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -7,6 +15,17 @@ const VERSION_KEY = (name: JsonName) => `site-data:version:${name}` as const;
 const CHANNEL_NAME = 'site-data';
 const LOCAL_KEY = (name: JsonName) => `site-data:${name}` as const;
 
+/**
+ * Fetch JSON data from storage
+ * Tries Firebase Firestore first, falls back to API, then localStorage
+ * 
+ * @template T - Type of data being retrieved
+ * @param name - Name of the data collection to fetch
+ * @returns Promise resolving to the data (empty array if not found)
+ * 
+ * @example
+ * const events = await getJson<Event[]>('events');
+ */
 export async function getJson<T = unknown>(name: JsonName): Promise<T> {
   // Prefer Firebase Firestore if configured
   if (IS_FIREBASE_CONFIGURED && db) {
@@ -36,9 +55,18 @@ export async function getJson<T = unknown>(name: JsonName): Promise<T> {
   }
 }
 
-// No edit token required
-
-export async function saveJson(name: JsonName, data: unknown) {
+/**
+ * Save JSON data to storage
+ * Saves to Firebase Firestore if configured, otherwise falls back to API or localStorage
+ * Automatically notifies other tabs and users of the update
+ * 
+ * @param name - Name of the data collection to save
+ * @param data - Data to save (will be JSON stringified if needed)
+ * 
+ * @example
+ * await saveJson('events', updatedEvents);
+ */
+export async function saveJson(name: JsonName, data: unknown): Promise<void> {
   const json = typeof data === 'string' ? data : JSON.stringify(data);
   // Prefer Firebase Firestore if configured
   if (IS_FIREBASE_CONFIGURED && db) {
@@ -62,7 +90,13 @@ export async function saveJson(name: JsonName, data: unknown) {
   announceJsonUpdate(name);
 }
 
-export function announceJsonUpdate(name: JsonName) {
+/**
+ * Notify all listeners that data has been updated
+ * Uses localStorage events for cross-tab sync and BroadcastChannel for same-tab
+ * 
+ * @param name - Name of the data collection that was updated
+ */
+export function announceJsonUpdate(name: JsonName): void {
   try {
     const ts = Date.now().toString();
     // Update version in localStorage (triggers storage events in other tabs)
@@ -80,11 +114,27 @@ export function announceJsonUpdate(name: JsonName) {
   }
 }
 
+/**
+ * Subscribe to real-time updates of JSON data
+ * Automatically refreshes when data changes via Firebase, storage events, or periodic polling
+ * 
+ * @template T - Type of data being subscribed to
+ * @param name - Name of the data collection to subscribe to
+ * @param callback - Function called with new data when updates occur
+ * @param onError - Optional error handler
+ * @returns Unsubscribe function to stop listening
+ * 
+ * @example
+ * const unsubscribe = subscribeJson<Event[]>('events', (events) => {
+ *   setEvents(events);
+ * });
+ * // Later: unsubscribe();
+ */
 export function subscribeJson<T = unknown>(
   name: JsonName,
   callback: (data: T) => void,
   onError?: (err: unknown) => void,
-) {
+): () => void {
   let active = true;
 
   const load = async () => {

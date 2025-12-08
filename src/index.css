@@ -5,12 +5,12 @@
 
 /* App base styles */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
   scroll-behavior: smooth;
 }
 
 body {
-  @apply bg-white text-slate-800 antialiased
+  @apply bg-white text-slate-800 antialiased;
   font-feature-settings: 'kern' 1, 'liga' 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -18,27 +18,27 @@ body {
 
 /* Input placeholders */
 ::placeholder {
-  @apply text-slate-400
+  @apply text-slate-400;
 }
 
 /* For Firefox */
 ::-moz-placeholder {
-  @apply text-slate-400
+  @apply text-slate-400;
 }
 
 /* For Internet Explorer 10-11 */
 :-ms-input-placeholder {
-  @apply text-slate-400
+  @apply text-slate-400;
 }
 
 /* For Microsoft Edge */
 ::-ms-input-placeholder {
-  @apply text-slate-400
+  @apply text-slate-400;
 }
 
 /* Input fields */
 input, textarea, select {
-  @apply bg-white text-slate-900
+  @apply bg-white text-slate-900;
 }
 
 /* Focus states */
@@ -75,7 +75,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .p-muted {
-  @apply text-slate-600
+  @apply text-slate-600;
 }
 
 /* Professional Animations */
@@ -147,7 +147,7 @@ input:focus, textarea:focus, select:focus {
 
 /* Glass morphism effect */
 .glass {
-  @apply backdrop-blur-lg bg-white/80 border border-white/20
+  @apply backdrop-blur-lg bg-white/80 border border-white/20;
 }
 
 /* Gradient text */
@@ -162,5 +162,5 @@ input:focus, textarea:focus, select:focus {
 
 /* Focus ring for accessibility */
 .focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2
+  @apply focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2;
 }

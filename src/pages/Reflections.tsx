@@ -14,6 +14,7 @@ type Reflection = {
   };
   date?: string; 
   author?: string;
+  status?: 'draft' | 'published';
 };
 type ReflectionItem = Reflection & { id: string };
 
@@ -43,7 +44,8 @@ export default function Reflections() {
           content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },
           date: it.date,
           author: it.author,
-        }));
+          status: it.status || 'published',
+        })).filter(r => r.status === 'published');
         setReflections(mapped);
       },
       () => setReflections([])

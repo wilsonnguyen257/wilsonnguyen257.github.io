@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import type { Event } from "../types/content";
 import { subscribeJson } from "../lib/storage";
 import EventCountdown from "../components/EventCountdown";
@@ -44,15 +44,17 @@ export default function Events() {
           content: d.content ? { vi: d.content.vi || '', en: d.content.en || d.content.vi || '' } : undefined,
           thumbnail: d.thumbnail,
           thumbnailPath: d.thumbnailPath,
-        })).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+          status: d.status || 'published',
+        })).filter(e => e.status === 'published').sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         setEvents(mapped);
       }
     );
     return () => { unsub(); };
   }, []);
 
-  const now = new Date();
-  const upcomingEvents = events.filter(e => {
+  const now = useMemo(() => new Date(), []);
+  
+  const upcomingEvents = useMemo(() => events.filter(e => {
     try {
       // Use Melbourne timezone to check if event has passed
       return !hasEventPassed(e.date, e.time || '11:59 PM');
@@ -61,9 +63,13 @@ export default function Events() {
       // Fallback to date-only comparison
       return new Date(e.date) >= now;
     }
-  });
+  }), [events, now]);
+  
   const displayEvents = activeTab === 'upcoming' ? upcomingEvents : events;
-  const groupedEvents = groupEventsByMonth(displayEvents, language);
+  const groupedEvents = useMemo(
+    () => groupEventsByMonth(displayEvents, language),
+    [displayEvents, language]
+  );
 
   return (
     <div className="bg-slate-50">

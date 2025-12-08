@@ -8,6 +8,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 
 // Eager load critical pages
 import Home from "./pages/Home";
+import Login from "./pages/Login";
 
 // Lazy load other pages
 const About = lazy(() => import('./pages/About'));
@@ -17,7 +18,6 @@ const Give = lazy(() => import('./pages/Give'));
 const Gallery = lazy(() => import('./pages/Gallery'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Reflections = lazy(() => import('./pages/Reflections'));
-const ReflectionDetail = lazy(() => import('./pages/ReflectionDetail'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Lazy load admin pages

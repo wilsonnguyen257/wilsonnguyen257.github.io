@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { auth, signInWithEmailAndPassword, onAuthStateChanged, IS_FIREBASE_CONFIGURED } from '../lib/firebase';
+import { auth, signInWithEmailAndPassword, IS_FIREBASE_CONFIGURED } from '../lib/firebase';
 import { logAuditAction } from '../lib/audit';
 
 export default function Login() {
@@ -13,21 +13,6 @@ export default function Login() {
 
   // Get the page user was trying to access, default to /admin
   const from = (location.state as { from?: string })?.from || '/admin';
-
-  useEffect(() => {
-    // If already logged in, redirect to admin
-    if (!IS_FIREBASE_CONFIGURED) return;
-    
-    const unsubscribe = onAuthStateChanged((user) => {
-      if (user) {
-        navigate(from, { replace: true });
-      }
-    });
-
-    return () => {
-      if (unsubscribe) unsubscribe();
-    };
-  }, [navigate, from]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +38,8 @@ export default function Login() {
         timestamp: new Date().toISOString()
       });
 
-      // Navigation will happen automatically via the useEffect above
+      // Redirect to the page user was trying to access
+      navigate(from, { replace: true });
     } catch (err) {
       console.error('Login error:', err);
       

@@ -18,10 +18,10 @@ const Give = lazy(() => import('./pages/Give'));
 const Gallery = lazy(() => import('./pages/Gallery'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Reflections = lazy(() => import('./pages/Reflections'));
+const ReflectionDetail = lazy(() => import('./pages/ReflectionDetail'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Lazy load admin pages
-const Login = lazy(() => import('./pages/Login'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const AdminReflections = lazy(() => import('./pages/AdminReflections'));
 const AdminEvents = lazy(() => import('./pages/AdminEvents'));

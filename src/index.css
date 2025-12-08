@@ -11,9 +11,9 @@
 
 body {
   @apply bg-white text-slate-800 antialiased;
-  font-feature-settings: 'kern' 1, 'liga' 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'kern' 1, 'liga' 1;
 }
 
 /* Input placeholders */

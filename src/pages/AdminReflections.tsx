@@ -22,16 +22,23 @@ export default function AdminReflections() {
   // Clean pasted content from various platforms
   const cleanPastedContent = (text: string): string => {
     return text
-      // Remove extra whitespace
-      .replace(/\s+/g, ' ')
-      // Remove weird characters from email/web
+      // Remove inline styles and font tags
+      .replace(/<font[^>]*>/gi, '')
+      .replace(/<\/font>/gi, '')
+      .replace(/style="[^"]*"/gi, '')
+      .replace(/class="[^"]*"/gi, '')
+      // Remove span tags but keep content
+      .replace(/<span[^>]*>/gi, '')
+      .replace(/<\/span>/gi, '')
+      // Remove weird characters from email/web (zero-width, etc)
       .replace(/[\u200B-\u200D\uFEFF]/g, '')
-      // Fix common email formatting
+      // Normalize line breaks (keep structure)
       .replace(/\r\n/g, '\n')
+      // Remove excessive blank lines (3+ becomes 2)
       .replace(/\n{3,}/g, '\n\n')
-      // Remove Gmail/Outlook quoting marks
-      .replace(/^[>|\s]+/gm, '')
-      // Trim each line
+      // Clean up spaces but preserve line structure
+      .replace(/[ \t]+/g, ' ')
+      // Trim each line but keep the line breaks
       .split('\n').map(line => line.trim()).join('\n')
       .trim();
   };

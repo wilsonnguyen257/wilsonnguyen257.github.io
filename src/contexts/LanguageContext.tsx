@@ -56,11 +56,11 @@ const translations = {
   'gallery.empty': 'Chưa có hình ảnh nào được đăng tải.',
     
     // Homepage
-    'home.title': 'Cộng Đoàn Công Giáo Việt Nam St. Timothy',
+    'home.title': 'Cộng Đoàn Công Giáo Việt Nam Anê Thành',
     'home.subtitle': 'Chào mừng quý vị đến với cộng đoàn nhỏ bé của chúng tôi tại Melbourne!',
     'home.description': 'Mục tiêu của cộng đoàn là sống theo tinh thần Tin Mừng trong đoàn kết, yêu thương và phục vụ.',
     'home.mass': 'Thánh Lễ Chúa Nhật',
-    'home.mass_time': 'Thánh Lễ mỗi Chúa Nhật lúc 5 giờ chiều tại 17 Stevens Rd, Vermont VIC 3133.',
+    'home.mass_time': 'Thánh Lễ mỗi Chúa Nhật lúc 5 giờ chiều tại 138 Woodhouse Grove, Box Hill North VIC 3129.',
     'home.learn_more': 'Tìm hiểu thêm',
     'home.contact_us': 'Liên hệ với chúng tôi',
     
@@ -127,7 +127,7 @@ const translations = {
     'give.bsb': 'BSB',
     'give.account_number': 'Số Tài Khoản',
     'give.reference': 'Ghi Chú Quan Trọng',
-    'give.reference_note': 'Vui lòng ghi: Tên của quý vị + "Ung ho CGVN St Timothy"',
+    'give.reference_note': 'Vui lòng ghi: Tên của quý vị + "Ung ho CGVN Anê Thành"',
     'give.cash_description': 'Quý vị có thể ủng hộ trực tiếp bằng tiền mặt trong các dịp:',
     'give.sunday_mass': 'Trong Thánh Lễ Chúa Nhật',
     'give.special_occasions': 'Các dịp lễ đặc biệt',
@@ -138,12 +138,12 @@ const translations = {
     'give.thank_you_message': 'Mọi đóng góp của quý vị, dù lớn hay nhỏ, đều rất ý nghĩa và giúp cộng đoàn tiếp tục phát triển. Xin Chúa ban phúc lành đến quý vị và gia đình.',
     
     // About
-    'about.title': 'Giới thiệu về Cộng Đoàn Công Giáo Việt Nam St. Timothy',
-    'about.welcome': 'Chào mừng quý vị và các bạn đến với trang điện tử của Cộng Đoàn Công Giáo Việt Nam St. Timothy (CĐCGVNST). Cũng như Thánh Timothy ít mấy ai biết đến, CĐCGVNST cũng chẳng mấy ai nghe tên. Là một cộng đoàn nhỏ bé (khoảng hơn 120 tín hữu), nhưng cộng đoàn có Thánh Lễ mỗi Chúa Nhật vào lúc 5 giờ chiều tại nhà thờ St. Timothy.',
+    'about.title': 'Giới thiệu về Cộng Đoàn Công Giáo Việt Nam Anê Thành',
+    'about.welcome': 'Chào mừng quý vị và các bạn đến với trang điện tử của Cộng Đoàn Công Giáo Việt Nam Anê Thành (CĐCGVNAT). Là một cộng đoàn nhỏ bé (khoảng hơn 120 tín hữu), nhưng cộng đoàn có Thánh Lễ mỗi Chúa Nhật vào lúc 5 giờ chiều tại nhà thờ St. Clare.',
     'about.history_title': 'Lịch Sử Hình Thành',
-    'about.history_milestone_1': 'Khởi Đầu - 2013',
-    'about.history_milestone_2': 'Phát Triển & Tăng Trưởng',
-    'about.history_p1': 'Cộng đoàn được thành lập vào năm 2013, bắt đầu từ một nhóm nhỏ các gia đình Công Giáo Việt Nam sinh sống tại khu vực Vermont và vùng phụ cận. Với sự chấp thuận của Tổng Giáo Phận Melbourne, cộng đoàn đã được phép tổ chức Thánh Lễ tiếng Việt tại nhà thờ St. Timothy.',
+    'about.history_milestone_1': 'Khởi Đầu - 2013 tại St. Timothy',
+    'about.history_milestone_2': 'Chuyển đến St. Clare - 2026',
+    'about.history_p1': 'Cộng đoàn được thành lập vào năm 2013, bắt đầu từ một nhóm nhỏ các gia đình Công Giáo Việt Nam sinh sống tại khu vực Vermont và vùng phụ cận. Với sự chấp thuận của Tổng Giáo Phận Melbourne, cộng đoàn đã được phép tổ chức Thánh Lễ tiếng Việt tại nhà thờ St. Timothy. Năm 2026, cộng đoàn chuyển đến nhà thờ St. Clare tại Box Hill North để tiếp tục sinh hoạt và phát triển.',
     'about.history_p2': 'Qua thời gian, cộng đoàn đã phát triển từ vài chục người ban đầu lên đến hơn 120 tín hữu hiện nay. Điều đáng mừng là số lượng các gia đình trẻ và thiếu nhi trong cộng đoàn ngày càng tăng, mang đến sinh khí mới cho cộng đoàn.',
     'about.mission_vision': 'Sứ Mệnh & Tầm Nhìn',
     'about.mission': 'Sứ Mệnh',
@@ -180,7 +180,7 @@ const translations = {
     'contact.get_in_touch': 'Liên Hệ Ngay',
     'contact.description': 'Nếu bạn có câu hỏi hoặc cần hỗ trợ, hãy liên hệ với chúng tôi qua các thông tin dưới đây hoặc đến tham dự Thánh Lễ vào Chủ Nhật hàng tuần.',
     'contact.address': 'Địa chỉ',
-    'contact.address_value': '17 Stevens Rd, Vermont VIC 3133',
+    'contact.address_value': '138 Woodhouse Grove, Box Hill North VIC 3129',
     'contact.mass': 'Thánh Lễ',
     'contact.mass_time': 'Chủ Nhật 5:00pm - 6:00pm',
     'contact.phone': 'Điện thoại',
@@ -203,7 +203,7 @@ const translations = {
     
     // Ministries
     'ministries.title': 'Mục Vụ',
-    'ministries.description': 'Cộng đoàn Thánh Timothy có nhiều ban mục vụ khác nhau phục vụ nhu cầu tâm linh và đời sống của giáo dân.',
+    'ministries.description': 'Cộng đoàn Anê Thành có nhiều ban mục vụ khác nhau phục vụ nhu cầu tâm linh và đời sống của giáo dân.',
     'ministries.serving_together': 'Cùng Nhau Phục Vụ',
     'ministries.join_title': 'Tham Gia Phục Vụ',
     'ministries.join_desc': 'Mỗi thành viên trong cộng đoàn đều có ơn gọi phục vụ. Hãy tham gia vào các ban mục vụ để cùng nhau xây dựng Vương Quốc Thiên Chúa.',
@@ -267,7 +267,7 @@ const translations = {
     'home.confession_time': 'Trước Thánh Lễ 30 phút',
     'home.info_title': 'Thông Tin',
     'home.address_label': 'Địa chỉ:',
-    'home.address_value': '17 Stevens Rd, Vermont VIC 3133',
+    'home.address_value': '138 Woodhouse Grove, Box Hill North VIC 3129',
     'home.parking_label': 'Bãi đậu xe:',
     'home.parking_desc': 'Có chỗ đậu xe miễn phí trong khuôn viên nhà thờ',
     'home.contact_label': 'Liên hệ:',
@@ -301,10 +301,10 @@ const translations = {
     'home.learn_more_about': 'Tìm Hiểu Thêm',
     
     // Footer
-    'footer.copyright': 'Cộng Đoàn Công Giáo Việt Nam St. Timothy. Đã đăng ký bản quyền.',
+    'footer.copyright': 'Cộng Đoàn Công Giáo Việt Nam Anê Thành. Đã đăng ký bản quyền.',
     'footer.about': 'Giới thiệu',
     'footer.contact': 'Liên hệ',
-    'footer.description': 'Cộng đoàn Công Giáo Việt Nam St. Timothy phục vụ cộng đồng với đức tin, hy vọng và tình yêu thương.',
+    'footer.description': 'Cộng đoàn Công Giáo Việt Nam Anê Thành phục vụ cộng đồng với đức tin, hy vọng và tình yêu thương.',
     'footer.quick_links': 'Liên Kết Nhanh',
     'footer.contact_us': 'Liên Hệ',
     'footer.mass_times': 'Giờ Lễ',
@@ -357,11 +357,11 @@ const translations = {
   'gallery.empty': 'No images have been uploaded yet.',
     
     // Homepage
-    'home.title': 'Vietnamese Catholic Community St. Timothy',
+    'home.title': 'Vietnamese Catholic Community Anê Thành',
     'home.subtitle': 'Welcome to our small community in Melbourne!',
     'home.description': 'Our goal is to live according to the Gospel spirit in unity, love and service.',
     'home.mass': 'Sunday Mass',
-    'home.mass_time': 'Sunday Mass at 5:00 PM at 17 Stevens Rd, Vermont VIC 3133.',
+    'home.mass_time': 'Sunday Mass at 5:00 PM at 138 Woodhouse Grove, Box Hill North VIC 3129.',
     'home.learn_more': 'Learn More',
     'home.contact_us': 'Contact Us',
     
@@ -428,7 +428,7 @@ const translations = {
     'give.bsb': 'BSB',
     'give.account_number': 'Account Number',
     'give.reference': 'Important Note',
-    'give.reference_note': 'Please include: Your name + "Donation CGVN St Timothy"',
+    'give.reference_note': 'Please include: Your name + "Donation CGVN Anê Thành"',
     'give.cash_description': 'You can donate directly with cash on the following occasions:',
     'give.sunday_mass': 'During Sunday Mass',
     'give.special_occasions': 'Special feast days',
@@ -439,12 +439,12 @@ const translations = {
     'give.thank_you_message': 'Every contribution, big or small, is meaningful and helps our community continue to grow. May God bless you and your family.',
     
     // About
-    'about.title': 'About Vietnamese Catholic Community St. Timothy',
-    'about.welcome': 'Welcome to the website of the Vietnamese Catholic Community St. Timothy (VCCST). Like Saint Timothy who few people know about, VCCST is also not widely known. We are a small community (about 120+ faithful), but we have Sunday Mass every week at 5:00 PM at St. Timothy Church.',
+    'about.title': 'About Vietnamese Catholic Community Anê Thành',
+    'about.welcome': 'Welcome to the website of the Vietnamese Catholic Community Anê Thành (VCCNAT). We are a small community (about 120+ faithful), but we have Sunday Mass every week at 5:00 PM at St. Clare Church.',
     'about.history_title': 'Formation History',
-    'about.history_milestone_1': 'The Beginning - 2013',
-    'about.history_milestone_2': 'Development & Growth',
-    'about.history_p1': 'The community was established in 2013, starting from a small group of Vietnamese Catholic families living in the Vermont area and surrounding regions. With the approval of the Archdiocese of Melbourne, the community was permitted to organize Vietnamese Mass at St. Timothy Church.',
+    'about.history_milestone_1': 'The Beginning - 2013 at St. Timothy',
+    'about.history_milestone_2': 'Move to St. Clare - 2026',
+    'about.history_p1': 'The community was established in 2013, starting from a small group of Vietnamese Catholic families living in the Vermont area and surrounding regions. With the approval of the Archdiocese of Melbourne, the community was permitted to organize Vietnamese Mass at St. Timothy Church. In 2026, the community moved to St. Clare Church in Box Hill North to continue our activities and growth.',
     'about.history_p2': 'Over time, the community has grown from a few dozen people initially to over 120 faithful today. What is encouraging is that the number of young families and children in the community is increasing, bringing new vitality to the community.',
     'about.mission_vision': 'Mission & Vision',
     'about.mission': 'Mission',
@@ -481,7 +481,7 @@ const translations = {
     'contact.get_in_touch': 'Get in Touch',
     'contact.description': 'If you have questions or need support, please contact us through the information below or attend Sunday Mass weekly.',
     'contact.address': 'Address',
-    'contact.address_value': '17 Stevens Rd, Vermont VIC 3133',
+    'contact.address_value': '138 Woodhouse Grove, Box Hill North VIC 3129',
     'contact.mass': 'Mass',
     'contact.mass_time': 'Sunday 5:00pm - 6:00pm',
     'contact.phone': 'Phone',
@@ -504,7 +504,7 @@ const translations = {
     
     // Ministries
     'ministries.title': 'Ministries',
-    'ministries.description': 'St. Timothy Community has various ministries serving the spiritual and life needs of the faithful.',
+    'ministries.description': 'Anê Thành Community has various ministries serving the spiritual and life needs of the faithful.',
     'ministries.serving_together': 'Serving Together',
     'ministries.join_title': 'Join in Service',
     'ministries.join_desc': 'Every member of the community has a call to serve. Join the ministries to build God\'s Kingdom together.',
@@ -568,7 +568,7 @@ const translations = {
     'home.confession_time': '30 minutes before Mass',
     'home.info_title': 'Information',
     'home.address_label': 'Address:',
-    'home.address_value': '17 Stevens Rd, Vermont VIC 3133',
+    'home.address_value': '138 Woodhouse Grove, Box Hill North VIC 3129',
     'home.parking_label': 'Parking:',
     'home.parking_desc': 'Free parking available on church grounds',
     'home.contact_label': 'Contact:',
@@ -602,10 +602,10 @@ const translations = {
     'home.learn_more_about': 'Learn More',
     
     // Footer
-    'footer.copyright': 'Vietnamese Catholic Community St. Timothy. All rights reserved.',
+    'footer.copyright': 'Vietnamese Catholic Community Anê Thành. All rights reserved.',
     'footer.about': 'About',
     'footer.contact': 'Contact',
-    'footer.description': 'St. Timothy Vietnamese Catholic Community serving with faith, hope, and love.',
+    'footer.description': 'Anê Thành Vietnamese Catholic Community serving with faith, hope, and love.',
     'footer.quick_links': 'Quick Links',
     'footer.contact_us': 'Contact Us',
     'footer.mass_times': 'Mass Times',

@@ -14,7 +14,7 @@ export default function Footer() {
               <div className="w-12 h-12 bg-gradient-to-br from-brand-500 to-brand-700 rounded-xl flex items-center justify-center shadow-lg">
                 <span className="text-2xl">⛪</span>
               </div>
-              <h3 className="font-bold text-xl text-slate-900">St. Timothy</h3>
+              <h3 className="font-bold text-xl text-slate-900">Anê Thành</h3>
             </div>
             <p className="text-sm text-slate-600 leading-relaxed mb-6">
               {t('footer.description')}
@@ -29,8 +29,8 @@ export default function Footer() {
               >
                 <span className="text-xl">📱</span>
               </a>
-              <a 
-                href="mailto:sttimvn2013@gmail.com"
+              <a
+                href="mailto:anethanhvn@gmail.com"
                 className="w-11 h-11 rounded-xl bg-slate-200 flex items-center justify-center hover:bg-brand-600 hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-lg"
                 aria-label="Email"
               >
@@ -88,7 +88,7 @@ export default function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm text-slate-600 group">
                 <span className="text-lg group-hover:scale-110 transition-transform">📍</span>
-                <span>17 Stevens Rd, Vermont VIC 3133</span>
+                <span>138 Woodhouse Grove, Box Hill North VIC 3129</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-slate-600 group">
                 <span className="text-lg group-hover:scale-110 transition-transform">📞</span>
@@ -98,8 +98,8 @@ export default function Footer() {
               </li>
               <li className="flex items-start gap-3 text-sm text-slate-600 group">
                 <span className="text-lg group-hover:scale-110 transition-transform">📧</span>
-                <a href="mailto:sttimvn2013@gmail.com" className="hover:text-brand-600 transition-colors break-all font-medium">
-                  sttimvn2013@gmail.com
+                <a href="mailto:anethanhvn@gmail.com" className="hover:text-brand-600 transition-colors break-all font-medium">
+                  anethanhvn@gmail.com
                 </a>
               </li>
             </ul>

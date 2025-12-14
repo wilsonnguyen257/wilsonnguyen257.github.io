@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { NavLink, Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { IS_FIREBASE_CONFIGURED, onAuthStateChanged, logout, type User } from "../lib/firebase";
+import logo from "../assets/logo.png";
 
 const links = [
   { to: "/", key: "nav.home" },
@@ -62,7 +63,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-sm transition-all duration-300">
       <div className="container-xl flex h-20 items-center justify-between">
         <Link to="/" className="flex items-center gap-3 h-full group">
-          <img src="/logo.png" alt="Logo" className="bg-white border-2 border-brand-200 shadow-lg max-h-16 max-w-[80px] p-1.5 rounded-full transition-transform duration-300 group-hover:scale-105 group-hover:shadow-xl" />
+          <img src={logo} alt="Logo" className="bg-white border-2 border-brand-200 shadow-lg max-h-16 max-w-[80px] p-1.5 rounded-full transition-transform duration-300 group-hover:scale-105 group-hover:shadow-xl" />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex">

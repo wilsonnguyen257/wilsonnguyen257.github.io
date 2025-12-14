@@ -276,7 +276,7 @@ export default function Home() {
               <div className="absolute -inset-4 bg-gradient-to-r from-brand-400 to-brand-600 rounded-3xl blur-2xl opacity-20"></div>
               <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-white/50 hover:scale-105 transition-transform duration-500">
                 <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3151.9741339657257!2d145.19334571531906!3d-37.83350797974801!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad63bfb7b1e1b75%3A0x27d1a68aa5308e0!2s17%20Stevens%20Rd%2C%20Vermont%20VIC%203133!5e0!3m2!1sen!2sau!4v1629185943012!5m2!1sen!2sau"
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3150.982869339574!2d145.11869731531985!3d-37.81564207974633!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad6404f2b6c09f9%3A0x5045675218ce6e0!2s138%20Woodhouse%20Grove%2C%20Box%20Hill%20North%20VIC%203129!5e0!3m2!1sen!2sau!4v1734134400000!5m2!1sen!2sau"
                   className="w-full h-96"
                   style={{ border: 0 }}
                   loading="lazy"
@@ -718,7 +718,7 @@ export default function Home() {
                   </a>
 
                   <a 
-                    href="mailto:sttimvn2013@gmail.com"
+                    href="mailto:anethanhvn@gmail.com"
                     className="flex items-center gap-4 p-4 bg-white rounded-lg hover:bg-red-50 border border-slate-200 hover:border-red-300 transition-all duration-300 group"
                   >
                     <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -728,7 +728,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-slate-900">Email</p>
-                      <p className="text-sm text-slate-600 break-all">sttimvn2013@gmail.com</p>
+                      <p className="text-sm text-slate-600 break-all">anethanhvn@gmail.com</p>
                     </div>
                     <svg className="w-5 h-5 text-slate-400 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

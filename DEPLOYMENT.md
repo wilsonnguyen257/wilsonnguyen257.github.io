@@ -304,9 +304,9 @@ Your site is already PWA-ready! To make it installable:
 
 ```json
 {
-  "name": "St. Timothy Vietnamese Catholic Church",
-  "short_name": "St. Timothy",
-  "description": "Community website for St. Timothy Vietnamese Catholic Church",
+  "name": "Anê Thành Vietnamese Catholic Church",
+  "short_name": "Anê Thành",
+  "description": "Community website for Anê Thành Vietnamese Catholic Church",
   "start_url": "/",
   "display": "standalone",
   "theme_color": "#3d45db",

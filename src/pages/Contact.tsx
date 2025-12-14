@@ -57,7 +57,7 @@ export default function Contact() {
               </svg>
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-3">{t('contact.email')}</h3>
-            <a href="mailto:sttimvn2013@gmail.com" className="text-blue-600 hover:underline font-semibold break-all">sttimvn2013@gmail.com</a>
+            <a href="mailto:anethanhvn@gmail.com" className="text-blue-600 hover:underline font-semibold break-all">anethanhvn@gmail.com</a>
           </div>
 
           {/* Mass Time Card */}
@@ -96,7 +96,7 @@ export default function Contact() {
               </a>
 
               <a
-                href="mailto:sttimvn2013@gmail.com"
+                href="mailto:anethanhvn@gmail.com"
                 className="flex items-center gap-4 p-4 rounded-lg bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-300 transition-all duration-300 group"
               >
                 <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -106,7 +106,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="font-semibold text-slate-900">Email</p>
-                  <p className="text-sm text-slate-600 break-all">sttimvn2013@gmail.com</p>
+                  <p className="text-sm text-slate-600 break-all">anethanhvn@gmail.com</p>
                 </div>
               </a>
             </div>
@@ -117,7 +117,7 @@ export default function Contact() {
             <h3 className="text-xl font-bold text-slate-900 mb-4">{t('contact.find_us')}</h3>
             <div className="aspect-square bg-slate-100 rounded-lg overflow-hidden">
               <a
-                href="https://maps.google.com/?q=17+Stevens+Rd,+Vermont+VIC+3133"
+                href="https://maps.google.com/?q=138+Woodhouse+Grove,+Box+Hill+North+VIC+3129"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex w-full h-full items-center justify-center hover:bg-slate-200 transition-colors group"

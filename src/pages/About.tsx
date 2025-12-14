@@ -280,7 +280,7 @@ export default function About() {
               {t('about.call')}
             </a>
             <a 
-              href="mailto:sttimvn2013@gmail.com" 
+              href="mailto:anethanhvn@gmail.com" 
               className="group inline-flex items-center gap-2 px-8 py-3 bg-transparent border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-brand-700 transition-all duration-300 transform hover:-translate-y-0.5"
             >
               <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">

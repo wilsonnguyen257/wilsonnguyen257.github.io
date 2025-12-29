@@ -19,6 +19,12 @@ export default function AdminReflections() {
     date: new Date().toISOString().split('T')[0],
   });
 
+  // Management State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'title', direction: 'asc' | 'desc' }>({ key: 'date', direction: 'desc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
   // Clean pasted content from various platforms
   const cleanPastedContent = (text: string): string => {
     return text

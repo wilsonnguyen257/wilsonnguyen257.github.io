@@ -17,6 +17,11 @@ export default function AdminGallery() {
   const [editName, setEditName] = useState('');
   const [editDate, setEditDate] = useState('');
 
+  // Management State
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
+
   // Load gallery metadata from Firebase Storage JSON
   useEffect(() => {
     setUploading(true);

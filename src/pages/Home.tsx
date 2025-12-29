@@ -249,7 +249,7 @@ export default function Home() {
               <p className="text-base md:text-lg text-brand-200 mb-8">
                 {t('home.description')}
               </p>
-              <div className="flex items-center gap-4 mb-10 p-5 bg-white/10 backdrop-blur-md rounded-2xl border-2 border-white/20 hover:bg-white/15 transition-all duration-300 shadow-2xl">
+              <div className="flex items-center gap-4 mb-8 p-5 bg-white/10 backdrop-blur-md rounded-2xl border-2 border-white/20 hover:bg-white/15 transition-all duration-300 shadow-2xl">
                 <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
                   <span className="text-3xl">⛪</span>
                 </div>
@@ -258,6 +258,20 @@ export default function Home() {
                   <p className="text-brand-100 font-medium">{t('home.mass_time')}</p>
                 </div>
               </div>
+
+              {/* Newcomer Quick Info */}
+              <div className="flex flex-wrap gap-3 mb-10 text-sm font-medium text-brand-100">
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 rounded-full border border-white/10">
+                  <span>👶</span> {language === 'vi' ? 'Chào đón trẻ em' : 'Kids Welcome'}
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 rounded-full border border-white/10">
+                  <span>🚗</span> {language === 'vi' ? 'Đậu xe miễn phí' : 'Free Parking'}
+                </span>
+                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 rounded-full border border-white/10">
+                  <span>☕</span> {language === 'vi' ? 'Tiệc trà sau lễ' : 'Tea & Coffee'}
+                </span>
+              </div>
+
               <div className="flex flex-wrap gap-4">
                 <Link to="/about" className="px-8 py-4 bg-white text-brand-700 font-bold rounded-2xl hover:bg-brand-50 hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-white/30 inline-flex items-center gap-2">
                   {t('home.learn_more')}

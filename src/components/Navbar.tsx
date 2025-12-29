@@ -42,22 +42,44 @@ export default function Navbar() {
     };
   }, []);
 
-  const navItem = (to: string, key: string) => (
-    <NavLink
-      key={to}
-      to={to}
-      className={({ isActive }) =>
-        `rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
-          isActive
-            ? "bg-brand-600 text-white shadow-md shadow-brand-600/30"
-            : "text-slate-700 hover:bg-slate-100 hover:text-brand-600"
-        }`
-      }
-      onClick={() => setOpen(false)}
-    >
-      {t(key)}
-    </NavLink>
-  );
+  const navItem = (to: string, key: string) => {
+    // Special styling for 'Give' button to make it prominent but not overwhelming
+    if (key === 'nav.give') {
+      return (
+        <NavLink
+          key={to}
+          to={to}
+          className={({ isActive }) =>
+            `rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-200 border-2 ${
+              isActive
+                ? "bg-brand-600 border-brand-600 text-white shadow-md"
+                : "bg-white border-brand-600 text-brand-600 hover:bg-brand-50"
+            }`
+          }
+          onClick={() => setOpen(false)}
+        >
+          {t(key)}
+        </NavLink>
+      );
+    }
+
+    return (
+      <NavLink
+        key={to}
+        to={to}
+        className={({ isActive }) =>
+          `rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+            isActive
+              ? "bg-brand-600 text-white shadow-md shadow-brand-600/30"
+              : "text-slate-700 hover:bg-slate-100 hover:text-brand-600"
+          }`
+        }
+        onClick={() => setOpen(false)}
+      >
+        {t(key)}
+      </NavLink>
+    );
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-sm transition-all duration-300">

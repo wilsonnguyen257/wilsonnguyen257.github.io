@@ -121,12 +121,6 @@ export default function Navbar() {
           {/* Sign out button (only shown when user is signed in) */}
           {IS_FIREBASE_CONFIGURED && user && (
             <div className="ml-2 flex items-center gap-2">
-              <span 
-                className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 text-white text-xs font-bold shadow-lg" 
-                title={user.email || ''}
-              >
-                {getInitials(user.email)}
-              </span>
               <button
                 onClick={() => void logout()}
                 className="px-3 py-2.5 rounded-xl border-2 border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 hover:shadow-md font-medium"

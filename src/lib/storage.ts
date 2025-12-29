@@ -8,7 +8,7 @@
 export type JsonName = 'events' | 'reflections' | 'gallery';
 
 import { IS_FIREBASE_CONFIGURED, db } from './firebase';
-import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs, writeBatch } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs, writeBatch, onSnapshot, type DocumentSnapshot, type DocumentData } from 'firebase/firestore';
 
 // Lightweight cross-tab/channel notification so UIs refresh immediately
 const VERSION_KEY = (name: JsonName) => `site-data:version:${name}` as const;
@@ -210,7 +210,7 @@ export function subscribeJson<T = unknown>(
   if (IS_FIREBASE_CONFIGURED && db) {
     try {
       const ref = doc(db, 'site-data', name);
-      unsubscribeFirestore = onSnapshot(ref, (snap) => {
+      unsubscribeFirestore = onSnapshot(ref, (snap: DocumentSnapshot<DocumentData>) => {
         const data = (snap.data() as { value?: T } | undefined)?.value;
         if (data !== undefined) callback(data);
       });

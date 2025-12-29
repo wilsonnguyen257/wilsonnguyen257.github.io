@@ -8,7 +8,7 @@
 export type JsonName = 'events' | 'reflections' | 'gallery';
 
 import { IS_FIREBASE_CONFIGURED, db } from './firebase';
-import { doc, getDoc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, setDoc, serverTimestamp, collection, getDocs, writeBatch, deleteDoc } from 'firebase/firestore';
 
 // Lightweight cross-tab/channel notification so UIs refresh immediately
 const VERSION_KEY = (name: JsonName) => `site-data:version:${name}` as const;
@@ -17,7 +17,7 @@ const LOCAL_KEY = (name: JsonName) => `site-data:${name}` as const;
 
 /**
  * Fetch JSON data from storage
- * Tries Firebase Firestore first, falls back to API, then localStorage
+ * Tries Firebase Firestore first (supporting sub-collections for large data), falls back to API, then localStorage
  * 
  * @template T - Type of data being retrieved
  * @param name - Name of the data collection to fetch
@@ -30,10 +30,22 @@ export async function getJson<T = unknown>(name: JsonName): Promise<T> {
   // Prefer Firebase Firestore if configured
   if (IS_FIREBASE_CONFIGURED && db) {
     try {
+      // Try sub-collection first (preferred for large lists like events)
+      const colRef = collection(db, 'site-data', name, 'items');
+      const snap = await getDocs(colRef);
+      
+      if (!snap.empty) {
+        // If we have sub-collection items, use them
+        const items = snap.docs.map(d => d.data() as T);
+        // Sort if needed (optional, assuming client-side sort)
+        return items as unknown as T;
+      }
+      
+      // Fallback to single doc (legacy or small data)
       const ref = doc(db, 'site-data', name);
-      const snap = await getDoc(ref);
-      if (!snap.exists()) return ([] as unknown) as T;
-      const data = snap.data() as { value?: T } | undefined;
+      const docSnap = await getDoc(ref);
+      if (!docSnap.exists()) return ([] as unknown) as T;
+      const data = docSnap.data() as { value?: T } | undefined;
       return (data?.value ?? ([] as unknown)) as T;
     } catch {
       // fall through to API/local
@@ -71,13 +83,56 @@ export async function saveJson(name: JsonName, data: unknown): Promise<void> {
   // Prefer Firebase Firestore if configured
   if (IS_FIREBASE_CONFIGURED && db) {
     try {
-      const ref = doc(db, 'site-data', name);
-      await setDoc(ref, { value: JSON.parse(json), updatedAt: serverTimestamp() });
+      // Check if data is an array (candidates for sub-collection split)
+      if (Array.isArray(data)) {
+        const batch = writeBatch(db);
+        const colRef = collection(db, 'site-data', name, 'items');
+        
+        // 1. Get existing docs to identify deletions
+        const existingSnap = await getDocs(colRef);
+        const existingIds = new Set(existingSnap.docs.map(d => d.id));
+        const newIds = new Set();
+        
+        // 2. Set/Update new items
+        // We assume items have an 'id' field, if not, we generate one or skip
+        for (const item of data) {
+           const id = (item as { id?: string }).id;
+           if (id) {
+               const docRef = doc(colRef, id);
+               batch.set(docRef, item);
+               newIds.add(id);
+           }
+        }
+        
+        // 3. Delete removed items
+        for (const id of existingIds) {
+            if (!newIds.has(id)) {
+                batch.delete(doc(colRef, id));
+            }
+        }
+        
+        // 4. Update parent doc timestamp for listeners
+        const parentRef = doc(db, 'site-data', name);
+        batch.set(parentRef, { updatedAt: serverTimestamp(), type: 'collection' });
+
+        await batch.commit();
+      } else {
+          // Single document save (legacy/small data)
+          const ref = doc(db, 'site-data', name);
+          await setDoc(ref, { value: JSON.parse(json), updatedAt: serverTimestamp() });
+      }
+
       announceJsonUpdate(name);
       return;
-    } catch {
-      // fall back
+    } catch (err) {
+      console.error(`Firestore save error for ${name}:`, err);
+      if ((err as { code?: string }).code === 'permission-denied') {
+          alert('Error: Permission denied. You must be logged in as an admin to save changes.');
+          throw err;
+      }
     }
+  } else {
+    console.warn('Firebase not configured or db not initialized. Falling back to API/Local.');
   }
   // Try shared API first
   try {

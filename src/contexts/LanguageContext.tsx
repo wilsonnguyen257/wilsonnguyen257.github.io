@@ -357,7 +357,7 @@ const translations = {
   'gallery.empty': 'No images have been uploaded yet.',
     
     // Homepage
-    'home.title': 'Vietnamese Catholic Community St Anne Le Thi Thanh',
+    'home.title': 'Vietnamese Catholic Community St Ane Le Thi Thanh',
     'home.subtitle': 'Welcome to our small community in Melbourne!',
     'home.description': 'Our goal is to live according to the Gospel spirit in unity, love and service.',
     'home.mass': 'Sunday Mass',
@@ -439,8 +439,8 @@ const translations = {
     'give.thank_you_message': 'Every contribution, big or small, is meaningful and helps our community continue to grow. May God bless you and your family.',
     
     // About
-    'about.title': 'About Vietnamese Catholic Community St Anne Le Thi Thanh',
-    'about.welcome': 'Welcome to the website of the Vietnamese Catholic Community St Anne Le Thi Thanh (VCCNAT). We are a small community (about 120+ faithful), but we have Sunday Mass every week at 5:00 PM at St. Clare Catholic Church.',
+    'about.title': 'About Vietnamese Catholic Community St Ane Le Thi Thanh',
+    'about.welcome': 'Welcome to the website of the Vietnamese Catholic Community St Ane Le Thi Thanh (VCCNAT). We are a small community (about 120+ faithful), but we have Sunday Mass every week at 5:00 PM at St. Clare Catholic Church.',
     'about.history_title': 'Formation History',
     'about.history_milestone_1': 'The Beginning - 2013 at St. Timothy',
     'about.history_milestone_2': 'Move to St. Clare - 2026',
@@ -504,7 +504,7 @@ const translations = {
     
     // Ministries
     'ministries.title': 'Ministries',
-    'ministries.description': 'St Anne Le Thi Thanh Community has various ministries serving the spiritual and life needs of the faithful.',
+    'ministries.description': 'St Ane Le Thi Thanh Community has various ministries serving the spiritual and life needs of the faithful.',
     'ministries.serving_together': 'Serving Together',
     'ministries.join_title': 'Join in Service',
     'ministries.join_desc': 'Every member of the community has a call to serve. Join the ministries to build God\'s Kingdom together.',
@@ -602,10 +602,10 @@ const translations = {
     'home.learn_more_about': 'Learn More',
     
     // Footer
-    'footer.copyright': 'Vietnamese Catholic Community St Anne Le Thi Thanh. All rights reserved.',
+    'footer.copyright': 'Vietnamese Catholic Community St Ane Le Thi Thanh. All rights reserved.',
     'footer.about': 'About',
     'footer.contact': 'Contact',
-    'footer.description': 'St Anne Le Thi Thanh Vietnamese Catholic Community serving with faith, hope, and love.',
+    'footer.description': 'St Ane Le Thi Thanh Vietnamese Catholic Community serving with faith, hope, and love.',
     'footer.quick_links': 'Quick Links',
     'footer.contact_us': 'Contact Us',
     'footer.mass_times': 'Mass Times',

@@ -85,7 +85,6 @@ export default function AdminEvents() {
       const url = await getDownloadURL(storageRef);
       return url;
     } catch (err) {
-      console.error('Upload failed:', err);
       alert('Upload failed');
       return '';
     } finally {
@@ -136,7 +135,7 @@ export default function AdminEvents() {
         const fileRef = ref(fbStorage, event.thumbnail);
         await deleteObject(fileRef);
       } catch (err) {
-        console.error('Failed to delete image:', err);
+        // ignore
       }
     }
 

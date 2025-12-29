@@ -59,7 +59,6 @@ export default function Events() {
       // Use Melbourne timezone to check if event has passed
       return !hasEventPassed(e.date, e.time || '11:59 PM');
     } catch (error) {
-      console.error('Error filtering upcoming events:', error);
       // Fallback to date-only comparison
       return new Date(e.date) >= now;
     }

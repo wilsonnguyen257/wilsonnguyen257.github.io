@@ -87,6 +87,11 @@ function getBackgroundPatternStyle(pattern: BackgroundPattern): React.CSSPropert
 export default function Home() {
   const { t, language } = useLanguage();
 
+  useEffect(() => {
+    // Scroll to top on mount
+    window.scrollTo(0, 0);
+  }, []);
+
   const [events, setEvents] = useState<Event[]>([]);
   
   // State to control the hero background pattern (can be changed dynamically)
@@ -262,13 +267,7 @@ export default function Home() {
               {/* Newcomer Quick Info */}
               <div className="flex flex-wrap gap-3 mb-10 text-sm font-medium text-brand-100">
                 <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 rounded-full border border-white/10">
-                  <span>👶</span> {language === 'vi' ? 'Chào đón trẻ em' : 'Kids Welcome'}
-                </span>
-                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 rounded-full border border-white/10">
                   <span>🚗</span> {language === 'vi' ? 'Đậu xe miễn phí' : 'Free Parking'}
-                </span>
-                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 rounded-full border border-white/10">
-                  <span>☕</span> {language === 'vi' ? 'Tiệc trà sau lễ' : 'Tea & Coffee'}
                 </span>
               </div>
 

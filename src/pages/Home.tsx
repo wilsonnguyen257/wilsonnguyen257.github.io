@@ -88,8 +88,7 @@ export default function Home() {
   const { t, language } = useLanguage();
 
   useEffect(() => {
-    // Scroll to top on mount
-    window.scrollTo(0, 0);
+    // ScrollToTop component handles scrolling
   }, []);
 
   const [events, setEvents] = useState<Event[]>([]);

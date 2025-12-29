@@ -8,7 +8,7 @@
 export type JsonName = 'events' | 'reflections' | 'gallery';
 
 import { IS_FIREBASE_CONFIGURED, db } from './firebase';
-import { doc, getDoc, onSnapshot, setDoc, serverTimestamp, collection, getDocs, writeBatch, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs, writeBatch } from 'firebase/firestore';
 
 // Lightweight cross-tab/channel notification so UIs refresh immediately
 const VERSION_KEY = (name: JsonName) => `site-data:version:${name}` as const;

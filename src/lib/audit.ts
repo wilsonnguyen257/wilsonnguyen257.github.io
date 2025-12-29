@@ -14,6 +14,7 @@ export type AuditAction =
   | 'event.update'
   | 'event.delete'
   | 'event.duplicate'
+  | 'event.import'
   | 'event.bulk_delete'
   | 'reflection.create'
   | 'reflection.update'

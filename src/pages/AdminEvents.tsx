@@ -146,167 +146,6 @@ export default function AdminEvents() {
     loadEvents();
   };
 
-  // Import XML
-  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const text = await file.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(text, 'text/xml');
-      
-      // Check for parser errors
-      const parserError = doc.querySelector('parsererror');
-      if (parserError) {
-          alert('XML Parse Error: ' + parserError.textContent);
-          return;
-      }
-
-      const items = doc.querySelectorAll('item');
-      
-      const newEvents: Event[] = [];
-      
-      // Helper to get text content from multiple possible selectors
-      const getText = (el: Element, ...selectors: string[]) => {
-        for (const s of selectors) {
-          // Try with namespace prefix if not included, using getElementsByTagName which is namespace-safe
-          if (!s.includes(':')) {
-            // Check for namespaced tag first (e.g. wp:post_type)
-            const tagsNS = el.getElementsByTagName('wp:' + s);
-            if (tagsNS.length > 0 && tagsNS[0].textContent) return tagsNS[0].textContent;
-            
-            // Standard tag
-            const tags = el.getElementsByTagName(s);
-            if (tags.length > 0 && tags[0].textContent) return tags[0].textContent;
-          } else {
-            // Already has namespace, just use it
-            const tags = el.getElementsByTagName(s);
-            if (tags.length > 0 && tags[0].textContent) return tags[0].textContent;
-          }
-
-          // Only use querySelector for non-namespaced selectors to avoid syntax errors
-          if (!s.includes(':')) {
-            try {
-              const found = el.querySelector(s);
-              if (found?.textContent) return found.textContent;
-            } catch (e) {
-              // Ignore syntax errors
-            }
-          }
-        }
-        return '';
-      };
-
-      items.forEach((item) => {
-        const postType = getText(item, 'post_type', 'wp:post_type');
-        
-        if (postType !== 'event') return;
-
-        const title = getText(item, 'title');
-        
-        // Content: try encoded content module
-        let contentEncoded = '';
-        const contentModules = item.getElementsByTagNameNS('http://purl.org/rss/1.0/modules/content/', 'encoded');
-        if (contentModules.length > 0) {
-            contentEncoded = contentModules[0].textContent || '';
-        } else {
-            // Fallback to various tag names
-            contentEncoded = getText(item, 'content:encoded', 'encoded');
-        }
-        
-        // Parse meta
-        // Try both standard and namespaced selectors for meta items
-        const metas = [...Array.from(item.querySelectorAll('postmeta')), ...Array.from(item.getElementsByTagName('wp:postmeta'))];
-        
-        const meta: Record<string, string> = {};
-        metas.forEach(m => {
-          const key = getText(m, 'meta_key', 'wp:meta_key');
-          const value = getText(m, 'meta_value', 'wp:meta_value');
-          if (key && value) meta[key] = value;
-        });
-
-        // Date parsing
-        let date = meta['event_start_date'] || meta['event_date'] || '';
-        
-        // Convert "Nov 10 2016" or "2024/02/11" to "YYYY-MM-DD"
-        try {
-          if (date.trim()) {
-            if (date.includes('/')) {
-                // Handle YYYY/MM/DD
-                date = date.replace(/\//g, '-');
-            } else {
-                // Handle "Nov 10 2016"
-                const d = new Date(date);
-                if (!isNaN(d.getTime())) {
-                    // Adjust for timezone offset to prevent date shifting
-                    const userTimezoneOffset = d.getTimezoneOffset() * 60000;
-                    const adjustedDate = new Date(d.getTime() - userTimezoneOffset);
-                    date = adjustedDate.toISOString().split('T')[0];
-                }
-            }
-          }
-        } catch (e) {
-          console.error('Date parse error', date);
-        }
-
-        // Time parsing
-        let time = meta['event_start_time'] || meta['event_time'] || '';
-        
-        // Location
-        const location = meta['event_location'] || '';
-
-        if (title) {
-            // If date is missing, default to today
-            if (!date) {
-                date = new Date().toISOString().split('T')[0];
-            }
-            
-            newEvents.push({
-                id: uuidv4(),
-                name: { vi: title, en: title },
-                date,
-                time,
-                location,
-                content: { vi: contentEncoded, en: contentEncoded },
-                status: 'published'
-            });
-        }
-      });
-
-      if (newEvents.length > 0) {
-        if (confirm(`Found ${newEvents.length} events. Import them?`)) {
-          // Import in chunks to avoid memory/size limits
-          const CHUNK_SIZE = 50;
-          for (let i = 0; i < newEvents.length; i += CHUNK_SIZE) {
-            const chunk = newEvents.slice(i, i + CHUNK_SIZE);
-            const currentEvents = await getJson<Event[]>('events') || [];
-            
-            // Merge chunk into existing
-            const updated = [...currentEvents, ...chunk];
-            // Remove duplicates by ID if any
-            const unique = Array.from(new Map(updated.map(item => [item.id, item])).values());
-            
-            await saveJson('events', unique);
-          }
-          
-          await logAuditAction('event.import', { count: newEvents.length });
-          // Force reload
-          await loadEvents();
-          alert('Import successful!');
-        }
-      } else {
-        alert('No events found in XML.');
-      }
-    } catch (err) {
-      console.error('Import error:', err);
-      alert('Error importing file. See console for details.');
-    }
-    
-    // Reset input
-    e.target.value = '';
-  };
-
   // --- Management Logic ---
 
   // Filter and Sort
@@ -421,12 +260,6 @@ export default function AdminEvents() {
                 <option value="date-asc">{language === 'vi' ? 'Cũ nhất' : 'Oldest'}</option>
                 <option value="name-asc">{language === 'vi' ? 'Tên (A-Z)' : 'Name (A-Z)'}</option>
             </select>
-
-            {/* Import */}
-            <label className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 cursor-pointer whitespace-nowrap">
-                {language === 'vi' ? 'Nhập XML' : 'Import XML'}
-                <input type="file" accept=".xml" onChange={handleImport} className="hidden" />
-            </label>
         </div>
       </div>
 
@@ -448,109 +281,194 @@ export default function AdminEvents() {
       )}
 
       {/* Form */}
-      <div className="bg-white rounded-lg shadow p-6 mb-8">
-        <h2 className="text-xl font-semibold mb-4">
-          {editingId ? (language === 'vi' ? 'Sửa' : 'Edit') : (language === 'vi' ? 'Thêm Mới' : 'Add New')}
-        </h2>
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+          <div className={`p-2 rounded-lg ${editingId ? 'bg-amber-100 text-amber-600' : 'bg-brand-100 text-brand-600'}`}>
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {editingId ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              )}
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-gray-900">
+            {editingId ? (language === 'vi' ? 'Chỉnh Sửa Sự Kiện' : 'Edit Event') : (language === 'vi' ? 'Thêm Sự Kiện Mới' : 'Add New Event')}
+          </h2>
+        </div>
         
-        <div className="grid gap-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <input
-              placeholder={language === 'vi' ? 'Tên (VI)' : 'Name (Vietnamese)'}
-              value={formData.nameVi}
-              onChange={e => setFormData({ ...formData, nameVi: e.target.value })}
-              className="border rounded px-3 py-2"
-            />
-            <input
-              placeholder={language === 'vi' ? 'Tên (EN)' : 'Name (English)'}
-              value={formData.nameEn}
-              onChange={e => setFormData({ ...formData, nameEn: e.target.value })}
-              className="border rounded px-3 py-2"
-            />
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-4">
-            <input
-              type="date"
-              value={formData.date}
-              onChange={e => setFormData({ ...formData, date: e.target.value })}
-              className="border rounded px-3 py-2"
-            />
-            <input
-              placeholder="5:00 PM"
-              value={formData.time}
-              onChange={e => setFormData({ ...formData, time: e.target.value })}
-              className="border rounded px-3 py-2"
-            />
-            <input
-              placeholder={language === 'vi' ? 'Địa điểm' : 'Location'}
-              value={formData.location}
-              onChange={e => setFormData({ ...formData, location: e.target.value })}
-              className="border rounded px-3 py-2"
-            />
-          </div>
-
-          <div className="space-y-4">
+        <div className="grid gap-6">
+          <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium mb-2">
-                {language === 'vi' ? 'Mô tả (VI)' : 'Description (Vietnamese)'}
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'vi' ? 'Tên (Tiếng Việt)' : 'Name (Vietnamese)'}
               </label>
-              <VisualEditor
-                value={formData.contentVi}
-                onChange={(value) => setFormData({ ...formData, contentVi: value })}
-                placeholder={language === 'vi' ? 'Nhập mô tả...' : 'Enter description...'}
+              <input
+                placeholder={language === 'vi' ? 'Nhập tên sự kiện...' : 'Enter event name...'}
+                value={formData.nameVi}
+                onChange={e => setFormData({ ...formData, nameVi: e.target.value })}
+                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-2">
-                {language === 'vi' ? 'Mô tả (EN)' : 'Description (English)'}
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'vi' ? 'Tên (Tiếng Anh)' : 'Name (English)'}
               </label>
-              <VisualEditor
-                value={formData.contentEn}
-                onChange={(value) => setFormData({ ...formData, contentEn: value })}
-                placeholder={language === 'vi' ? 'Nhập mô tả...' : 'Enter description...'}
+              <input
+                placeholder={language === 'vi' ? 'Nhập tên sự kiện...' : 'Enter event name...'}
+                value={formData.nameEn}
+                onChange={e => setFormData({ ...formData, nameEn: e.target.value })}
+                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
               />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'vi' ? 'Ngày' : 'Date'}
+              </label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={e => setFormData({ ...formData, date: e.target.value })}
+                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'vi' ? 'Giờ' : 'Time'}
+              </label>
+              <input
+                placeholder="e.g. 5:00 PM"
+                value={formData.time}
+                onChange={e => setFormData({ ...formData, time: e.target.value })}
+                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'vi' ? 'Địa điểm' : 'Location'}
+              </label>
+              <div className="relative">
+                <input
+                  placeholder={language === 'vi' ? 'Nhập địa điểm...' : 'Enter location...'}
+                  value={formData.location}
+                  onChange={e => setFormData({ ...formData, location: e.target.value })}
+                  className="w-full border rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                />
+                <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'vi' ? 'Mô tả (Tiếng Việt)' : 'Description (Vietnamese)'}
+              </label>
+              <div className="border rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
+                <VisualEditor
+                  value={formData.contentVi}
+                  onChange={(value) => setFormData({ ...formData, contentVi: value })}
+                  placeholder={language === 'vi' ? 'Nhập mô tả chi tiết...' : 'Enter detailed description...'}
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'vi' ? 'Mô tả (Tiếng Anh)' : 'Description (English)'}
+              </label>
+              <div className="border rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
+                <VisualEditor
+                  value={formData.contentEn}
+                  onChange={(value) => setFormData({ ...formData, contentEn: value })}
+                  placeholder={language === 'vi' ? 'Nhập mô tả chi tiết...' : 'Enter detailed description...'}
+                />
+              </div>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">
               {language === 'vi' ? 'Hình ảnh' : 'Image'}
             </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (file) {
-                  const url = await handleImageUpload(file);
-                  if (url) setFormData({ ...formData, thumbnail: url });
-                }
-              }}
-              className="border rounded px-3 py-2 w-full"
-              disabled={uploading}
-            />
-            {formData.thumbnail && (
-              <img src={formData.thumbnail} alt="Preview" className="mt-2 h-32 rounded" />
-            )}
+            <div className="flex items-start gap-6">
+              <div className="flex-1">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg className="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">{language === 'vi' ? 'Nhấn để tải lên' : 'Click to upload'}</span>
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const url = await handleImageUpload(file);
+                        if (url) setFormData({ ...formData, thumbnail: url });
+                      }
+                    }}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </label>
+              </div>
+              {formData.thumbnail && (
+                <div className="relative w-32 h-32 rounded-lg overflow-hidden shadow-md group">
+                  <img src={formData.thumbnail} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => setFormData({ ...formData, thumbnail: '' })}
+                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="flex gap-2">
-            <button
-              onClick={handleSave}
-              disabled={uploading}
-              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50"
-            >
-              {uploading ? (language === 'vi' ? 'Đang tải...' : 'Uploading...') : (language === 'vi' ? 'Lưu' : 'Save')}
-            </button>
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
             {editingId && (
               <button
                 onClick={resetForm}
-                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+                className="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
               >
-                {language === 'vi' ? 'Hủy' : 'Cancel'}
+                {language === 'vi' ? 'Hủy Bỏ' : 'Cancel'}
               </button>
             )}
+            <button
+              onClick={handleSave}
+              disabled={uploading}
+              className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow transition-all"
+            >
+              {uploading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {language === 'vi' ? 'Đang tải...' : 'Uploading...'}
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {editingId ? (language === 'vi' ? 'Cập Nhật' : 'Update Event') : (language === 'vi' ? 'Lưu Sự Kiện' : 'Save Event')}
+                </>
+              )}
+            </button>
           </div>
         </div>
       </div>

@@ -60,7 +60,7 @@ const translations = {
     'home.subtitle': 'Chào mừng quý vị đến với cộng đoàn nhỏ bé của chúng tôi tại Melbourne!',
     'home.description': 'Mục tiêu của cộng đoàn là sống theo tinh thần Tin Mừng trong đoàn kết, yêu thương và phục vụ.',
     'home.mass': 'Thánh Lễ Chúa Nhật',
-    'home.mass_time': 'Thánh Lễ mỗi Chúa Nhật lúc 5 giờ chiều tại 138 Woodhouse Grove, Box Hill North VIC 3129 (Ngày 1 Tháng 1 Năm 2026).',
+    'home.mass_time': 'Thánh Lễ mỗi Chúa Nhật lúc 5 giờ chiều tại 138 Woodhouse Grove, Box Hill North VIC 3129.',
     'home.learn_more': 'Tìm hiểu thêm',
     'home.contact_us': 'Liên hệ với chúng tôi',
     

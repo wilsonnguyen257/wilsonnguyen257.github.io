@@ -361,7 +361,7 @@ const translations = {
     'home.subtitle': 'Welcome to our small community in Melbourne!',
     'home.description': 'Our goal is to live according to the Gospel spirit in unity, love and service.',
     'home.mass': 'Sunday Mass',
-    'home.mass_time': 'Sunday Mass at 5:00 PM at 138 Woodhouse Grove, Box Hill North VIC 3129 (Starting January 1st, 2026).',
+    'home.mass_time': 'Sunday Mass at 5:00 PM at 138 Woodhouse Grove, Box Hill North VIC 3129.',
     'home.learn_more': 'Learn More',
     'home.contact_us': 'Contact Us',
     

@@ -37,8 +37,8 @@ export default function App() {
   return (
     <ErrorBoundary>
       <LanguageProvider>
+        <ScrollToTop />
         <div className="flex min-h-screen flex-col">
-          <ScrollToTop />
           <Navbar />
           <main className="flex-1">
             <Suspense fallback={<LoadingFallback />}>

@@ -87,10 +87,6 @@ function getBackgroundPatternStyle(pattern: BackgroundPattern): React.CSSPropert
 export default function Home() {
   const { t, language } = useLanguage();
 
-  useEffect(() => {
-    // ScrollToTop component handles scrolling
-  }, []);
-
   const [events, setEvents] = useState<Event[]>([]);
   
   // State to control the hero background pattern (can be changed dynamically)

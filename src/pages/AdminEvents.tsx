@@ -18,7 +18,6 @@ export default function AdminEvents() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'name', direction: 'asc' | 'desc' }>({ key: 'date', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const itemsPerPage = 20;
 
   const [formData, setFormData] = useState({
@@ -178,54 +177,6 @@ export default function AdminEvents() {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
-  // Bulk Actions
-  const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.checked) {
-      const newSelected = new Set(selectedIds);
-      paginatedEvents.forEach(event => newSelected.add(event.id));
-      setSelectedIds(newSelected);
-    } else {
-      const newSelected = new Set(selectedIds);
-      paginatedEvents.forEach(event => newSelected.delete(event.id));
-      setSelectedIds(newSelected);
-    }
-  };
-
-  const handleSelectOne = (id: string) => {
-    const newSelected = new Set(selectedIds);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
-    } else {
-      newSelected.add(id);
-    }
-    setSelectedIds(newSelected);
-  };
-
-  const handleBulkDelete = async () => {
-    if (!confirm(language === 'vi' 
-      ? `Xóa ${selectedIds.size} sự kiện đã chọn?` 
-      : `Delete ${selectedIds.size} selected events?`)) return;
-
-    // Delete images first (optional, best effort)
-    if (IS_FIREBASE_CONFIGURED && fbStorage) {
-        const eventsToDelete = events.filter(e => selectedIds.has(e.id));
-        for (const event of eventsToDelete) {
-            if (event.thumbnail) {
-                try {
-                    const fileRef = ref(fbStorage, event.thumbnail);
-                    await deleteObject(fileRef);
-                } catch { /* ignore */ }
-            }
-        }
-    }
-
-    const updated = events.filter(e => !selectedIds.has(e.id));
-    await saveJson('events', updated);
-    await logAuditAction('event.bulk_delete', { count: selectedIds.size });
-    setSelectedIds(new Set());
-    loadEvents();
-  };
 
   return (
     <div className="container-xl py-8">
@@ -491,14 +442,6 @@ export default function AdminEvents() {
             <table className="w-full">
             <thead className="bg-gray-50">
                 <tr>
-                <th className="px-4 py-3 w-10">
-                    <input 
-                        type="checkbox" 
-                        onChange={handleSelectAll}
-                        checked={paginatedEvents.length > 0 && paginatedEvents.every(e => selectedIds.has(e.id))}
-                        className="rounded border-gray-300"
-                    />
-                </th>
                 <th className="px-4 py-3 text-left">{language === 'vi' ? 'Sự kiện' : 'Event'}</th>
                 <th className="px-4 py-3 text-left">{language === 'vi' ? 'Ngày' : 'Date'}</th>
                 <th className="px-4 py-3 text-left">{language === 'vi' ? 'Giờ' : 'Time'}</th>
@@ -508,15 +451,7 @@ export default function AdminEvents() {
             </thead>
             <tbody>
                 {paginatedEvents.map(e => (
-                <tr key={e.id} className={`border-t hover:bg-gray-50 ${selectedIds.has(e.id) ? 'bg-blue-50' : ''}`}>
-                    <td className="px-4 py-3">
-                        <input 
-                            type="checkbox" 
-                            checked={selectedIds.has(e.id)}
-                            onChange={() => handleSelectOne(e.id)}
-                            className="rounded border-gray-300"
-                        />
-                    </td>
+                <tr key={e.id} className="border-t hover:bg-gray-50">
                     <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                         {e.thumbnail && (
@@ -546,7 +481,7 @@ export default function AdminEvents() {
                 ))}
                 {paginatedEvents.length === 0 && (
                     <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
                             {language === 'vi' ? 'Không tìm thấy sự kiện nào' : 'No events found'}
                         </td>
                     </tr>

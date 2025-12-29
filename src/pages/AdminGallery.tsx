@@ -133,36 +133,91 @@ export default function AdminGallery() {
     }
   };
 
+  // Filter and Pagination
+  const filteredImages = images.filter(img => 
+    img.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  
+  const totalPages = Math.ceil(filteredImages.length / itemsPerPage);
+  const paginatedImages = filteredImages.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
   return (
-    <div className="min-h-screen bg-slate-50 py-8">
-      <div className="max-w-6xl mx-auto px-4">
-        
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-r-lg mb-6 flex items-start gap-3 shadow-md">
-            <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-            </svg>
-            <span>{error}</span>
+    <div className="container-xl py-8">
+      {/* Header Section */}
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              {t('admin.manage_gallery')}
+            </h1>
+            <p className="text-gray-500 mt-1">
+              {t('admin.gallery.total') || 'Total images:'} <span className="font-semibold text-brand-600">{images.length}</span>
+            </p>
           </div>
-        )}
-        
-        <div className="bg-white rounded-xl shadow-lg p-6 mb-8 border border-slate-200">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-              <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-              </svg>
-            </div>
-            <h2 className="text-xl font-bold text-slate-900">{t('admin.gallery.upload_new')}</h2>
+          
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              {/* Search */}
+              <div className="relative">
+                <input 
+                    placeholder={t('admin.gallery.search') || 'Search images...'}
+                    value={searchTerm}
+                    onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
+                    className="pl-10 pr-4 py-2 border rounded-lg w-full sm:w-64 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                />
+                <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
           </div>
-          <p className="text-sm text-slate-600 mb-4 flex items-start gap-2">
-            <svg className="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+        </div>
+      </div>
+        
+      {error && (
+        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-r-lg mb-6 flex items-start gap-3 shadow-md">
+          <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
+          </svg>
+          <span>{error}</span>
+        </div>
+      )}
+      
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+          <div className="p-2 rounded-lg bg-brand-100 text-brand-600">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <span>{IS_FIREBASE_CONFIGURED ? t('admin.gallery.firebase_desc') : t('admin.gallery.no_firebase')}</span>
-          </p>
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
+          </div>
+          <h2 className="text-xl font-bold text-gray-900">{t('admin.gallery.upload_new')}</h2>
+        </div>
+
+        <p className="text-sm text-slate-600 mb-6 flex items-start gap-2 bg-blue-50 p-3 rounded-lg border border-blue-100">
+          <svg className="w-5 h-5 flex-shrink-0 mt-0.5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd"/>
+          </svg>
+          <span>{IS_FIREBASE_CONFIGURED ? t('admin.gallery.firebase_desc') : t('admin.gallery.no_firebase')}</span>
+        </p>
+
+        <div className="flex flex-col md:flex-row gap-6">
+          <div className="flex-1">
+            <label
+              htmlFor="file-upload"
+              className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+                file ? 'border-brand-500 bg-brand-50' : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+              }`}
+            >
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                <svg className={`w-10 h-10 mb-3 ${file ? 'text-brand-500' : 'text-gray-400'}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                </svg>
+                <p className="mb-2 text-sm text-gray-500">
+                  <span className="font-semibold">{file ? file.name : t('admin.gallery.choose_file')}</span>
+                </p>
+                {!file && <p className="text-xs text-gray-400">PNG, JPG, GIF up to 10MB</p>}
+              </div>
               <input
                 id="file-upload"
                 type="file"
@@ -171,22 +226,13 @@ export default function AdminGallery() {
                 className="hidden"
                 disabled={uploading}
               />
-              <label
-                htmlFor="file-upload"
-                className="flex items-center gap-3 p-2.5 border border-slate-300 rounded-lg bg-white text-slate-700 cursor-pointer hover:border-brand-500 transition-colors"
-              >
-                <span className="px-4 py-2 rounded-lg border-0 text-sm font-semibold bg-brand-50 text-brand-700 hover:bg-brand-100 transition-colors">
-                  {t('admin.gallery.choose_file')}
-                </span>
-                <span className="flex-1 text-sm truncate">
-                  {file ? file.name : t('admin.gallery.no_file')}
-                </span>
-              </label>
-            </div>
+            </label>
+          </div>
+          <div className="flex items-center">
             <button
               onClick={handleUpload}
               disabled={!file || uploading}
-              className="px-6 py-2.5 bg-brand-600 text-white font-semibold rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+              className="px-8 py-3 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg transition-all flex items-center gap-2 w-full md:w-auto justify-center"
             >
               {uploading ? (
                 <>
@@ -199,7 +245,7 @@ export default function AdminGallery() {
               ) : (
                 <>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                   <span>{t('admin.gallery.upload_button')}</span>
                 </>
@@ -207,26 +253,46 @@ export default function AdminGallery() {
             </button>
           </div>
         </div>
-          
-        {images.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center border border-slate-200">
-            <svg className="w-20 h-20 mx-auto text-slate-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      </div>
+        
+      {paginatedImages.length === 0 ? (
+        <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-100">
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
             </svg>
-            <p className="text-slate-500 font-medium text-lg">{t('admin.gallery.no_images')}</p>
           </div>
-        ) : (
-          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-            {images.map((img) => (
-              <div key={img.id} className="relative group bg-white rounded-xl shadow-lg overflow-hidden border border-slate-200 hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-                <div className="relative overflow-hidden">
+          <p className="text-gray-500 font-medium text-lg">{searchTerm ? 'No matching images found' : t('admin.gallery.no_images')}</p>
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {paginatedImages.map((img) => (
+              <div key={img.id} className="relative group bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
+                <div className="relative overflow-hidden aspect-[4/3]">
                   <img
                     src={img.url}
                     alt={img.name}
-                    className="w-full h-56 object-cover transition-transform duration-300 group-hover:scale-110"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     loading="lazy"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  
+                  {/* Overlay Actions */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex gap-2">
+                    <button
+                        onClick={() => startEdit(img)}
+                        className="flex-1 bg-white/90 backdrop-blur-sm text-brand-700 py-2 rounded-lg text-sm font-semibold hover:bg-white transition-colors"
+                    >
+                        {t('admin.gallery.edit')}
+                    </button>
+                    <button
+                        onClick={() => handleDelete(img.id)}
+                        className="flex-1 bg-red-600/90 backdrop-blur-sm text-white py-2 rounded-lg text-sm font-semibold hover:bg-red-600 transition-colors"
+                    >
+                        {t('admin.gallery.delete')}
+                    </button>
+                  </div>
                 </div>
                 
                 <div className="p-4">
@@ -236,68 +302,41 @@ export default function AdminGallery() {
                         type="text"
                         value={editName}
                         onChange={(e) => setEditName(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                         placeholder={t('admin.gallery.name')}
+                        autoFocus
                       />
                       <input
                         type="date"
                         value={editDate}
                         onChange={(e) => setEditDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent [color-scheme:light]"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                       />
                       <div className="flex gap-2">
                         <button
                           onClick={() => saveEdit(img.id)}
-                          className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 transition-colors"
+                          className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 bg-brand-600 text-white text-xs font-semibold rounded-lg hover:bg-brand-700 transition-colors"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          <span>{t('admin.gallery.save')}</span>
+                          {t('admin.gallery.save')}
                         </button>
                         <button
                           onClick={cancelEdit}
-                          className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 bg-slate-500 text-white text-sm font-semibold rounded-lg hover:bg-slate-600 transition-colors"
+                          className="flex-1 inline-flex items-center justify-center gap-1 px-2 py-1.5 bg-gray-100 text-gray-700 text-xs font-semibold rounded-lg hover:bg-gray-200 transition-colors"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                          <span>{t('admin.gallery.cancel')}</span>
+                          {t('admin.gallery.cancel')}
                         </button>
                       </div>
                     </div>
                   ) : (
                     <>
-                      <div className="text-sm text-slate-900 font-semibold truncate mb-1">
+                      <div className="text-sm font-semibold text-gray-900 truncate mb-1" title={img.name}>
                         {img.name}
                       </div>
-                      <div className="text-xs text-slate-500 mb-3 flex items-center gap-1.5">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="text-xs text-gray-500 flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                         <span>{new Date(img.created).toLocaleDateString()}</span>
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => startEdit(img)}
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
-                          disabled={uploading}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
-                          <span>{t('admin.gallery.edit')}</span>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(img.id)}
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-red-600 text-white text-sm font-semibold rounded-lg hover:bg-red-700 transition-colors"
-                          disabled={uploading}
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                          <span>{t('admin.gallery.delete')}</span>
-                        </button>
                       </div>
                     </>
                   )}
@@ -305,8 +344,31 @@ export default function AdminGallery() {
               </div>
             ))}
           </div>
-        )}
-      </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-center mt-8 gap-2">
+                <button
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 border rounded-lg bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors font-medium text-gray-700"
+                >
+                    {t('admin.pagination.prev') || 'Previous'}
+                </button>
+                <span className="px-4 py-2 bg-white border rounded-lg text-gray-700 font-medium">
+                    {currentPage} / {totalPages}
+                </span>
+                <button
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 border rounded-lg bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition-colors font-medium text-gray-700"
+                >
+                    {t('admin.pagination.next') || 'Next'}
+                </button>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }

@@ -194,23 +194,6 @@ export default function AdminEvents() {
         </div>
       </div>
 
-      {/* Bulk Delete Warning */}
-      {selectedIds.size > 0 && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 flex justify-between items-center">
-            <span>
-                {language === 'vi' 
-                    ? `Đã chọn ${selectedIds.size} sự kiện` 
-                    : `Selected ${selectedIds.size} events`}
-            </span>
-            <button 
-                onClick={handleBulkDelete}
-                className="bg-red-600 text-white px-4 py-1.5 rounded hover:bg-red-700 text-sm font-medium"
-            >
-                {language === 'vi' ? 'Xóa mục đã chọn' : 'Delete Selected'}
-            </button>
-        </div>
-      )}
-
       {/* Form */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">

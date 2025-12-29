@@ -1,4 +1,5 @@
 import { useLanguage } from '../contexts/LanguageContext';
+import { CHURCH_INFO, UI_CONSTANTS } from '../lib/constants';
 
 export default function Contact() {
   const { t } = useLanguage();
@@ -6,7 +7,7 @@ export default function Contact() {
   return (
     <div className="bg-gradient-to-b from-slate-50 to-white">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white py-24 overflow-hidden">
+      <section className={`relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white ${UI_CONSTANTS.SECTION_PADDING} overflow-hidden`}>
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
         <div className="container-xl relative">
           <div className="max-w-3xl animate-fadeIn">
@@ -24,7 +25,7 @@ export default function Contact() {
       </section>
 
       {/* Contact Info Cards */}
-      <section className="container-xl py-24">
+      <section className={`container-xl ${UI_CONSTANTS.SECTION_PADDING}`}>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
           {/* Address Card */}
           <div className="group bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 border-t-4 border-brand-600 hover:-translate-y-2 animate-fadeIn">
@@ -35,7 +36,7 @@ export default function Contact() {
               </svg>
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-3">{t('contact.address')}</h3>
-            <p className="text-slate-600 leading-relaxed">{t('contact.address_value')}</p>
+            <p className="text-slate-600 leading-relaxed">{CHURCH_INFO.ADDRESS}</p>
           </div>
 
           {/* Phone Card */}
@@ -46,7 +47,7 @@ export default function Contact() {
               </svg>
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-3">{t('contact.phone')}</h3>
-            <a href="tel:0422-400-116" className="text-green-600 hover:underline font-bold text-lg">0422-400-116</a>
+            <a href={`tel:${CHURCH_INFO.PHONE}`} className="text-green-600 hover:underline font-bold text-lg">{CHURCH_INFO.PHONE}</a>
           </div>
 
           {/* Email Card */}
@@ -57,7 +58,7 @@ export default function Contact() {
               </svg>
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-3">{t('contact.email')}</h3>
-            <a href="mailto:anethanhvn@gmail.com" className="text-blue-600 hover:underline font-semibold break-all">anethanhvn@gmail.com</a>
+            <a href={`mailto:${CHURCH_INFO.EMAIL}`} className="text-blue-600 hover:underline font-semibold break-all">{CHURCH_INFO.EMAIL}</a>
           </div>
 
           {/* Mass Time Card */}
@@ -68,7 +69,7 @@ export default function Contact() {
               </svg>
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-3">{t('contact.mass')}</h3>
-            <p className="text-slate-700 font-bold text-lg">{t('contact.mass_time')}</p>
+            <p className="text-slate-700 font-bold text-lg">{CHURCH_INFO.MASS_SCHEDULE_SHORT}</p>
           </div>
         </div>
 
@@ -79,7 +80,7 @@ export default function Contact() {
             <h3 className="text-xl font-bold text-slate-900 mb-6">{t('contact.connect_with_us')}</h3>
             <div className="space-y-4">
               <a
-                href="https://www.facebook.com/sttimvn"
+                href={CHURCH_INFO.FACEBOOK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-4 p-4 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition-all duration-300 group"
@@ -91,12 +92,12 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="font-semibold text-slate-900">Facebook</p>
-                  <p className="text-sm text-slate-600">facebook.com/sttimvn</p>
+                  <p className="text-sm text-slate-600">{CHURCH_INFO.FACEBOOK_DISPLAY}</p>
                 </div>
               </a>
 
               <a
-                href="mailto:anethanhvn@gmail.com"
+                href={`mailto:${CHURCH_INFO.EMAIL}`}
                 className="flex items-center gap-4 p-4 rounded-lg bg-slate-50 hover:bg-red-50 border border-slate-200 hover:border-red-300 transition-all duration-300 group"
               >
                 <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -106,7 +107,7 @@ export default function Contact() {
                 </div>
                 <div>
                   <p className="font-semibold text-slate-900">Email</p>
-                  <p className="text-sm text-slate-600 break-all">anethanhvn@gmail.com</p>
+                  <p className="text-sm text-slate-600 break-all">{CHURCH_INFO.EMAIL}</p>
                 </div>
               </a>
             </div>
@@ -117,7 +118,7 @@ export default function Contact() {
             <h3 className="text-xl font-bold text-slate-900 mb-4">{t('contact.find_us')}</h3>
             <div className="aspect-square bg-slate-100 rounded-lg overflow-hidden">
               <a
-                href="https://maps.google.com/?q=138+Woodhouse+Grove,+Box+Hill+North+VIC+3129"
+                href={CHURCH_INFO.MAPS_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex w-full h-full items-center justify-center hover:bg-slate-200 transition-colors group"

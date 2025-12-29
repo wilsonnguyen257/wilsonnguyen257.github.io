@@ -7,8 +7,10 @@ import { subscribeJson } from '../lib/storage';
 import { hasEventPassed } from '../lib/timezone';
 import { db } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
+import { CHURCH_INFO, UI_CONSTANTS } from '../lib/constants';
 
 type Reflection = { 
+  id?: string;
   title: {
     vi: string;
     en: string;
@@ -87,6 +89,11 @@ function getBackgroundPatternStyle(pattern: BackgroundPattern): React.CSSPropert
 export default function Home() {
   const { t, language } = useLanguage();
 
+  useEffect(() => {
+    // Scroll to top on mount
+    window.scrollTo(0, 0);
+  }, []);
+
   const [events, setEvents] = useState<Event[]>([]);
   
   // State to control the hero background pattern (can be changed dynamically)
@@ -144,6 +151,7 @@ export default function Home() {
   const startIndex = currentIndex === -1 ? events.length : currentIndex;
   const upcomingEvents = events.slice(startIndex, startIndex + 3);
   const [latestReflections, setLatestReflections] = useState<Reflection[]>([]);
+  const [expandedReflectionId, setExpandedReflectionId] = useState<string | null>(null);
   
   // Function to change the hero background pattern
   const changeHeroBackground = (pattern: BackgroundPattern) => {
@@ -644,7 +652,7 @@ export default function Home() {
       </section>
 
       {/* Latest Content */}
-      <section className="py-20 bg-white">
+      <section className={`${UI_CONSTANTS.SECTION_PADDING} bg-white`}>
         <div className="container-xl">
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 bg-brand-100 rounded-full px-4 py-2 mb-4">
@@ -661,34 +669,48 @@ export default function Home() {
           <div className="grid gap-8 md:grid-cols-2 max-w-5xl mx-auto">
             {/* Gospel Reflections */}
             <div className="space-y-6">
-              {latestReflections.slice(0, 2).map((reflection, index) => (
-                <Link
-                  key={index}
-                  to={`/reflections`}
-                  className="group block bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-slate-200 hover:-translate-y-1"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="inline-flex items-center gap-1.5 bg-brand-100 text-brand-700 rounded-full px-3 py-1 text-xs font-semibold">
-                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+              {latestReflections.slice(0, 2).map((reflection, index) => {
+                const isExpanded = expandedReflectionId === reflection.id;
+                const content = stripHtml(reflection.content[language] || reflection.content.vi);
+                
+                return (
+                  <div
+                    key={index}
+                    className="group block bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-slate-200"
+                  >
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="inline-flex items-center gap-1.5 bg-brand-100 text-brand-700 rounded-full px-3 py-1 text-xs font-semibold">
+                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+                        </svg>
+                        {t('reflections.gospel')}
+                      </span>
+                    </div>
+                    <Link to={`/reflections/${reflection.id}`} className="block">
+                      <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-brand-600 transition-colors line-clamp-2">
+                        {reflection.title[language] || reflection.title.vi}
+                      </h4>
+                    </Link>
+                    <div className={`text-slate-600 text-sm leading-relaxed mb-4 transition-all duration-300 ${isExpanded ? '' : 'line-clamp-3'}`}>
+                      {content}
+                    </div>
+                    <button 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (reflection.id) {
+                          setExpandedReflectionId(isExpanded ? null : reflection.id);
+                        }
+                      }}
+                      className="inline-flex items-center gap-2 text-brand-600 font-semibold text-sm hover:gap-3 transition-all"
+                    >
+                      {isExpanded ? (language === 'vi' ? 'Thu gọn' : 'Read less') : t('home.read_more')}
+                      <svg className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
-                      {t('reflections.gospel')}
-                    </span>
+                    </button>
                   </div>
-                  <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-brand-600 transition-colors line-clamp-2">
-                    {reflection.title[language] || reflection.title.vi}
-                  </h4>
-                  <p className="text-slate-600 text-sm line-clamp-3 leading-relaxed mb-4">
-                    {stripHtml(reflection.content[language] || reflection.content.vi)}
-                  </p>
-                  <span className="inline-flex items-center gap-2 text-brand-600 font-semibold text-sm group-hover:gap-3 transition-all">
-                    {t('home.read_more')}
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </span>
-                </Link>
-              ))}
+                );
+              })}
               <div className="text-center">
                 <Link to="/reflections" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
                   {t('home.view_all_gospel')}
@@ -706,7 +728,7 @@ export default function Home() {
                 <p className="text-slate-600 mb-6">{t('home.follow_us')}</p>
                 <div className="space-y-4">
                   <a 
-                    href="https://www.facebook.com/sttimvn" 
+                    href={CHURCH_INFO.FACEBOOK_URL} 
                     className="flex items-center gap-4 p-4 bg-white rounded-lg hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition-all duration-300 group"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -718,7 +740,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-slate-900">Facebook</p>
-                      <p className="text-sm text-slate-600">facebook.com/sttimvn</p>
+                      <p className="text-sm text-slate-600">{CHURCH_INFO.FACEBOOK_DISPLAY}</p>
                     </div>
                     <svg className="w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -726,7 +748,7 @@ export default function Home() {
                   </a>
 
                   <a 
-                    href="mailto:anethanhvn@gmail.com"
+                    href={`mailto:${CHURCH_INFO.EMAIL}`}
                     className="flex items-center gap-4 p-4 bg-white rounded-lg hover:bg-red-50 border border-slate-200 hover:border-red-300 transition-all duration-300 group"
                   >
                     <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -736,7 +758,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-slate-900">Email</p>
-                      <p className="text-sm text-slate-600 break-all">anethanhvn@gmail.com</p>
+                      <p className="text-sm text-slate-600 break-all">{CHURCH_INFO.EMAIL}</p>
                     </div>
                     <svg className="w-5 h-5 text-slate-400 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -754,7 +776,7 @@ export default function Home() {
                     </div>
                     <div className="flex-1">
                       <p className="font-semibold text-slate-900">{t('home.contact_direct')}</p>
-                      <p className="text-sm text-slate-600">0422-400-116</p>
+                      <p className="text-sm text-slate-600">{CHURCH_INFO.PHONE}</p>
                     </div>
                     <svg className="w-5 h-5 text-slate-400 group-hover:text-brand-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -769,7 +791,7 @@ export default function Home() {
 
       {/* Call to Action */}
       {/* CTA */}
-      <section className="relative py-20 bg-gradient-to-br from-brand-600 to-brand-800 overflow-hidden">
+      <section className={`relative ${UI_CONSTANTS.SECTION_PADDING} bg-gradient-to-br from-brand-600 to-brand-800 overflow-hidden`}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)] pointer-events-none"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent)] pointer-events-none"></div>
         <div className="container-xl text-center relative z-10">

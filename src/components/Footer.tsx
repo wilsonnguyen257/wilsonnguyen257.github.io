@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
+import { CHURCH_INFO } from '../lib/constants';
 
 export default function Footer() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   
   return (
     <footer className="bg-gradient-to-b from-slate-50 to-slate-100 border-t-2 border-slate-200">
@@ -88,18 +89,18 @@ export default function Footer() {
             <ul className="space-y-4">
               <li className="flex items-start gap-3 text-sm text-slate-600 group">
                 <span className="text-lg group-hover:scale-110 transition-transform">📍</span>
-                <span>138 Woodhouse Grove, Box Hill North VIC 3129</span>
+                <span>{CHURCH_INFO.ADDRESS}</span>
               </li>
               <li className="flex items-start gap-3 text-sm text-slate-600 group">
                 <span className="text-lg group-hover:scale-110 transition-transform">📞</span>
-                <a href="tel:0422-400-116" className="hover:text-brand-600 transition-colors font-medium">
-                  0422-400-116
+                <a href={`tel:${CHURCH_INFO.PHONE}`} className="hover:text-brand-600 transition-colors font-medium">
+                  {CHURCH_INFO.PHONE}
                 </a>
               </li>
               <li className="flex items-start gap-3 text-sm text-slate-600 group">
                 <span className="text-lg group-hover:scale-110 transition-transform">📧</span>
-                <a href="mailto:anethanhvn@gmail.com" className="hover:text-brand-600 transition-colors break-all font-medium">
-                  anethanhvn@gmail.com
+                <a href={`mailto:${CHURCH_INFO.EMAIL}`} className="hover:text-brand-600 transition-colors break-all font-medium">
+                  {CHURCH_INFO.EMAIL}
                 </a>
               </li>
             </ul>
@@ -116,14 +117,14 @@ export default function Footer() {
                 <span className="text-lg">⛪</span>
                 <div>
                   <p className="font-semibold text-slate-900">{t('home.sunday')}</p>
-                  <p>{t('home.sunday_time')}</p>
+                  <p>{CHURCH_INFO.MASS_TIME[language]}</p>
                 </div>
               </li>
               <li className="flex items-start gap-2 text-sm text-slate-600">
                 <span className="text-lg">🙏</span>
                 <div>
                   <p className="font-semibold text-slate-900">{t('home.confession')}</p>
-                  <p>{t('home.confession_time')}</p>
+                  <p>{CHURCH_INFO.CONFESSION_TIME[language]}</p>
                 </div>
               </li>
             </ul>

@@ -20,14 +20,6 @@ export default function Navbar() {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
 
-  // Get initials from email (e.g., "admin@gmail.com" -> "AD")
-  const getInitials = (email: string | null | undefined): string => {
-    if (!email) return 'AD';
-    const username = email.split('@')[0];
-    if (username.length <= 2) return username.toUpperCase();
-    return username.substring(0, 2).toUpperCase();
-  };
-
   useEffect(() => {
     if (!IS_FIREBASE_CONFIGURED) return;
     const unsub = onAuthStateChanged((u) => setUser(u));

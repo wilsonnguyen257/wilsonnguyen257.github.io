@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
-import { onAuthStateChanged, logout, type User } from "../lib/firebase";
+import { onAuthStateChanged, type User } from "../lib/firebase";
 import { startSessionTimeout, stopSessionTimeout } from "../lib/sessionTimeout";
 import { logAuditAction } from "../lib/audit";
 import SessionTimeoutWarning from "../components/SessionTimeoutWarning";
@@ -37,15 +37,6 @@ export default function AdminDashboard() {
       stopSessionTimeout();
     };
   }, []);
-
-  const handleLogout = async () => {
-    try {
-      await logAuditAction('auth.logout', { reason: 'manual' });
-      await logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
 
   const getInitials = (email: string | null | undefined): string => {
     if (!email) return 'AD';

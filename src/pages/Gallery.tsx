@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import SEO from '../components/SEO';
 import { useLanguage } from '../contexts/LanguageContext';
 import { subscribeJson } from '../lib/storage';
+import { GallerySkeleton } from '../components/Skeleton';
 type GalleryItem = { id: string; url: string; name: string; created: number };
 
 export default function Gallery() {
@@ -89,8 +90,10 @@ export default function Gallery() {
       <section className="py-20">
         <div className="container-xl">
           {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-brand-600"></div>
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3, 4, 5, 6].map(i => (
+                <GallerySkeleton key={i} />
+              ))}
             </div>
           ) : images.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-300">

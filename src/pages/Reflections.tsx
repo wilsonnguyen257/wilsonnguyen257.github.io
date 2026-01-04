@@ -3,6 +3,7 @@ import SEO from "../components/SEO";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { subscribeJson } from "../lib/storage";
+import { CardSkeleton } from "../components/Skeleton";
 
 type Reflection = { 
   title: {
@@ -31,6 +32,7 @@ const stripHtml = (html: string): string => {
 export default function Reflections() {
   const { t, language } = useLanguage();
   const [reflections, setReflections] = useState<ReflectionItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedAuthor, setSelectedAuthor] = useState("");
   const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title">("newest");
@@ -48,8 +50,12 @@ export default function Reflections() {
           status: it.status || 'published',
         })).filter(r => r.status === 'published');
         setReflections(mapped);
+        setLoading(false);
       },
-      () => setReflections([])
+      () => {
+        setReflections([]);
+        setLoading(false);
+      }
     );
     return () => { unsub(); };
   }, []);
@@ -275,7 +281,11 @@ export default function Reflections() {
       {/* Reflections Grid */}
       <section className="py-16">
         <div className="container-xl">
-          {filteredReflections.length === 0 && reflections.length > 0 ? (
+          {loading ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+               {[1, 2, 3].map(i => <CardSkeleton key={i} />)}
+            </div>
+          ) : filteredReflections.length === 0 && reflections.length > 0 ? (
             <div className="text-center py-16 max-w-md mx-auto">
               <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
                 <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

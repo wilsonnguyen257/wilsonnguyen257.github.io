@@ -5,6 +5,7 @@ import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
+import { compressImage } from '../lib/image';
 
 type GalleryItem = { id: string; url: string; name: string; created: number; path?: string };
 
@@ -49,14 +50,15 @@ export default function AdminGallery() {
     setUploading(true);
     
     try {
+      const compressedFile = await compressImage(file);
       const uid = uuidv4();
       let url = '';
       let path: string | undefined;
       if (IS_FIREBASE_CONFIGURED && fbStorage) {
         // Upload to Firebase Storage and get a public URL
-        path = `gallery/${uid}/${file.name}`;
+        path = `gallery/${uid}/${compressedFile.name}`;
         const objectRef = ref(fbStorage, path);
-        await uploadBytes(objectRef, file);
+        await uploadBytes(objectRef, compressedFile);
         url = await getDownloadURL(objectRef);
       } else {
         // Fallback: data URL for local/preview-only storage
@@ -64,10 +66,10 @@ export default function AdminGallery() {
           const reader = new FileReader();
           reader.onload = () => resolve(String(reader.result));
           reader.onerror = () => reject(reader.error);
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(compressedFile);
         });
       }
-      const newItem: GalleryItem = { id: uid, url, name: file.name || 'image', created: Date.now(), path };
+      const newItem: GalleryItem = { id: uid, url, name: compressedFile.name || 'image', created: Date.now(), path };
       const updated = [...images, newItem];
       await saveJson('gallery', updated);
       setImages(updated);

@@ -8,6 +8,7 @@ import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import VisualEditor from '../components/VisualEditor';
 import type { Event } from '../types/content';
+import { compressImage } from '../lib/image';
 
 export default function AdminEvents() {
   const { language } = useLanguage();
@@ -79,9 +80,10 @@ export default function AdminEvents() {
     
     setUploading(true);
     try {
-      const filename = `events/${uuidv4()}-${file.name}`;
+      const compressedFile = await compressImage(file);
+      const filename = `events/${uuidv4()}-${compressedFile.name}`;
       const storageRef = ref(fbStorage, filename);
-      await uploadBytes(storageRef, file);
+      await uploadBytes(storageRef, compressedFile);
       const url = await getDownloadURL(storageRef);
       return url;
     } catch (err) {

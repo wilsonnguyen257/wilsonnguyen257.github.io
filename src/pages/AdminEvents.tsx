@@ -15,6 +15,8 @@ export default function AdminEvents() {
   const [events, setEvents] = useState<Event[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   
   // Management State
   const [searchTerm, setSearchTerm] = useState('');
@@ -121,21 +123,22 @@ export default function AdminEvents() {
       ? events.map(e => e.id === editingId ? event : e)
       : [...events, event];
 
+    setIsSubmitting(true);
     try {
-      // Optimistic update
-      setEvents(updated);
-      
       await Promise.all([
         saveJson('events', updated),
         logAuditAction(editingId ? 'event.update' : 'event.create', { id: event.id })
       ]);
       
+      setEvents(updated);
       resetForm();
       // loadEvents(); // Removed to avoid double fetch and improve speed
       toast.success(language === 'vi' ? 'Đã lưu thành công!' : 'Saved successfully!');
     } catch (err) {
       console.error('Save error:', err);
       toast.error(language === 'vi' ? 'Lỗi khi lưu. Vui lòng thử lại.' : 'Error saving. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -143,14 +146,11 @@ export default function AdminEvents() {
   const handleDelete = async (id: string) => {
     if (!confirm(language === 'vi' ? 'Xóa sự kiện?' : 'Delete event?')) return;
     
-    // Optimistic update
-    const previousEvents = [...events];
+    setDeletingId(id);
     const updated = events.filter(e => e.id !== id);
-    setEvents(updated);
+    const event = events.find(e => e.id === id);
 
     try {
-      const event = previousEvents.find(e => e.id === id);
-      
       // Run deletion logic in background
       await Promise.all([
         saveJson('events', updated),
@@ -166,12 +166,14 @@ export default function AdminEvents() {
           }
         })()
       ]);
+
+      setEvents(updated);
       toast.success(language === 'vi' ? 'Đã xóa thành công!' : 'Deleted successfully!');
     } catch (err) {
-      // Revert if failed
-      setEvents(previousEvents);
       console.error('Delete error:', err);
       toast.error(language === 'vi' ? 'Lỗi khi xóa. Vui lòng thử lại.' : 'Error deleting. Please try again.');
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -394,16 +396,18 @@ export default function AdminEvents() {
             )}
             <button
               onClick={handleSave}
-              disabled={uploading}
+              disabled={uploading || isSubmitting}
               className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow transition-all"
             >
-              {uploading ? (
+              {(uploading || isSubmitting) ? (
                 <>
                   <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  {language === 'vi' ? 'Đang tải...' : 'Uploading...'}
+                  {uploading 
+                    ? (language === 'vi' ? 'Đang tải...' : 'Uploading...') 
+                    : (language === 'vi' ? 'Đang lưu...' : 'Saving...')}
                 </>
               ) : (
                 <>
@@ -486,9 +490,20 @@ export default function AdminEvents() {
                     </button>
                     <button
                         onClick={() => handleDelete(e.id)}
-                        className="text-red-600 hover:text-red-800 font-medium"
+                        disabled={deletingId === e.id}
+                        className={`text-red-600 hover:text-red-800 font-medium ${deletingId === e.id ? 'opacity-50 cursor-not-allowed' : ''}`}
                     >
-                        {language === 'vi' ? 'Xóa' : 'Delete'}
+                        {deletingId === e.id ? (
+                            <span className="inline-flex items-center gap-1">
+                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                {language === 'vi' ? 'Đang xóa...' : 'Deleting...'}
+                            </span>
+                        ) : (
+                            language === 'vi' ? 'Xóa' : 'Delete'
+                        )}
                     </button>
                     </td>
                 </tr>

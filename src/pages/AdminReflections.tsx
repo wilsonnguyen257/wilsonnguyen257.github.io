@@ -120,14 +120,12 @@ export default function AdminReflections() {
         ? reflections.map(r => r.id === editingId ? reflection : r)
         : [...reflections, reflection];
 
-      // Optimistic update
-      setReflections(updated);
-
       await Promise.all([
         saveJson('reflections', updated),
         logAuditAction(editingId ? 'reflection.update' : 'reflection.create', { id: reflection.id })
       ]);
       
+      setReflections(updated);
       resetForm();
       toast.success(language === 'vi' ? 'Đã lưu thành công!' : 'Saved successfully!');
     } catch (error) {
@@ -143,13 +141,13 @@ export default function AdminReflections() {
     
     try {
       const updated = reflections.filter(r => r.id !== id);
-      setReflections(updated); // Optimistic update
       
       await Promise.all([
         saveJson('reflections', updated),
         logAuditAction('reflection.delete', { id })
       ]);
       
+      setReflections(updated);
       toast.success(language === 'vi' ? 'Đã xóa thành công!' : 'Deleted successfully!');
     } catch (error) {
       console.error('Delete error:', error);

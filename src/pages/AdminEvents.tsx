@@ -78,7 +78,7 @@ export default function AdminEvents() {
     
     setUploading(true);
     try {
-      const filename = `event-thumbnails/${uuidv4()}-${file.name}`;
+      const filename = `events/${uuidv4()}-${file.name}`;
       const storageRef = ref(fbStorage, filename);
       await uploadBytes(storageRef, file);
       const url = await getDownloadURL(storageRef);

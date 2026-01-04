@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useLanguage } from '../contexts/LanguageContext';
+import toast from 'react-hot-toast';
 
 type GalleryItem = { id: string; url: string; name: string; created: number; path?: string };
 
@@ -12,7 +13,6 @@ export default function AdminGallery() {
   const [images, setImages] = useState<GalleryItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState('');
   const [editDate, setEditDate] = useState('');
@@ -31,7 +31,7 @@ export default function AdminGallery() {
         const items = await getJson<GalleryItem[]>('gallery');
         if (active) setImages(items || []);
       } catch {
-        setError(t('admin.gallery.error_load'));
+        toast.error(t('admin.gallery.error_load'));
       } finally {
         if (active) setUploading(false);
       }
@@ -47,7 +47,6 @@ export default function AdminGallery() {
     if (!file) return;
     
     setUploading(true);
-    setError(null);
     
     try {
       const uid = uuidv4();
@@ -73,8 +72,9 @@ export default function AdminGallery() {
       await saveJson('gallery', updated);
       setImages(updated);
       setFile(null);
+      toast.success(t('admin.gallery.upload_success') || 'Upload successful');
     } catch (err) {
-      setError(t('admin.gallery.error_upload'));
+      toast.error(t('admin.gallery.error_upload'));
       console.error('Upload error:', err);
     } finally {
       setUploading(false);
@@ -94,7 +94,6 @@ export default function AdminGallery() {
   };
 
   const saveEdit = async (id: string) => {
-    setError(null);
     try {
       const updated = images.map(img => {
         if (img.id === id) {
@@ -109,15 +108,15 @@ export default function AdminGallery() {
       await saveJson('gallery', updated);
       setImages(updated);
       cancelEdit();
+      toast.success(t('admin.gallery.update_success') || 'Update successful');
     } catch (err) {
-      setError(t('admin.gallery.error_update'));
+      toast.error(t('admin.gallery.error_update'));
       console.error('Update error:', err);
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!window.confirm(t('admin.gallery.confirm_delete'))) return;
-    setError(null);
     try {
       const image = images.find(i => i.id === id);
       if (!image) throw new Error('Image not found');
@@ -132,8 +131,9 @@ export default function AdminGallery() {
       const updated = images.filter(img => img.id !== id);
       await saveJson('gallery', updated);
       setImages(updated);
+      toast.success(t('admin.gallery.delete_success') || 'Delete successful');
     } catch (err) {
-      setError(t('admin.gallery.error_delete'));
+      toast.error(t('admin.gallery.error_delete'));
       console.error('Delete error:', err);
     }
   };
@@ -179,15 +179,6 @@ export default function AdminGallery() {
           </div>
         </div>
       </div>
-        
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 text-red-700 px-6 py-4 rounded-r-lg mb-6 flex items-start gap-3 shadow-md">
-          <svg className="w-6 h-6 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd"/>
-          </svg>
-          <span>{error}</span>
-        </div>
-      )}
       
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">

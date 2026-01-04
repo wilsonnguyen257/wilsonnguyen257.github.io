@@ -5,6 +5,7 @@ import { subscribeJson, saveJson } from '../lib/storage';
 import { logAuditAction } from '../lib/audit';
 import VisualEditor from '../components/VisualEditor';
 import type { Reflection } from '../types/content';
+import toast from 'react-hot-toast';
 
 export default function AdminReflections() {
   const { language } = useLanguage();
@@ -94,41 +95,66 @@ export default function AdminReflections() {
 
   // Save (create or update)
   const handleSave = async () => {
-    const reflection: Reflection = editingId
-      ? {
-          ...reflections.find(r => r.id === editingId)!,
-          title: { vi: formData.titleVi, en: formData.titleEn },
-          content: { vi: formData.contentVi, en: formData.contentEn },
-          author: formData.author,
-          date: formData.date,
-          updatedAt: new Date().toISOString(),
-        }
-      : {
-          id: uuidv4(),
-          title: { vi: formData.titleVi, en: formData.titleEn },
-          content: { vi: formData.contentVi, en: formData.contentEn },
-          author: formData.author,
-          date: formData.date,
-          status: 'published',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
+    try {
+      const reflection: Reflection = editingId
+        ? {
+            ...reflections.find(r => r.id === editingId)!,
+            title: { vi: formData.titleVi, en: formData.titleEn },
+            content: { vi: formData.contentVi, en: formData.contentEn },
+            author: formData.author,
+            date: formData.date,
+            updatedAt: new Date().toISOString(),
+          }
+        : {
+            id: uuidv4(),
+            title: { vi: formData.titleVi, en: formData.titleEn },
+            content: { vi: formData.contentVi, en: formData.contentEn },
+            author: formData.author,
+            date: formData.date,
+            status: 'published',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
 
-    const updated = editingId
-      ? reflections.map(r => r.id === editingId ? reflection : r)
-      : [...reflections, reflection];
+      const updated = editingId
+        ? reflections.map(r => r.id === editingId ? reflection : r)
+        : [...reflections, reflection];
 
-    await saveJson('reflections', updated);
-    await logAuditAction(editingId ? 'reflection.update' : 'reflection.create', { id: reflection.id });
-    resetForm();
+      // Optimistic update
+      setReflections(updated);
+
+      await Promise.all([
+        saveJson('reflections', updated),
+        logAuditAction(editingId ? 'reflection.update' : 'reflection.create', { id: reflection.id })
+      ]);
+      
+      resetForm();
+      toast.success(language === 'vi' ? 'Đã lưu thành công!' : 'Saved successfully!');
+    } catch (error) {
+      console.error('Save error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi lưu.' : 'Error saving.');
+      // Revert/Reload would happen via subscription or next fetch
+    }
   };
 
   // Delete reflection
   const handleDelete = async (id: string) => {
     if (!confirm(language === 'vi' ? 'Xóa bài suy niệm?' : 'Delete reflection?')) return;
-    const updated = reflections.filter(r => r.id !== id);
-    await saveJson('reflections', updated);
-    await logAuditAction('reflection.delete', { id });
+    
+    try {
+      const updated = reflections.filter(r => r.id !== id);
+      setReflections(updated); // Optimistic update
+      
+      await Promise.all([
+        saveJson('reflections', updated),
+        logAuditAction('reflection.delete', { id })
+      ]);
+      
+      toast.success(language === 'vi' ? 'Đã xóa thành công!' : 'Deleted successfully!');
+    } catch (error) {
+      console.error('Delete error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi xóa.' : 'Error deleting.');
+    }
   };
 
   // Filter and Sort

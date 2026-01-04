@@ -5,6 +5,8 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
+import { HelmetProvider } from 'react-helmet-async';
+import { Toaster } from 'react-hot-toast';
 
 // Eager load critical pages
 import Home from "./pages/Home";
@@ -36,9 +38,11 @@ const LoadingFallback = () => (
 export default function App() {
   return (
     <ErrorBoundary>
-      <LanguageProvider>
-        <div className="flex min-h-screen flex-col">
-          <Navbar />
+      <HelmetProvider>
+        <LanguageProvider>
+          <div className="flex min-h-screen flex-col">
+            <Toaster position="top-center" />
+            <Navbar />
           <main className="flex-1">
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
@@ -94,8 +98,9 @@ export default function App() {
           </Suspense>
         </main>
         <Footer />
-      </div>
-    </LanguageProvider>
+          </div>
+        </LanguageProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }

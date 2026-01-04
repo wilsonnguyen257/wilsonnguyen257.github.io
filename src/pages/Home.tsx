@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SEO from '../components/SEO';
 import type { Event } from '../types/content';
 import { useEffect, useState } from 'react';
 import EventCountdown from '../components/EventCountdown';
@@ -226,6 +227,10 @@ export default function Home() {
 
   return (
     <>
+      <SEO 
+        title={t('home.title')} 
+        description={t('home.description')} 
+      />
       {/* Hero - Modern Gradient Design */}
       <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-24 md:py-32 overflow-hidden">
         {/* Custom Background Image (if set) */}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { useLanguage } from '../contexts/LanguageContext';
 import { getJson, saveJson } from '../lib/storage';
@@ -84,7 +85,7 @@ export default function AdminEvents() {
       const url = await getDownloadURL(storageRef);
       return url;
     } catch (err) {
-      alert('Upload failed');
+      toast.error('Upload failed');
       return '';
     } finally {
       setUploading(false);
@@ -118,30 +119,58 @@ export default function AdminEvents() {
       ? events.map(e => e.id === editingId ? event : e)
       : [...events, event];
 
-    await saveJson('events', updated);
-    await logAuditAction(editingId ? 'event.update' : 'event.create', { id: event.id });
-    resetForm();
-    loadEvents();
+    try {
+      // Optimistic update
+      setEvents(updated);
+      
+      await Promise.all([
+        saveJson('events', updated),
+        logAuditAction(editingId ? 'event.update' : 'event.create', { id: event.id })
+      ]);
+      
+      resetForm();
+      // loadEvents(); // Removed to avoid double fetch and improve speed
+      toast.success(language === 'vi' ? 'Đã lưu thành công!' : 'Saved successfully!');
+    } catch (err) {
+      console.error('Save error:', err);
+      toast.error(language === 'vi' ? 'Lỗi khi lưu. Vui lòng thử lại.' : 'Error saving. Please try again.');
+    }
   };
 
   // Delete event
   const handleDelete = async (id: string) => {
     if (!confirm(language === 'vi' ? 'Xóa sự kiện?' : 'Delete event?')) return;
     
-    const event = events.find(e => e.id === id);
-    if (event?.thumbnail && IS_FIREBASE_CONFIGURED && fbStorage) {
-      try {
-        const fileRef = ref(fbStorage, event.thumbnail);
-        await deleteObject(fileRef);
-      } catch (err) {
-        // ignore
-      }
-    }
-
+    // Optimistic update
+    const previousEvents = [...events];
     const updated = events.filter(e => e.id !== id);
-    await saveJson('events', updated);
-    await logAuditAction('event.delete', { id });
-    loadEvents();
+    setEvents(updated);
+
+    try {
+      const event = previousEvents.find(e => e.id === id);
+      
+      // Run deletion logic in background
+      await Promise.all([
+        saveJson('events', updated),
+        logAuditAction('event.delete', { id }),
+        (async () => {
+          if (event?.thumbnail && IS_FIREBASE_CONFIGURED && fbStorage) {
+            try {
+              const fileRef = ref(fbStorage, event.thumbnail);
+              await deleteObject(fileRef);
+            } catch (err) {
+              // ignore
+            }
+          }
+        })()
+      ]);
+      toast.success(language === 'vi' ? 'Đã xóa thành công!' : 'Deleted successfully!');
+    } catch (err) {
+      // Revert if failed
+      setEvents(previousEvents);
+      console.error('Delete error:', err);
+      toast.error(language === 'vi' ? 'Lỗi khi xóa. Vui lòng thử lại.' : 'Error deleting. Please try again.');
+    }
   };
 
   // --- Management Logic ---

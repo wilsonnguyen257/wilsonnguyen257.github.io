@@ -7,7 +7,7 @@ import {
   type User as FirebaseUser,
   type Auth,
 } from 'firebase/auth';
-import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getFirestore, initializeFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 export type User = FirebaseUser | null;
@@ -37,7 +37,10 @@ let storage: FirebaseStorage | null = null;
 if (isConfigured) {
   app = initializeApp(cfg as Record<string, string>);
   auth = getAuth(app);
-  db = getFirestore(app);
+  // Initialize Firestore with settings to ignore undefined properties
+  db = initializeFirestore(app, {
+    ignoreUndefinedProperties: true
+  });
   storage = getStorage(app);
 }
 

@@ -215,6 +215,9 @@ export default function Home() {
           content: d.content ? { vi: d.content.vi || '', en: d.content.en || d.content.vi || '' } : undefined,
           thumbnail: d.thumbnail,
           thumbnailPath: d.thumbnailPath,
+          facebookLink: d.facebookLink,
+          youtubeLink: d.youtubeLink,
+          driveLink: d.driveLink,
           status: d.status || 'published',
         })).filter(e => e.status === 'published').sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         setEvents(mapped);
@@ -232,77 +235,112 @@ export default function Home() {
         description={t('home.description')} 
       />
       {/* Hero - Modern Gradient Design */}
-      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-24 md:py-32 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-20 md:py-28 overflow-hidden">
         {/* Custom Background Image (if set) */}
         {heroBackgroundImage && (
           <div className="absolute inset-0">
             <img 
               src={heroBackgroundImage} 
               alt="Hero background" 
-              className="w-full h-full object-cover opacity-30"
+              className="w-full h-full object-cover opacity-20 mix-blend-overlay"
             />
           </div>
         )}
         
-        {/* Background Pattern */}
+        {/* Background Pattern & Effects */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={getBackgroundPatternStyle(heroBackgroundPattern)}></div>
         </div>
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-96 h-96 bg-brand-400/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/3 w-80 h-80 bg-brand-500/20 rounded-full blur-3xl"></div>
         
         <div className="container-xl relative z-10">
-          <div className="grid items-center gap-16 lg:grid-cols-2">
+          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
             {/* Content */}
-            <div className="text-white animate-fadeIn">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white to-brand-100">
+            <div className="text-white animate-fadeIn text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-8 shadow-sm hover:bg-white/20 transition-colors">
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span className="font-medium text-sm text-brand-50">{t('home.welcome_badge') || 'Chào mừng đến với Cộng đoàn'}</span>
+              </div>
+
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-brand-50 to-brand-100 tracking-tight">
                 {t('home.title')}
               </h1>
-              <p className="text-xl md:text-2xl text-brand-100 mb-5 leading-relaxed font-medium">
+              <p className="text-xl md:text-2xl text-brand-100 mb-6 leading-relaxed font-medium max-w-2xl mx-auto lg:mx-0">
                 {t('home.subtitle')}
               </p>
-              <p className="text-base md:text-lg text-brand-200 mb-8">
+              <p className="text-base md:text-lg text-brand-200 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
                 {t('home.description')}
               </p>
-              <div className="flex items-center gap-4 mb-8 p-5 bg-white/10 backdrop-blur-md rounded-2xl border-2 border-white/20 hover:bg-white/15 transition-all duration-300 shadow-2xl">
-                <div className="w-14 h-14 bg-white/20 rounded-xl flex items-center justify-center">
-                  <span className="text-3xl">⛪</span>
-                </div>
-                <div>
-                  <p className="font-bold text-white text-lg">{t('home.mass')}</p>
-                  <p className="text-brand-100 font-medium">{t('home.mass_time')}</p>
-                </div>
-              </div>
-
-              {/* Newcomer Quick Info */}
-              <div className="flex flex-wrap gap-3 mb-10 text-sm font-medium text-brand-100">
-                <span className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 rounded-full border border-white/10">
-                  <span>🚗</span> {language === 'vi' ? 'Đậu xe miễn phí' : 'Free Parking'}
-                </span>
-              </div>
-
-              <div className="flex flex-wrap gap-4">
-                <Link to="/about" className="px-8 py-4 bg-white text-brand-700 font-bold rounded-2xl hover:bg-brand-50 hover:scale-105 transition-all duration-300 shadow-2xl hover:shadow-white/30 inline-flex items-center gap-2">
+              
+              <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start mb-12">
+                <Link to="/about" className="w-full sm:w-auto px-8 py-4 bg-white text-brand-700 font-bold rounded-xl hover:bg-brand-50 hover:-translate-y-1 transition-all duration-300 shadow-xl shadow-brand-900/20 flex items-center justify-center gap-2 group">
                   {t('home.learn_more')}
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
-                <Link to="/contact" className="px-8 py-4 bg-transparent text-white font-bold rounded-2xl border-2 border-white hover:bg-white/15 hover:scale-105 transition-all duration-300 shadow-xl">
+                <Link to="/contact" className="w-full sm:w-auto px-8 py-4 bg-brand-800/40 backdrop-blur-sm text-white font-bold rounded-xl border border-white/20 hover:bg-brand-800/60 hover:-translate-y-1 transition-all duration-300 shadow-lg flex items-center justify-center">
                   {t('home.contact_us')}
                 </Link>
+              </div>
+
+              {/* Quick Info Bar */}
+              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-8 pt-8 border-t border-white/10">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                    <span className="text-xl">⛪</span>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs text-brand-200 uppercase tracking-wider font-semibold">{t('home.mass')}</p>
+                    <p className="font-bold text-white">{t('home.mass_time')}</p>
+                  </div>
+                </div>
+                <div className="w-px h-10 bg-white/10 hidden sm:block"></div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
+                    <span className="text-xl">📍</span>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-xs text-brand-200 uppercase tracking-wider font-semibold">{t('home.location')}</p>
+                    <p className="font-bold text-white">{t('home.location_short')}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Map Card */}
-            <div className="relative animate-slideInRight">
-              <div className="absolute -inset-4 bg-gradient-to-r from-brand-400 to-brand-600 rounded-3xl blur-2xl opacity-20"></div>
-              <div className="relative bg-white rounded-3xl shadow-2xl overflow-hidden border-2 border-white/50 hover:scale-105 transition-transform duration-500">
-                <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3150.982869339574!2d145.11869731531985!3d-37.81564207974633!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad6404f2b6c09f9%3A0x5045675218ce6e0!2s138%20Woodhouse%20Grove%2C%20Box%20Hill%20North%20VIC%203129!5e0!3m2!1sen!2sau!4v1734134400000!5m2!1sen!2sau"
-                  className="w-full h-96"
-                  style={{ border: 0 }}
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                ></iframe>
+            <div className="relative animate-slideInRight lg:translate-x-8">
+              <div className="absolute -inset-4 bg-gradient-to-r from-brand-400 to-brand-300 rounded-[2rem] blur-2xl opacity-30 animate-pulse"></div>
+              <div className="relative bg-white p-2 rounded-[2rem] shadow-2xl rotate-1 hover:rotate-0 transition-transform duration-500">
+                <div className="relative rounded-[1.5rem] overflow-hidden border border-slate-100 h-[400px] md:h-[500px]">
+                  <iframe 
+                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3150.982869339574!2d145.11869731531985!3d-37.81564207974633!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad6404f2b6c09f9%3A0x5045675218ce6e0!2s138%20Woodhouse%20Grove%2C%20Box%20Hill%20North%20VIC%203129!5e0!3m2!1sen!2sau!4v1734134400000!5m2!1sen!2sau"
+                    className="w-full h-full"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                  ></iframe>
+                  
+                  {/* Map Overlay Card */}
+                  <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-lg border border-slate-100">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-brand-50 rounded-lg text-brand-600">
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <p className="font-bold text-slate-900 text-sm">St Francis Xavier's Catholic Church</p>
+                        <p className="text-slate-500 text-xs mt-0.5">138 Woodhouse Grove, Box Hill North</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -310,30 +348,42 @@ export default function Home() {
       </section>
 
       {/* Welcome Message - Elevated Cards */}
-      <section className="py-24 bg-gradient-to-b from-white to-slate-50">
-        <div className="container-xl">
-          <div className="text-center mb-16 animate-fadeIn">
-            <div className="inline-flex items-center gap-2 bg-brand-100 rounded-full px-5 py-2.5 mb-6">
-              <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-              </svg>
-              <span className="font-bold text-brand-700">Welcome</span>
+      <section className="py-24 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
+        {/* Decorative Background Elements */}
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
+        <div className="absolute -left-64 top-1/2 w-96 h-96 bg-brand-50 rounded-full blur-3xl opacity-50"></div>
+        <div className="absolute -right-64 bottom-0 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
+
+        <div className="container-xl relative z-10">
+          <div className="text-center mb-20 animate-fadeIn">
+            <div className="inline-flex items-center gap-2 bg-brand-50 border border-brand-100/50 rounded-full px-5 py-2 mb-8 shadow-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+              </span>
+              <span className="font-bold text-brand-800 text-sm tracking-wide uppercase">Welcome</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-5">
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
               {t('home.welcome_title')}
             </h2>
+            <div className="w-24 h-1.5 bg-brand-500 mx-auto rounded-full"></div>
           </div>
+          
           <div className="grid gap-8 md:grid-cols-3">
             {[
-              { icon: '🙏', title: t('home.faith_title'), desc: t('home.faith_desc'), color: 'from-blue-500 to-blue-600', delay: 'delay-100' },
-              { icon: '❤️', title: t('home.community_title'), desc: t('home.community_desc'), color: 'from-red-500 to-red-600', delay: 'delay-200' },
-              { icon: '✨', title: t('home.service_title'), desc: t('home.service_desc'), color: 'from-amber-500 to-amber-600', delay: 'delay-300' }
+              { icon: '🙏', title: t('home.faith_title'), desc: t('home.faith_desc'), color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', delay: 'delay-100' },
+              { icon: '❤️', title: t('home.community_title'), desc: t('home.community_desc'), color: 'from-red-500 to-red-600', bg: 'bg-red-50', border: 'border-red-100', delay: 'delay-200' },
+              { icon: '✨', title: t('home.service_title'), desc: t('home.service_desc'), color: 'from-amber-500 to-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', delay: 'delay-300' }
             ].map((item, idx) => (
-              <div key={idx} className={`group relative bg-white rounded-3xl p-8 shadow-xl hover:shadow-2xl transition-all duration-500 border-2 border-slate-100 hover:border-brand-300 hover:-translate-y-2 animate-scaleIn ${item.delay}`}>
-                <div className={`absolute top-0 left-0 right-0 h-2 bg-gradient-to-r ${item.color} rounded-t-3xl`}></div>
-                <div className="text-6xl mb-6 group-hover:scale-125 transition-transform duration-500 inline-block">{item.icon}</div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-4">{item.title}</h3>
-                <p className="text-slate-600 leading-relaxed text-base">{item.desc}</p>
+              <div key={idx} className={`group relative bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-brand-900/10 transition-all duration-500 border border-slate-100 hover:-translate-y-2 animate-scaleIn ${item.delay}`}>
+                <div className={`w-20 h-20 ${item.bg} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-inner`}>
+                  <span className="text-4xl">{item.icon}</span>
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-brand-700 transition-colors">{item.title}</h3>
+                <p className="text-slate-600 leading-relaxed text-lg">{item.desc}</p>
+                
+                {/* Hover Effect Line */}
+                <div className={`absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r ${item.color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-b-[2rem]`}></div>
               </div>
             ))}
           </div>
@@ -341,45 +391,56 @@ export default function Home() {
       </section>
 
       {/* Mass Times & Location - Modern Information Cards */}
-      <section className="py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50">
-        <div className="container-xl">
+      <section className="py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 relative">
+        <div className="absolute top-1/2 left-0 w-64 h-64 bg-brand-50 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 opacity-50"></div>
+        <div className="container-xl relative z-10">
           <div className="text-center mb-16 animate-fadeIn">
-            <div className="inline-flex items-center gap-2 bg-brand-100 rounded-full px-5 py-2.5 mb-6">
+            <div className="inline-flex items-center gap-2 bg-brand-50 border border-brand-100/50 rounded-full px-5 py-2.5 mb-6">
               <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
               </svg>
-              <span className="font-bold text-brand-700">Schedule</span>
+              <span className="font-bold text-brand-700 text-sm tracking-wide uppercase">Schedule</span>
             </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-5">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-5 tracking-tight">
               {t('home.mass_schedule_title')}
             </h2>
+            <div className="w-24 h-1.5 bg-brand-500 mx-auto rounded-full"></div>
           </div>
+          
           <div className="grid gap-8 lg:grid-cols-2 max-w-6xl mx-auto">
             {/* Mass Times */}
-            <div className="bg-white rounded-3xl p-10 shadow-2xl border-2 border-slate-100 hover:border-brand-300 transition-all duration-300 hover:-translate-y-1 animate-slideInLeft">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="p-4 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl shadow-lg">
+            <div className="bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 hover:border-brand-200 transition-all duration-300 hover:-translate-y-1 animate-slideInLeft relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+              
+              <div className="flex items-center gap-6 mb-10 relative">
+                <div className="p-5 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl shadow-lg shadow-brand-500/20 text-white">
                   <span className="text-3xl">📅</span>
                 </div>
-                <h3 className="text-3xl font-bold text-slate-900">{t('home.mass_schedule_subtitle')}</h3>
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900">{t('home.mass_schedule_subtitle')}</h3>
+                  <p className="text-slate-500 mt-1">Weekly Worship Services</p>
+                </div>
               </div>
-              <div className="space-y-5">
-                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl hover:scale-105 transition-transform">
-                  <span className="text-2xl">⛪</span>
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">⛪</div>
                   <div>
                     <p className="font-bold text-lg text-slate-900">{t('home.sunday')}</p>
-                    <p className="text-slate-600 font-medium">{t('home.sunday_time')}</p>
+                    <p className="text-brand-600 font-bold">{t('home.sunday_time')}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl hover:scale-105 transition-transform">
-                  <span className="text-2xl">🎉</span>
+                
+                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">🎉</div>
                   <div>
                     <p className="font-bold text-lg text-slate-900">{t('home.special_days')}</p>
                     <p className="text-slate-600 font-medium">{t('home.special_days_desc')}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl hover:scale-105 transition-transform">
-                  <span className="text-2xl">🙏</span>
+                
+                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">🙏</div>
                   <div>
                     <p className="font-bold text-lg text-slate-900">{t('home.confession')}</p>
                     <p className="text-slate-600 font-medium">{t('home.confession_time')}</p>
@@ -389,33 +450,41 @@ export default function Home() {
             </div>
 
             {/* Contact Info */}
-            <div className="bg-white rounded-3xl p-10 shadow-2xl border-2 border-slate-100 hover:border-brand-300 transition-all duration-300 hover:-translate-y-1 animate-slideInRight">
-              <div className="flex items-center gap-4 mb-8">
-                <div className="p-4 bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl shadow-lg">
+            <div className="bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 hover:border-brand-200 transition-all duration-300 hover:-translate-y-1 animate-slideInRight relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+              
+              <div className="flex items-center gap-6 mb-10 relative">
+                <div className="p-5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg shadow-blue-500/20 text-white">
                   <span className="text-3xl">📍</span>
                 </div>
-                <h3 className="text-3xl font-bold text-slate-900">{t('home.info_title')}</h3>
+                <div>
+                  <h3 className="text-2xl font-bold text-slate-900">{t('home.info_title')}</h3>
+                  <p className="text-slate-500 mt-1">{t('home.visit_contact')}</p>
+                </div>
               </div>
-              <div className="space-y-5">
-                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl hover:scale-105 transition-transform">
-                  <span className="text-2xl">🏠</span>
+              
+              <div className="space-y-4">
+                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">🏠</div>
                   <div>
                     <p className="font-bold text-lg text-slate-900">{t('home.address_label')}</p>
                     <p className="text-slate-600 font-medium">{t('home.address_value')}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl hover:scale-105 transition-transform">
-                  <span className="text-2xl">🚗</span>
+                
+                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">🚗</div>
                   <div>
-                    <p className="font-semibold text-slate-900">{t('home.parking_label')}</p>
-                    <p className="text-slate-600">{t('home.parking_desc')}</p>
+                    <p className="font-bold text-lg text-slate-900">{t('home.parking_label')}</p>
+                    <p className="text-slate-600 font-medium">{t('home.parking_desc')}</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl">
-                  <span className="text-xl">📞</span>
+                
+                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">📞</div>
                   <div>
-                    <p className="font-semibold text-slate-900">{t('home.contact_label')}</p>
-                    <a href="tel:0422-400-116" className="text-brand-600 hover:underline font-medium">
+                    <p className="font-bold text-lg text-slate-900">{t('home.contact_label')}</p>
+                    <a href="tel:0422-400-116" className="text-brand-600 hover:underline font-bold text-lg block">
                       0422-400-116
                     </a>
                   </div>
@@ -427,102 +496,110 @@ export default function Home() {
       </section>
 
       {/* Upcoming Events */}
-      <section className="py-20 bg-white">
+      <section className="py-24 bg-white">
         <div className="container-xl">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-brand-100 rounded-full px-4 py-2 mb-4">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-brand-50 border border-brand-100 rounded-full px-4 py-2 mb-6">
               <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
               </svg>
-              <span className="font-medium text-brand-700">{t('home.upcoming_events')}</span>
+              <span className="font-bold text-brand-700 text-sm tracking-wide uppercase">{t('home.upcoming_events')}</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
               {t('home.important_event')}
             </h2>
+            <div className="w-24 h-1.5 bg-brand-500 mx-auto rounded-full"></div>
           </div>
 
           {upcomingEvents.length > 0 && (
-            <div className="mb-12">
-              <div className="max-w-4xl mx-auto bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-xl overflow-hidden border border-slate-200">
-                {upcomingEvents[0].thumbnail && (
-                  <div className="relative">
-                    <img 
-                      src={upcomingEvents[0].thumbnail} 
-                      alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
-                      className="w-full aspect-video object-cover"
-                      loading="eager"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div className="mb-16 transform hover:scale-[1.01] transition-transform duration-300">
+              <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-2xl shadow-slate-200 overflow-hidden border border-slate-100">
+                <div className="grid md:grid-cols-2 gap-0">
+                  <div className="relative h-64 md:h-full min-h-[350px] overflow-hidden group">
+                    {upcomingEvents[0].thumbnail && (
+                      <>
+                        <img 
+                          src={upcomingEvents[0].thumbnail} 
+                          alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
+                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          loading="eager"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
+                      </>
+                    )}
+                    {/* Date Badge Overlay */}
+                    <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md text-brand-700 px-4 py-3 rounded-2xl shadow-xl font-bold border border-white/50 flex flex-col items-center min-w-[80px]">
+                      <span className="text-sm uppercase tracking-wider font-bold text-slate-500">{new Date(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</span>
+                      <span className="text-3xl leading-none text-slate-900">{new Date(upcomingEvents[0].date).getDate()}</span>
+                    </div>
                   </div>
-                )}
-                <div className="p-8">
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className="inline-flex items-center gap-1.5 bg-brand-100 text-brand-700 rounded-full px-3 py-1 text-sm font-semibold">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                      </svg>
+                  
+                  <div className="p-8 md:p-12 flex flex-col justify-center bg-gradient-to-br from-white to-brand-50/30">
+                    <div className="inline-flex items-center gap-2 text-brand-600 font-bold mb-6 bg-brand-50 w-fit px-4 py-1.5 rounded-full text-xs uppercase tracking-wider border border-brand-100">
+                      <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                      </span>
                       {t('home.featured_event')}
-                    </span>
-                  </div>
-                  
-                  <h3 className="text-3xl font-bold text-slate-900 mb-4">
-                    {upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
-                  </h3>
-                  
-                  <div className="grid sm:grid-cols-3 gap-4 mb-6">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
+                    </div>
+                    
+                    <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight">
+                      {upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
+                    </h3>
+                    
+                    <div className="space-y-4 mb-8">
+                      <div className="flex items-center gap-4 group/item">
+                        <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0 group-hover/item:bg-blue-100 transition-colors">
+                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t('events.date')}</p>
+                          <p className="text-lg font-bold text-slate-900">
+                            {new Date(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { 
+                              weekday: 'long',
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric'
+                            })}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs text-slate-500 font-medium">{t('events.date')}</p>
-                        <p className="text-sm font-semibold text-slate-900">
-                          {new Date(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { 
-                            month: 'short', 
-                            day: 'numeric'
-                          })}
-                        </p>
+                      
+                      <div className="flex items-center gap-4 group/item">
+                        <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center flex-shrink-0 group-hover/item:bg-purple-100 transition-colors">
+                          <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t('events.time')}</p>
+                          <p className="text-lg font-bold text-slate-900">{upcomingEvents[0].time}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-4 group/item">
+                        <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0 group-hover/item:bg-emerald-100 transition-colors">
+                          <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t('events.location')}</p>
+                          <p className="text-lg font-bold text-slate-900">{upcomingEvents[0].location}</p>
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 font-medium">{t('events.time')}</p>
-                        <p className="text-sm font-semibold text-slate-900">{upcomingEvents[0].time}</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <svg className="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-xs text-slate-500 font-medium">{t('events.location')}</p>
-                        <p className="text-sm font-semibold text-slate-900">{upcomingEvents[0].location}</p>
-                      </div>
+                    <div className="mt-auto">
+                      <EventCountdown 
+                        eventDate={upcomingEvents[0].date} 
+                        eventTime={upcomingEvents[0].time}
+                      />
                     </div>
                   </div>
-                  
-                  {upcomingEvents[0].content && (
-                    <p className="text-slate-600 mb-6 leading-relaxed line-clamp-3">
-                      {stripHtml(upcomingEvents[0].content[language] || upcomingEvents[0].content.vi)}
-                    </p>
-                  )}
-                  
-                  <EventCountdown 
-                    eventDate={upcomingEvents[0].date} 
-                    eventTime={upcomingEvents[0].time}
-                  />
                 </div>
               </div>
             </div>
@@ -815,26 +892,26 @@ export default function Home() {
               {t('home.join_us_desc')}
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link 
-                to="/contact" 
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-brand-600 font-bold rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                {t('home.contact_now')}
-              </Link>
-              <Link 
-                to="/about" 
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm text-white border-2 border-white font-bold rounded-lg hover:bg-white hover:text-brand-600 hover:scale-105 transition-all duration-300"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {t('home.learn_more_about')}
-              </Link>
-            </div>
+                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                      <Link 
+                        to="/contact" 
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-brand-600 font-bold rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                        {t('home.contact_now')}
+                      </Link>
+                      <Link 
+                        to="/about" 
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm text-white border border-white/30 font-bold rounded-xl hover:bg-white hover:text-brand-600 hover:scale-105 transition-all duration-300"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        {t('home.learn_more_about')}
+                      </Link>
+                    </div>
           </div>
         </div>
       </section>

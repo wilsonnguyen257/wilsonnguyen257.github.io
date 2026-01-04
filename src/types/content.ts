@@ -24,6 +24,9 @@ export interface ReflectionFormData {
   content: Translation;
   date: string;     // ISO yyyy-mm-dd
   author: string;
+  facebookLink?: string;
+  youtubeLink?: string;
+  driveLink?: string;
   status?: 'draft' | 'published';
 }
 
@@ -43,5 +46,8 @@ export interface Event {
   content?: Translation; // Changed from description to content
   thumbnail?: string; // URL to event thumbnail image
   thumbnailPath?: string; // Firebase Storage path
+  facebookLink?: string;
+  youtubeLink?: string;
+  driveLink?: string;
   status: 'draft' | 'published';
 }

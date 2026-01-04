@@ -33,6 +33,9 @@ export default function AdminEvents() {
     contentVi: '',
     contentEn: '',
     thumbnail: '',
+    facebookLink: '',
+    youtubeLink: '',
+    driveLink: '',
   });
 
   // Load events
@@ -56,6 +59,9 @@ export default function AdminEvents() {
       contentVi: '',
       contentEn: '',
       thumbnail: '',
+      facebookLink: '',
+      youtubeLink: '',
+      driveLink: '',
     });
     setEditingId(null);
   };
@@ -71,6 +77,9 @@ export default function AdminEvents() {
       contentVi: e.content?.vi || '',
       contentEn: e.content?.en || '',
       thumbnail: e.thumbnail || '',
+      facebookLink: e.facebookLink || '',
+      youtubeLink: e.youtubeLink || '',
+      driveLink: e.driveLink || '',
     });
     setEditingId(e.id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -101,21 +110,27 @@ export default function AdminEvents() {
     const event: Event = editingId
       ? {
           ...events.find(e => e.id === editingId)!,
-          name: { vi: formData.nameVi, en: formData.nameEn },
+          name: { vi: formData.nameVi, en: formData.nameVi },
           date: formData.date,
           time: formData.time,
           location: formData.location,
-          content: { vi: formData.contentVi, en: formData.contentEn },
+          content: { vi: formData.contentVi, en: formData.contentVi },
           thumbnail: formData.thumbnail,
+          facebookLink: formData.facebookLink,
+          youtubeLink: formData.youtubeLink,
+          driveLink: formData.driveLink,
         }
       : {
           id: uuidv4(),
-          name: { vi: formData.nameVi, en: formData.nameEn },
+          name: { vi: formData.nameVi, en: formData.nameVi },
           date: formData.date,
           time: formData.time,
           location: formData.location,
-          content: { vi: formData.contentVi, en: formData.contentEn },
+          content: { vi: formData.contentVi, en: formData.contentVi },
           thumbnail: formData.thumbnail,
+          facebookLink: formData.facebookLink,
+          youtubeLink: formData.youtubeLink,
+          driveLink: formData.driveLink,
           status: 'published',
         };
 
@@ -245,10 +260,10 @@ export default function AdminEvents() {
         </div>
         
         <div className="grid gap-6">
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Tên (Tiếng Việt)' : 'Name (Vietnamese)'}
+                {language === 'vi' ? 'Tên sự kiện' : 'Event Name'}
               </label>
               <input
                 placeholder={language === 'vi' ? 'Nhập tên sự kiện...' : 'Enter event name...'}
@@ -257,20 +272,6 @@ export default function AdminEvents() {
                 className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Tên (Tiếng Anh)' : 'Name (English)'}
-              </label>
-              <input
-                placeholder={language === 'vi' ? 'Nhập tên sự kiện...' : 'Enter event name...'}
-                value={formData.nameEn}
-                onChange={e => setFormData({ ...formData, nameEn: e.target.value })}
-                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
-              />
-            </div>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {language === 'vi' ? 'Ngày' : 'Date'}
@@ -282,6 +283,9 @@ export default function AdminEvents() {
                 className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
               />
             </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {language === 'vi' ? 'Giờ' : 'Time'}
@@ -312,27 +316,51 @@ export default function AdminEvents() {
             </div>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Mô tả (Tiếng Việt)' : 'Description (Vietnamese)'}
+                Facebook Link
+              </label>
+              <input
+                placeholder="https://facebook.com/..."
+                value={formData.facebookLink}
+                onChange={e => setFormData({ ...formData, facebookLink: e.target.value })}
+                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                YouTube Link
+              </label>
+              <input
+                placeholder="https://youtube.com/..."
+                value={formData.youtubeLink}
+                onChange={e => setFormData({ ...formData, youtubeLink: e.target.value })}
+                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Google Drive Link
+              </label>
+              <input
+                placeholder="https://drive.google.com/..."
+                value={formData.driveLink}
+                onChange={e => setFormData({ ...formData, driveLink: e.target.value })}
+                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-1 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'vi' ? 'Mô tả' : 'Description'}
               </label>
               <div className="border rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
                 <VisualEditor
                   value={formData.contentVi}
                   onChange={(value) => setFormData({ ...formData, contentVi: value })}
-                  placeholder={language === 'vi' ? 'Nhập mô tả chi tiết...' : 'Enter detailed description...'}
-                />
-              </div>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Mô tả (Tiếng Anh)' : 'Description (English)'}
-              </label>
-              <div className="border rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
-                <VisualEditor
-                  value={formData.contentEn}
-                  onChange={(value) => setFormData({ ...formData, contentEn: value })}
                   placeholder={language === 'vi' ? 'Nhập mô tả chi tiết...' : 'Enter detailed description...'}
                 />
               </div>
@@ -461,6 +489,7 @@ export default function AdminEvents() {
             <thead className="bg-gray-50">
                 <tr>
                 <th className="px-4 py-3 text-left">{language === 'vi' ? 'Sự kiện' : 'Event'}</th>
+                <th className="px-4 py-3 text-left">{language === 'vi' ? 'Liên kết' : 'Links'}</th>
                 <th className="px-4 py-3 text-left">{language === 'vi' ? 'Ngày' : 'Date'}</th>
                 <th className="px-4 py-3 text-left">{language === 'vi' ? 'Giờ' : 'Time'}</th>
                 <th className="px-4 py-3 text-left">{language === 'vi' ? 'Địa điểm' : 'Location'}</th>
@@ -477,6 +506,26 @@ export default function AdminEvents() {
                         )}
                         <span className="font-medium text-gray-900">{e.name.vi || e.name.en}</span>
                     </div>
+                    {e.name.en && e.name.vi && e.name.en !== e.name.vi && <div className="text-sm text-gray-500 mt-1">{e.name.en}</div>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-2">
+                        {e.facebookLink && (
+                          <a href={e.facebookLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800" title="Facebook">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+                          </a>
+                        )}
+                        {e.youtubeLink && (
+                          <a href={e.youtubeLink} target="_blank" rel="noopener noreferrer" className="text-red-600 hover:text-red-800" title="YouTube">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/></svg>
+                          </a>
+                        )}
+                        {e.driveLink && (
+                          <a href={e.driveLink} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:text-green-800" title="Drive">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.01 1.485c2.082 0 3.754.02 3.743.047.01.02 1.708 2.985 3.787 6.62l.02.043-4.814 8.35-4.813 8.36L5.786 16.51c-2.28-3.96-4.14-7.21-4.14-7.23s1.86-3.26 4.14-7.22c2.27-3.95 4.15-7.2 4.16-7.2.02 0 1.05-.01 2.06.02zm4.61 7.42c1.93 3.36 3.51 6.13 3.5 6.14-.01.02-3.32.03-7.37.03l-7.34.01 2.22-3.86c1.23-2.11 2.25-3.88 2.27-3.93a121.2 121.2 0 0 1 6.72 1.6zM1.48 22.42c-.01.03.49.05 1.13.06 1.02.01 9.07.01 9.07 0 0-.01-1.63-2.85-3.63-6.3l-3.63-6.32-1.48 2.56c-.81 1.4-1.48 2.58-1.48 2.62 0 .04.01 3.33.02 7.32z"/></svg>
+                          </a>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">{e.date}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{e.time}</td>
@@ -510,7 +559,7 @@ export default function AdminEvents() {
                 ))}
                 {paginatedEvents.length === 0 && (
                     <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
                             {language === 'vi' ? 'Không tìm thấy sự kiện nào' : 'No events found'}
                         </td>
                     </tr>

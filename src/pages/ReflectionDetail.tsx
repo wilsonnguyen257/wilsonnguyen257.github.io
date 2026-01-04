@@ -39,6 +39,9 @@ export default function ReflectionDetail() {
           content: { vi: found.content?.vi || '', en: found.content?.en || found.content?.vi || '' },
           date: found.date,
           author: found.author,
+          facebookLink: found.facebookLink,
+          youtubeLink: found.youtubeLink,
+          driveLink: found.driveLink,
         };
         setReflection(mapped);
       },
@@ -109,6 +112,34 @@ export default function ReflectionDetail() {
                 <span>{reflection.author}</span>
               </div>
             )}
+            
+            {/* Social Links */}
+            {reflection.facebookLink && (
+              <a 
+                href={reflection.facebookLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-[#1877F2]/80 hover:bg-[#1877F2] backdrop-blur-sm rounded-lg px-3 py-2 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                <span>Facebook</span>
+              </a>
+            )}
+            {reflection.driveLink && (
+              <a 
+                href={reflection.driveLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 bg-[#1FA463]/80 hover:bg-[#1FA463] backdrop-blur-sm rounded-lg px-3 py-2 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8.333 3.667h7.334l5.5 9.166-3.667 6.334H6.5L2.833 12.833l5.5-9.166zm0 0l-3.666 6.333 5.5 9.167h7.333M12 8.667L8.667 14.5h6.666L12 8.667z" />
+                </svg>
+                <span>Drive</span>
+              </a>
+            )}
           </div>
         </div>
       </section>
@@ -125,6 +156,60 @@ export default function ReflectionDetail() {
                   : (reflection.content[language] || reflection.content.vi) 
               }}
             />
+            
+            {/* YouTube Video Embed */}
+            {reflection.youtubeLink && (
+              <div className="mt-8">
+                <div className="relative pt-[56.25%] rounded-xl overflow-hidden shadow-lg bg-black">
+                   <iframe
+                     className="absolute inset-0 w-full h-full"
+                     src={
+                       reflection.youtubeLink.includes('embed') 
+                         ? reflection.youtubeLink 
+                         : `https://www.youtube.com/embed/${
+                             reflection.youtubeLink.includes('v=') 
+                               ? reflection.youtubeLink.split('v=')[1]?.split('&')[0] 
+                               : reflection.youtubeLink.split('/').pop()
+                           }`
+                     }
+                     title="YouTube video player"
+                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                     allowFullScreen
+                   ></iframe>
+                </div>
+              </div>
+            )}
+
+            {/* Facebook Embed */}
+            {reflection.facebookLink && (
+              <div className="mt-8 flex justify-center">
+                <iframe 
+                  src={`https://www.facebook.com/plugins/${reflection.facebookLink.includes('video') || reflection.facebookLink.includes('watch') ? 'video' : 'post'}.php?href=${encodeURIComponent(reflection.facebookLink)}&show_text=true&width=500`}
+                  width="500" 
+                  height={reflection.facebookLink.includes('video') || reflection.facebookLink.includes('watch') ? "300" : "600"} 
+                  style={{border:'none', overflow:'hidden'}} 
+                  scrolling="no" 
+                  frameBorder="0" 
+                  allowFullScreen={true} 
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                  className="rounded-xl shadow-lg max-w-full bg-white"
+                ></iframe>
+              </div>
+            )}
+
+            {/* Google Drive Video Embed */}
+            {reflection.driveLink && reflection.driveLink.includes('drive.google.com') && (
+              <div className="mt-8">
+                <div className="relative pt-[56.25%] rounded-xl overflow-hidden shadow-lg bg-black">
+                  <iframe 
+                    src={reflection.driveLink.replace('/view', '/preview').replace('/usp=sharing', '')} 
+                    className="absolute inset-0 w-full h-full"
+                    allow="autoplay"
+                    title="Google Drive Video"
+                  ></iframe>
+                </div>
+              </div>
+            )}
           </div>
           
           {/* Navigation */}

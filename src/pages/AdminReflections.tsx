@@ -17,6 +17,9 @@ export default function AdminReflections() {
     contentVi: '',
     contentEn: '',
     author: '',
+    facebookLink: '',
+    youtubeLink: '',
+    driveLink: '',
     date: new Date().toISOString().split('T')[0],
   });
 
@@ -74,6 +77,9 @@ export default function AdminReflections() {
       contentVi: '',
       contentEn: '',
       author: '',
+      facebookLink: '',
+      youtubeLink: '',
+      driveLink: '',
       date: new Date().toISOString().split('T')[0],
     });
     setEditingId(null);
@@ -87,6 +93,9 @@ export default function AdminReflections() {
       contentVi: r.content.vi,
       contentEn: r.content.en,
       author: r.author,
+      facebookLink: r.facebookLink || '',
+      youtubeLink: r.youtubeLink || '',
+      driveLink: r.driveLink || '',
       date: r.date,
     });
     setEditingId(r.id);
@@ -99,17 +108,23 @@ export default function AdminReflections() {
       const reflection: Reflection = editingId
         ? {
             ...reflections.find(r => r.id === editingId)!,
-            title: { vi: formData.titleVi, en: formData.titleEn },
-            content: { vi: formData.contentVi, en: formData.contentEn },
+            title: { vi: formData.titleVi, en: formData.titleVi },
+            content: { vi: formData.contentVi, en: formData.contentVi },
             author: formData.author,
+            facebookLink: formData.facebookLink,
+            youtubeLink: formData.youtubeLink,
+            driveLink: formData.driveLink,
             date: formData.date,
             updatedAt: new Date().toISOString(),
           }
         : {
             id: uuidv4(),
-            title: { vi: formData.titleVi, en: formData.titleEn },
-            content: { vi: formData.contentVi, en: formData.contentEn },
+            title: { vi: formData.titleVi, en: formData.titleVi },
+            content: { vi: formData.contentVi, en: formData.contentVi },
             author: formData.author,
+            facebookLink: formData.facebookLink,
+            youtubeLink: formData.youtubeLink,
+            driveLink: formData.driveLink,
             date: formData.date,
             status: 'published',
             createdAt: new Date().toISOString(),
@@ -220,10 +235,9 @@ export default function AdminReflections() {
         </div>
         
         <div className="grid gap-6">
-          <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Tiêu đề (Tiếng Việt)' : 'Title (Vietnamese)'}
+                {language === 'vi' ? 'Tiêu đề' : 'Title'}
               </label>
               <input
                 placeholder={language === 'vi' ? 'Nhập tiêu đề...' : 'Enter title...'}
@@ -232,23 +246,10 @@ export default function AdminReflections() {
                 className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Tiêu đề (Tiếng Anh)' : 'Title (English)'}
-              </label>
-              <input
-                placeholder={language === 'vi' ? 'Nhập tiêu đề...' : 'Enter title...'}
-                value={formData.titleEn}
-                onChange={e => setFormData({ ...formData, titleEn: e.target.value })}
-                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
-              />
-            </div>
-          </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Nội dung (Tiếng Việt)' : 'Content (Vietnamese)'}
+                {language === 'vi' ? 'Nội dung' : 'Content'}
                 <span className="text-xs font-normal text-gray-500 ml-2">
                   ({language === 'vi' ? 'Tự động làm sạch văn bản' : 'Auto-cleaned on paste'})
                 </span>
@@ -261,22 +262,6 @@ export default function AdminReflections() {
                 />
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Nội dung (Tiếng Anh)' : 'Content (English)'}
-                <span className="text-xs font-normal text-gray-500 ml-2">
-                  ({language === 'vi' ? 'Tự động làm sạch văn bản' : 'Auto-cleaned on paste'})
-                </span>
-              </label>
-              <div className="border rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500" onPaste={(e) => handleContentPaste(e, 'contentEn')}>
-                <VisualEditor
-                  value={formData.contentEn}
-                  onChange={(value) => setFormData({ ...formData, contentEn: value })}
-                  placeholder={language === 'vi' ? 'Nhập nội dung...' : 'Enter content...'}
-                />
-              </div>
-            </div>
-          </div>
 
           <div className="grid md:grid-cols-2 gap-6">
             <div>
@@ -298,6 +283,42 @@ export default function AdminReflections() {
                 placeholder={language === 'vi' ? 'Nhập tên tác giả...' : 'Enter author name...'}
                 value={formData.author}
                 onChange={e => setFormData({ ...formData, author: e.target.value })}
+                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Facebook Link
+              </label>
+              <input
+                placeholder="https://facebook.com/..."
+                value={formData.facebookLink}
+                onChange={e => setFormData({ ...formData, facebookLink: e.target.value })}
+                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                YouTube Link
+              </label>
+              <input
+                placeholder="https://youtube.com/..."
+                value={formData.youtubeLink}
+                onChange={e => setFormData({ ...formData, youtubeLink: e.target.value })}
+                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Google Drive Link
+              </label>
+              <input
+                placeholder="https://drive.google.com/..."
+                value={formData.driveLink}
+                onChange={e => setFormData({ ...formData, driveLink: e.target.value })}
                 className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
               />
             </div>
@@ -362,6 +383,7 @@ export default function AdminReflections() {
           <thead className="bg-gray-50 border-b border-gray-100">
             <tr>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{language === 'vi' ? 'Tiêu đề' : 'Title'}</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{language === 'vi' ? 'Liên kết' : 'Links'}</th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{language === 'vi' ? 'Tác giả' : 'Author'}</th>
               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{language === 'vi' ? 'Ngày' : 'Date'}</th>
               <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">{language === 'vi' ? 'Hành động' : 'Actions'}</th>
@@ -372,7 +394,7 @@ export default function AdminReflections() {
               <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4">
                   <div className="font-medium text-gray-900">{r.title.vi || r.title.en}</div>
-                  {r.title.en && r.title.vi && <div className="text-sm text-gray-500">{r.title.en}</div>}
+                  {r.title.en && r.title.vi && r.title.en !== r.title.vi && <div className="text-sm text-gray-500">{r.title.en}</div>}
                 </td>
                 <td className="px-6 py-4 text-gray-600">{r.author}</td>
                 <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{r.date}</td>
@@ -396,7 +418,7 @@ export default function AdminReflections() {
             ))}
             {paginatedReflections.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
                   {language === 'vi' ? 'Không tìm thấy bài viết nào' : 'No reflections found'}
                 </td>
               </tr>

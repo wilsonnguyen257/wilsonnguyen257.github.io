@@ -15,6 +15,9 @@ type Reflection = {
   };
   date?: string; 
   author?: string;
+  facebookLink?: string;
+  youtubeLink?: string;
+  driveLink?: string;
 };
 
 export default function ReflectionDetail() {

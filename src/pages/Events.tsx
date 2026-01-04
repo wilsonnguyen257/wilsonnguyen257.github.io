@@ -20,13 +20,6 @@ function groupEventsByMonth(events: Event[], language: string): Record<string, E
   }, {});
 }
 
-// Helper function to strip HTML tags for preview text
-const stripHtml = (html: string): string => {
-  const tmp = document.createElement('div');
-  tmp.innerHTML = html;
-  return tmp.textContent || tmp.innerText || '';
-};
-
 export default function Events() {
   const { t, language } = useLanguage();
   const [events, setEvents] = useState<Event[]>([]);

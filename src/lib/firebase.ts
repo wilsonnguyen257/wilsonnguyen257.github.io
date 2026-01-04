@@ -7,7 +7,7 @@ import {
   type User as FirebaseUser,
   type Auth,
 } from 'firebase/auth';
-import { getFirestore, initializeFirestore, type Firestore } from 'firebase/firestore';
+import { initializeFirestore, type Firestore } from 'firebase/firestore';
 import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 export type User = FirebaseUser | null;

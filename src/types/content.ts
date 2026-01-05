@@ -27,14 +27,16 @@ export interface ReflectionFormData {
   facebookLink?: string;
   youtubeLink?: string;
   driveLink?: string;
-  status?: 'draft' | 'published';
+  status?: 'draft' | 'published' | 'deleted';
+  deletedAt?: string;
 }
 
 export interface Reflection extends Omit<ReflectionFormData, 'id'> {
   id: string;
   createdAt: string; // ISO datetime
   updatedAt: string; // ISO datetime
-  status: 'draft' | 'published';
+  status: 'draft' | 'published' | 'deleted';
+  deletedAt?: string;
 }
 
 export interface Event {
@@ -49,5 +51,6 @@ export interface Event {
   facebookLink?: string;
   youtubeLink?: string;
   driveLink?: string;
-  status: 'draft' | 'published';
+  status: 'draft' | 'published' | 'deleted';
+  deletedAt?: string;
 }

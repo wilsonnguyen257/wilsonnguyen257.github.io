@@ -17,6 +17,9 @@ export default function AdminEvents() {
   const [uploading, setUploading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'active' | 'archive'>('active');
+  const retentionDays = 90;
   
   // Management State
   const [searchTerm, setSearchTerm] = useState('');
@@ -97,7 +100,7 @@ export default function AdminEvents() {
       await uploadBytes(storageRef, compressedFile);
       const url = await getDownloadURL(storageRef);
       return url;
-    } catch (err) {
+    } catch {
       toast.error('Upload failed');
       return '';
     } finally {
@@ -159,14 +162,51 @@ export default function AdminEvents() {
 
   // Delete event
   const handleDelete = async (id: string) => {
-    if (!confirm(language === 'vi' ? 'Xóa sự kiện?' : 'Delete event?')) return;
+    if (!confirm(language === 'vi' ? 'Chuyển sự kiện vào lưu trữ?' : 'Archive this event?')) return;
     
     setDeletingId(id);
-    const updated = events.filter(e => e.id !== id);
-    const event = events.find(e => e.id === id);
+    const updated: Event[] = events.map(e => e.id === id ? { ...e, status: 'deleted' as const, deletedAt: new Date().toISOString() } : e);
 
     try {
-      // Run deletion logic in background
+      await Promise.all([
+        saveJson('events', updated),
+        logAuditAction('event.delete', { id }),
+      ]);
+
+      setEvents(updated);
+      toast.success(language === 'vi' ? 'Đã lưu trữ sự kiện!' : 'Event archived!');
+    } catch (err) {
+      console.error('Delete error:', err);
+      toast.error(language === 'vi' ? 'Lỗi khi lưu trữ.' : 'Error archiving.');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    setRestoringId(id);
+    const updated: Event[] = events.map(e => e.id === id ? { ...e, status: 'published' as const, deletedAt: undefined } : e);
+    try {
+      await Promise.all([
+        saveJson('events', updated),
+        logAuditAction('event.update', { id })
+      ]);
+      setEvents(updated);
+      toast.success(language === 'vi' ? 'Đã khôi phục sự kiện!' : 'Event restored!');
+    } catch (err) {
+      console.error('Restore error:', err);
+      toast.error(language === 'vi' ? 'Lỗi khi khôi phục.' : 'Error restoring.');
+    } finally {
+      setRestoringId(null);
+    }
+  };
+
+  const handlePermanentDelete = async (id: string) => {
+    if (!confirm(language === 'vi' ? 'Xóa vĩnh viễn sự kiện này?' : 'Permanently delete this event?')) return;
+    setDeletingId(id);
+    const event = events.find(e => e.id === id);
+    const updated = events.filter(e => e.id !== id);
+    try {
       await Promise.all([
         saveJson('events', updated),
         logAuditAction('event.delete', { id }),
@@ -175,18 +215,17 @@ export default function AdminEvents() {
             try {
               const fileRef = ref(fbStorage, event.thumbnail);
               await deleteObject(fileRef);
-            } catch (err) {
-              // ignore
+            } catch {
+              void 0;
             }
           }
         })()
       ]);
-
       setEvents(updated);
-      toast.success(language === 'vi' ? 'Đã xóa thành công!' : 'Deleted successfully!');
+      toast.success(language === 'vi' ? 'Đã xóa vĩnh viễn!' : 'Permanently deleted!');
     } catch (err) {
-      console.error('Delete error:', err);
-      toast.error(language === 'vi' ? 'Lỗi khi xóa. Vui lòng thử lại.' : 'Error deleting. Please try again.');
+      console.error('Permanent delete error:', err);
+      toast.error(language === 'vi' ? 'Lỗi khi xóa vĩnh viễn.' : 'Error permanently deleting.');
     } finally {
       setDeletingId(null);
     }
@@ -197,6 +236,8 @@ export default function AdminEvents() {
   // Filter and Sort
   const filteredEvents = events
     .filter(e => {
+      if (activeTab === 'active' && e.status === 'deleted') return false;
+      if (activeTab === 'archive' && e.status !== 'deleted') return false;
       const searchLower = searchTerm.toLowerCase();
       return (
         e.name.vi.toLowerCase().includes(searchLower) ||
@@ -238,6 +279,20 @@ export default function AdminEvents() {
             <p className="text-gray-500 mt-1">
               {language === 'vi' ? 'Tổng số:' : 'Total events:'} <span className="font-semibold text-brand-600">{events.length}</span>
             </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setActiveTab('active'); setCurrentPage(1); }}
+              className={`px-4 py-2 rounded-lg border ${activeTab === 'active' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-700 border-gray-300'}`}
+            >
+              {language === 'vi' ? 'Hoạt động' : 'Active'}
+            </button>
+            <button
+              onClick={() => { setActiveTab('archive'); setCurrentPage(1); }}
+              className={`px-4 py-2 rounded-lg border ${activeTab === 'archive' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-gray-700 border-gray-300'}`}
+            >
+              {language === 'vi' ? 'Lưu trữ' : 'Archive'}
+            </button>
           </div>
         </div>
       </div>
@@ -531,29 +586,75 @@ export default function AdminEvents() {
                     <td className="px-4 py-3 whitespace-nowrap">{e.time}</td>
                     <td className="px-4 py-3 text-gray-500">{e.location}</td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
-                    <button
-                        onClick={() => handleEdit(e)}
-                        className="text-blue-600 hover:text-blue-800 font-medium mr-4"
-                    >
-                        {language === 'vi' ? 'Sửa' : 'Edit'}
-                    </button>
-                    <button
-                        onClick={() => handleDelete(e.id)}
-                        disabled={deletingId === e.id}
-                        className={`text-red-600 hover:text-red-800 font-medium ${deletingId === e.id ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                        {deletingId === e.id ? (
+                    {activeTab === 'active' ? (
+                      <>
+                        <button
+                          onClick={() => handleEdit(e)}
+                          className="text-blue-600 hover:text-blue-800 font-medium mr-4"
+                        >
+                          {language === 'vi' ? 'Sửa' : 'Edit'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(e.id)}
+                          disabled={deletingId === e.id}
+                          className={`text-red-600 hover:text-red-800 font-medium ${deletingId === e.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          {deletingId === e.id ? (
                             <span className="inline-flex items-center gap-1">
-                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                {language === 'vi' ? 'Đang xóa...' : 'Deleting...'}
+                              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              {language === 'vi' ? 'Đang lưu trữ...' : 'Archiving...'}
                             </span>
-                        ) : (
-                            language === 'vi' ? 'Xóa' : 'Delete'
-                        )}
-                    </button>
+                          ) : (
+                            language === 'vi' ? 'Lưu trữ' : 'Archive'
+                          )}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-sm text-gray-500 inline-block mr-4">
+                          {language === 'vi' ? 'Đã xóa lúc:' : 'Deleted at:'} {e.deletedAt ? new Date(e.deletedAt).toLocaleString() : ''}
+                          {' · '}
+                          {language === 'vi' ? 'Còn lại' : 'Days left'}: {e.deletedAt ? Math.max(0, retentionDays - Math.floor((Date.now() - new Date(e.deletedAt).getTime()) / (1000 * 60 * 60 * 24))) : retentionDays}
+                        </div>
+                        <button
+                          onClick={() => handleRestore(e.id)}
+                          disabled={restoringId === e.id}
+                          className={`text-green-600 hover:text-green-800 font-medium mr-4 ${restoringId === e.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          {restoringId === e.id ? (
+                            <span className="inline-flex items-center gap-1">
+                              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              {language === 'vi' ? 'Đang khôi phục...' : 'Restoring...'}
+                            </span>
+                          ) : (
+                            language === 'vi' ? 'Khôi phục' : 'Restore'
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handlePermanentDelete(e.id)}
+                          disabled={deletingId === e.id}
+                          className={`text-red-600 hover:text-red-800 font-medium ${deletingId === e.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          {deletingId === e.id ? (
+                            <span className="inline-flex items-center gap-1">
+                              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              {language === 'vi' ? 'Đang xóa...' : 'Deleting...'}
+                            </span>
+                          ) : (
+                            language === 'vi' ? 'Xóa vĩnh viễn' : 'Delete Permanently'
+                          )}
+                        </button>
+                      </>
+                    )}
                     </td>
                 </tr>
                 ))}

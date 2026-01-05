@@ -11,6 +11,9 @@ export default function AdminReflections() {
   const { language } = useLanguage();
   const [reflections, setReflections] = useState<Reflection[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'active' | 'archive'>('active');
+  const retentionDays = 90;
+  const [restoringId, setRestoringId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     titleVi: '',
     titleEn: '',
@@ -152,10 +155,10 @@ export default function AdminReflections() {
 
   // Delete reflection
   const handleDelete = async (id: string) => {
-    if (!confirm(language === 'vi' ? 'Xóa bài suy niệm?' : 'Delete reflection?')) return;
+    if (!confirm(language === 'vi' ? 'Chuyển bài suy niệm vào lưu trữ?' : 'Archive this reflection?')) return;
     
     try {
-      const updated = reflections.filter(r => r.id !== id);
+      const updated: Reflection[] = reflections.map(r => r.id === id ? { ...r, status: 'deleted' as const, deletedAt: new Date().toISOString() } : r);
       
       await Promise.all([
         saveJson('reflections', updated),
@@ -163,16 +166,52 @@ export default function AdminReflections() {
       ]);
       
       setReflections(updated);
-      toast.success(language === 'vi' ? 'Đã xóa thành công!' : 'Deleted successfully!');
+      toast.success(language === 'vi' ? 'Đã lưu trữ bài viết!' : 'Reflection archived!');
     } catch (error) {
       console.error('Delete error:', error);
-      toast.error(language === 'vi' ? 'Lỗi khi xóa.' : 'Error deleting.');
+      toast.error(language === 'vi' ? 'Lỗi khi lưu trữ.' : 'Error archiving.');
+    }
+  };
+
+  const handleRestore = async (id: string) => {
+    setRestoringId(id);
+    const updated: Reflection[] = reflections.map(r => r.id === id ? { ...r, status: 'published' as const, deletedAt: undefined } : r);
+    try {
+      await Promise.all([
+        saveJson('reflections', updated),
+        logAuditAction('reflection.update', { id })
+      ]);
+      setReflections(updated);
+      toast.success(language === 'vi' ? 'Đã khôi phục bài viết!' : 'Reflection restored!');
+    } catch (error) {
+      console.error('Restore error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi khôi phục.' : 'Error restoring.');
+    } finally {
+      setRestoringId(null);
+    }
+  };
+
+  const handlePermanentDelete = async (id: string) => {
+    if (!confirm(language === 'vi' ? 'Xóa vĩnh viễn bài suy niệm này?' : 'Permanently delete this reflection?')) return;
+    try {
+      const updated = reflections.filter(r => r.id !== id);
+      await Promise.all([
+        saveJson('reflections', updated),
+        logAuditAction('reflection.delete', { id })
+      ]);
+      setReflections(updated);
+      toast.success(language === 'vi' ? 'Đã xóa vĩnh viễn!' : 'Permanently deleted!');
+    } catch (error) {
+      console.error('Permanent delete error:', error);
+      toast.error(language === 'vi' ? 'Lỗi khi xóa vĩnh viễn.' : 'Error permanently deleting.');
     }
   };
 
   // Filter and Sort
   const filteredReflections = reflections
     .filter(r => {
+      if (activeTab === 'active' && r.status === 'deleted') return false;
+      if (activeTab === 'archive' && r.status !== 'deleted') return false;
       const searchLower = searchTerm.toLowerCase();
       return (
         r.title.vi.toLowerCase().includes(searchLower) ||
@@ -213,6 +252,20 @@ export default function AdminReflections() {
             <p className="text-gray-500 mt-1">
               {language === 'vi' ? 'Tổng số:' : 'Total posts:'} <span className="font-semibold text-brand-600">{reflections.length}</span>
             </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => { setActiveTab('active'); setCurrentPage(1); }}
+              className={`px-4 py-2 rounded-lg border ${activeTab === 'active' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-700 border-gray-300'}`}
+            >
+              {language === 'vi' ? 'Hoạt động' : 'Active'}
+            </button>
+            <button
+              onClick={() => { setActiveTab('archive'); setCurrentPage(1); }}
+              className={`px-4 py-2 rounded-lg border ${activeTab === 'archive' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-gray-700 border-gray-300'}`}
+            >
+              {language === 'vi' ? 'Lưu trữ' : 'Archive'}
+            </button>
           </div>
         </div>
       </div>
@@ -400,18 +453,53 @@ export default function AdminReflections() {
                 <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{r.date}</td>
                 <td className="px-6 py-4 text-right whitespace-nowrap">
                   <div className="flex justify-end gap-3">
-                    <button
-                      onClick={() => handleEdit(r)}
-                      className="text-brand-600 hover:text-brand-800 font-medium transition-colors"
-                    >
-                      {language === 'vi' ? 'Sửa' : 'Edit'}
-                    </button>
-                    <button
-                      onClick={() => handleDelete(r.id)}
-                      className="text-red-600 hover:text-red-800 font-medium transition-colors"
-                    >
-                      {language === 'vi' ? 'Xóa' : 'Delete'}
-                    </button>
+                    {activeTab === 'active' ? (
+                      <>
+                        <button
+                          onClick={() => handleEdit(r)}
+                          className="text-brand-600 hover:text-brand-800 font-medium transition-colors"
+                        >
+                          {language === 'vi' ? 'Sửa' : 'Edit'}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(r.id)}
+                          className="text-red-600 hover:text-red-800 font-medium transition-colors"
+                        >
+                          {language === 'vi' ? 'Lưu trữ' : 'Archive'}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-sm text-gray-500 inline-block mr-4">
+                          {language === 'vi' ? 'Đã xóa lúc:' : 'Deleted at:'} {r.deletedAt ? new Date(r.deletedAt).toLocaleString() : ''}
+                          {' · '}
+                          {language === 'vi' ? 'Còn lại' : 'Days left'}: {r.deletedAt ? Math.max(0, retentionDays - Math.floor((Date.now() - new Date(r.deletedAt).getTime()) / (1000 * 60 * 60 * 24))) : retentionDays}
+                        </div>
+                        <button
+                          onClick={() => handleRestore(r.id)}
+                          disabled={restoringId === r.id}
+                          className={`text-green-600 hover:text-green-800 font-medium transition-colors ${restoringId === r.id ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                          {restoringId === r.id ? (
+                            <span className="inline-flex items-center gap-1">
+                              <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              {language === 'vi' ? 'Đang khôi phục...' : 'Restoring...'}
+                            </span>
+                          ) : (
+                            language === 'vi' ? 'Khôi phục' : 'Restore'
+                          )}
+                        </button>
+                        <button
+                          onClick={() => handlePermanentDelete(r.id)}
+                          className="text-red-600 hover:text-red-800 font-medium transition-colors"
+                        >
+                          {language === 'vi' ? 'Xóa vĩnh viễn' : 'Delete Permanently'}
+                        </button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>

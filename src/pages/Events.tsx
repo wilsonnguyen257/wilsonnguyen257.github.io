@@ -56,10 +56,8 @@ export default function Events() {
   
   const upcomingEvents = useMemo(() => events.filter(e => {
     try {
-      // Use Melbourne timezone to check if event has passed
       return !hasEventPassed(e.date, e.time || '11:59 PM');
-    } catch (error) {
-      // Fallback to date-only comparison
+    } catch {
       return new Date(e.date) >= now;
     }
   }), [events, now]);

@@ -5,7 +5,7 @@
  */
 
 /** Valid JSON data types that can be stored */
-export type JsonName = 'events' | 'reflections' | 'gallery';
+export type JsonName = 'events' | 'reflections' | 'gallery' | 'gallery-images' | 'gallery-albums';
 
 import { IS_FIREBASE_CONFIGURED, db } from './firebase';
 import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs, writeBatch, onSnapshot, type DocumentSnapshot, type DocumentData } from 'firebase/firestore';

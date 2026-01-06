@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "npm run check-translations && tsc -b && vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
-    "type-check": "tsc -b --noEmit"
+    "type-check": "tsc -b --noEmit",
+    "check-translations": "node scripts/check-translations.js"
   },
   "dependencies": {
     "@types/uuid": "^10.0.0",

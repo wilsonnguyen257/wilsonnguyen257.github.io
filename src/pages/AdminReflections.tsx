@@ -32,38 +32,6 @@ export default function AdminReflections() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Clean pasted content from various platforms
-  const cleanPastedContent = (text: string): string => {
-    return text
-      // Remove inline styles and font tags
-      .replace(/<font[^>]*>/gi, '')
-      .replace(/<\/font>/gi, '')
-      .replace(/style="[^"]*"/gi, '')
-      .replace(/class="[^"]*"/gi, '')
-      // Remove span tags but keep content
-      .replace(/<span[^>]*>/gi, '')
-      .replace(/<\/span>/gi, '')
-      // Remove weird characters from email/web (zero-width, etc)
-      .replace(/[\u200B-\u200D\uFEFF]/g, '')
-      // Normalize line breaks (keep structure)
-      .replace(/\r\n/g, '\n')
-      // Remove excessive blank lines (3+ becomes 2)
-      .replace(/\n{3,}/g, '\n\n')
-      // Clean up spaces but preserve line structure
-      .replace(/[ \t]+/g, ' ')
-      // Trim each line but keep the line breaks
-      .split('\n').map(line => line.trim()).join('\n')
-      .trim();
-  };
-
-  // Auto-clean on paste
-  const handleContentPaste = (e: React.ClipboardEvent, field: 'contentVi' | 'contentEn') => {
-    e.preventDefault();
-    const pastedText = e.clipboardData.getData('text');
-    const cleaned = cleanPastedContent(pastedText);
-    setFormData({ ...formData, [field]: cleaned });
-  };
-
   // Load reflections
   useEffect(() => {
     const unsubscribe = subscribeJson<Reflection[]>('reflections', (data) => {
@@ -303,11 +271,8 @@ export default function AdminReflections() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {language === 'vi' ? 'Nội dung' : 'Content'}
-                <span className="text-xs font-normal text-gray-500 ml-2">
-                  ({language === 'vi' ? 'Tự động làm sạch văn bản' : 'Auto-cleaned on paste'})
-                </span>
               </label>
-              <div className="border rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500" onPaste={(e) => handleContentPaste(e, 'contentVi')}>
+              <div className="border rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
                 <VisualEditor
                   value={formData.contentVi}
                   onChange={(value) => setFormData({ ...formData, contentVi: value })}

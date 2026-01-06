@@ -190,12 +190,20 @@ export default function Home() {
     const unsubRefl = subscribeJson<RawReflection[]>(
       'reflections',
       (items) => {
-        const mapped: Reflection[] = (items || []).map((it) => ({
-          title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
-          content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },
-          date: it.date,
-          author: it.author,
-        }));
+        const mapped: Reflection[] = (items || []).map((it) => {
+          // Ensure both languages have content
+          const titleVi = it.title?.vi || it.title?.en || '';
+          const titleEn = it.title?.en || it.title?.vi || '';
+          const contentVi = it.content?.vi || it.content?.en || '';
+          const contentEn = it.content?.en || it.content?.vi || '';
+          
+          return {
+            title: { vi: titleVi, en: titleEn },
+            content: { vi: contentVi, en: contentEn },
+            date: it.date,
+            author: it.author,
+          };
+        });
         setLatestReflections(mapped.slice(0, 2));
       },
       () => setLatestReflections([])
@@ -206,20 +214,28 @@ export default function Home() {
     const unsubEvents = subscribeJson<RawEvent[]>(
       'events',
       (eventsData) => {
-        const mapped: Event[] = (eventsData || []).map((d) => ({
-          id: d.id,
-          name: { vi: d.name?.vi || '', en: d.name?.en || d.name?.vi || '' },
-          date: d.date,
-          time: d.time,
-          location: d.location,
-          content: d.content ? { vi: d.content.vi || '', en: d.content.en || d.content.vi || '' } : undefined,
-          thumbnail: d.thumbnail,
-          thumbnailPath: d.thumbnailPath,
-          facebookLink: d.facebookLink,
-          youtubeLink: d.youtubeLink,
-          driveLink: d.driveLink,
-          status: d.status || 'published',
-        })).filter(e => e.status === 'published').sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        const mapped: Event[] = (eventsData || []).map((d) => {
+          // Ensure both languages have content
+          const nameVi = d.name?.vi || d.name?.en || '';
+          const nameEn = d.name?.en || d.name?.vi || '';
+          const contentVi = d.content?.vi || d.content?.en || '';
+          const contentEn = d.content?.en || d.content?.vi || '';
+          
+          return {
+            id: d.id,
+            name: { vi: nameVi, en: nameEn },
+            date: d.date,
+            time: d.time,
+            location: d.location,
+            content: d.content ? { vi: contentVi, en: contentEn } : undefined,
+            thumbnail: d.thumbnail,
+            thumbnailPath: d.thumbnailPath,
+            facebookLink: d.facebookLink,
+            youtubeLink: d.youtubeLink,
+            driveLink: d.driveLink,
+            status: d.status || 'published',
+          };
+        }).filter(e => e.status === 'published').sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         setEvents(mapped);
       },
       () => setEvents([])

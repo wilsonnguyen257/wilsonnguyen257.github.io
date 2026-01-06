@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 
 interface VisualEditorProps {
   value: string;
@@ -25,7 +25,7 @@ export default function VisualEditor({
     }
   }, [value]);
 
-  const handleInput = () => {
+  const handleInput = useCallback(() => {
     if (editorRef.current) {
       isUpdatingRef.current = true;
       onChange(editorRef.current.innerHTML);
@@ -33,6 +33,136 @@ export default function VisualEditor({
         isUpdatingRef.current = false;
       }, 0);
     }
+  }, [onChange]);
+
+  // Smart paste handler - keeps structure and bold, removes backgrounds
+  const handlePaste = useCallback((e: React.ClipboardEvent) => {
+    e.preventDefault();
+    
+    const clipboardData = e.clipboardData;
+    const html = clipboardData.getData('text/html');
+    const text = clipboardData.getData('text/plain');
+
+    if (html && editorRef.current) {
+      const cleanedHtml = cleanPastedHTML(html);
+      
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        
+        const temp = document.createElement('div');
+        temp.innerHTML = cleanedHtml;
+        
+        const fragment = document.createDocumentFragment();
+        while (temp.firstChild) {
+          fragment.appendChild(temp.firstChild);
+        }
+        range.insertNode(fragment);
+        range.collapse(false);
+      } else {
+        editorRef.current.innerHTML += cleanedHtml;
+      }
+      
+      handleInput();
+    } else if (text && editorRef.current) {
+      const paragraphs = text.split(/\n\n+/);
+      const html = paragraphs
+        .map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`)
+        .join('');
+      
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        range.deleteContents();
+        const fragment = range.createContextualFragment(html);
+        range.insertNode(fragment);
+        range.collapse(false);
+      } else {
+        editorRef.current.innerHTML += html;
+      }
+      
+      handleInput();
+    }
+  }, [handleInput]);
+
+  // Clean pasted HTML - keep structure and bold, remove backgrounds
+  const cleanPastedHTML = (html: string): string => {
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+
+    // Remove script, style, meta tags
+    const unwanted = ['script', 'style', 'meta', 'link', 'iframe'];
+    unwanted.forEach(tag => {
+      const elements = temp.getElementsByTagName(tag);
+      for (let i = elements.length - 1; i >= 0; i--) {
+        elements[i].remove();
+      }
+    });
+
+    // Process all elements
+    const allElements = temp.querySelectorAll('*');
+    allElements.forEach((el: Element) => {
+      // Remove tracking/data attributes
+      const attrsToRemove: string[] = [];
+      for (let i = 0; i < el.attributes.length; i++) {
+        const attr = el.attributes[i].name;
+        if (attr.startsWith('data-') || attr === 'class' || attr === 'id' || 
+            attr.startsWith('on') || attr === 'role' || attr.startsWith('aria-')) {
+          attrsToRemove.push(attr);
+        }
+      }
+      attrsToRemove.forEach(attr => el.removeAttribute(attr));
+
+      // Clean style - keep only font-weight (bold), remove backgrounds
+      const style = el.getAttribute('style');
+      if (style) {
+        const keepStyles: string[] = [];
+        const styleProps = style.split(';');
+        
+        styleProps.forEach((prop: string) => {
+          const parts = prop.split(':');
+          if (parts.length < 2) return;
+          const name = parts[0].trim().toLowerCase();
+          const val = parts[1].trim().toLowerCase();
+          
+          if (name === 'font-weight' && (val === 'bold' || val === '700' || val === '600')) {
+            keepStyles.push('font-weight: bold');
+          }
+          if (name === 'font-style' && val === 'italic') {
+            keepStyles.push('font-style: italic');
+          }
+          if (name === 'text-decoration' && val.includes('underline')) {
+            keepStyles.push('text-decoration: underline');
+          }
+        });
+
+        if (keepStyles.length > 0) {
+          el.setAttribute('style', keepStyles.join('; '));
+        } else {
+          el.removeAttribute('style');
+        }
+      }
+    });
+
+    // Convert spans with bold to <strong>
+    const spans = temp.querySelectorAll('span');
+    spans.forEach((span: Element) => {
+      const style = span.getAttribute('style');
+      if (style && style.includes('font-weight')) {
+        const strong = document.createElement('strong');
+        strong.innerHTML = span.innerHTML;
+        span.parentNode?.replaceChild(strong, span);
+      } else if (!span.hasAttributes()) {
+        const parent = span.parentNode;
+        while (span.firstChild) {
+          parent?.insertBefore(span.firstChild, span);
+        }
+        parent?.removeChild(span);
+      }
+    });
+
+    return temp.innerHTML;
   };
 
   const execCommand = (command: string, value: string | undefined = undefined) => {
@@ -169,6 +299,7 @@ export default function VisualEditor({
         ref={editorRef}
         contentEditable
         onInput={handleInput}
+        onPaste={handlePaste}
         className="w-full min-h-[200px] p-4 border border-slate-300 rounded-b-lg bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-brand-500 overflow-auto"
         data-placeholder={placeholder}
         suppressContentEditableWarning

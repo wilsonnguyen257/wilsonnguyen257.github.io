@@ -38,8 +38,15 @@ export default function ReflectionDetail() {
           return;
         }
         const mapped: Reflection = {
-          title: { vi: found.title?.vi || '', en: found.title?.en || found.title?.vi || '' },
-          content: { vi: found.content?.vi || '', en: found.content?.en || found.content?.vi || '' },
+          // Ensure both languages have content
+          title: { 
+            vi: found.title?.vi || found.title?.en || '', 
+            en: found.title?.en || found.title?.vi || '' 
+          },
+          content: { 
+            vi: found.content?.vi || found.content?.en || '', 
+            en: found.content?.en || found.content?.vi || '' 
+          },
           date: found.date,
           author: found.author,
           facebookLink: found.facebookLink,

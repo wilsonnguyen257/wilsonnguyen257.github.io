@@ -54,3 +54,27 @@ export interface Event {
   status: 'draft' | 'published' | 'deleted';
   deletedAt?: string;
 }
+
+export interface BilingualDocument {
+  id: string;
+  title: Translation;
+  content: Translation;
+  date: string;
+  author: string;
+  facebookLink?: string;
+  youtubeLink?: string;
+  driveLink?: string;
+  status?: 'draft' | 'published' | 'deleted';
+  deletedAt?: string;
+  metadata: {
+    lastModified: string;
+    wordCount: {
+      en: number;
+      vi: number;
+    };
+    status: 'draft' | 'published';
+    publishedAt?: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+}

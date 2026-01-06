@@ -63,9 +63,29 @@ const translations = {
     'home.mass_time': 'Thánh Lễ Chúa Nhật lúc 5:00 PM tại 138 Woodhouse Grove, Box Hill North VIC 3129.',
     'home.welcome_badge': 'Chào mừng',
     'home.location': 'Địa điểm',
+    'home.location_short': 'Box Hill North',
+    'home.church_name': 'Giáo xứ Thánh Anê Lê Thị Thành',
+    'home.address_short': '138 Woodhouse Grove, Box Hill North',
+    'home.weekly_worship': 'Các Thánh Lễ Hàng Tuần',
     'home.visit_contact': 'Ghé Thăm & Liên Hệ',
     'home.learn_more': 'Tìm hiểu thêm',
     'home.contact_us': 'Liên hệ với chúng tôi',
+    
+    // Rich Text Editor
+    'Rich Text Editor': 'Trình soạn thảo văn bản phong phú',
+    'Enter URL': 'Nhập URL',
+    'Bold (Ctrl+B)': 'Đậm (Ctrl+B)',
+    'Italic (Ctrl+I)': 'Nghiêng (Ctrl+I)',
+    'Underline (Ctrl+U)': 'Gạch chân (Ctrl+U)',
+    'Bullet List': 'Danh sách gạch đầu dòng',
+    'Numbered List': 'Danh sách số',
+    'Link (Ctrl+K)': 'Liên kết (Ctrl+K)',
+    'Clear Formatting': 'Xóa định dạng',
+    'Tip: You can paste formatted content directly from Facebook, Word, or other platforms': 'Mẹo: Bạn có thể dán nội dung đã định dạng trực tiếp từ Facebook, Word hoặc các nền tảng khác',
+    'Language': 'Ngôn ngữ',
+    
+    // Modern Rich Text Editor
+    'Tip: Paste with Ctrl+V to preserve formatting from Facebook, Word, or other platforms': 'Mẹo: Dán với Ctrl+V để giữ nguyên định dạng từ Facebook, Word hoặc các nền tảng khác',
     
     // Common
     'common.read_more': 'Đọc thêm',
@@ -629,6 +649,22 @@ const translations = {
     'footer.privacy': 'Privacy Policy',
     'footer.terms': 'Terms',
     'footer.sitemap': 'Sitemap',
+    
+    // Rich Text Editor
+    'Rich Text Editor': 'Rich Text Editor',
+    'Enter URL': 'Enter URL',
+    'Bold (Ctrl+B)': 'Bold (Ctrl+B)',
+    'Italic (Ctrl+I)': 'Italic (Ctrl+I)',
+    'Underline (Ctrl+U)': 'Underline (Ctrl+U)',
+    'Bullet List': 'Bullet List',
+    'Numbered List': 'Numbered List',
+    'Link (Ctrl+K)': 'Link (Ctrl+K)',
+    'Clear Formatting': 'Clear Formatting',
+    'Tip: You can paste formatted content directly from Facebook, Word, or other platforms': 'Tip: You can paste formatted content directly from Facebook, Word, or other platforms',
+    'Language': 'Language',
+    
+    // Modern Rich Text Editor
+    'Tip: Paste with Ctrl+V to preserve formatting from Facebook, Word, or other platforms': 'Tip: Paste with Ctrl+V to preserve formatting from Facebook, Word, or other platforms',
   }
 };
 

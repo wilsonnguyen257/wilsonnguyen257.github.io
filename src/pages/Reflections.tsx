@@ -41,14 +41,22 @@ export default function Reflections() {
     const unsub = subscribeJson<ReflectionItem[]>(
       'reflections',
       (items) => {
-        const mapped: ReflectionItem[] = (items || []).map((it) => ({
-          id: it.id,
-          title: { vi: it.title?.vi || '', en: it.title?.en || it.title?.vi || '' },
-          content: { vi: it.content?.vi || '', en: it.content?.en || it.content?.vi || '' },
-          date: it.date,
-          author: it.author,
-          status: it.status || 'published',
-        })).filter(r => r.status === 'published');
+        const mapped: ReflectionItem[] = (items || []).map((it) => {
+          // Ensure both languages have content
+          const titleVi = it.title?.vi || it.title?.en || '';
+          const titleEn = it.title?.en || it.title?.vi || '';
+          const contentVi = it.content?.vi || it.content?.en || '';
+          const contentEn = it.content?.en || it.content?.vi || '';
+          
+          return {
+            id: it.id,
+            title: { vi: titleVi, en: titleEn },
+            content: { vi: contentVi, en: contentEn },
+            date: it.date,
+            author: it.author,
+            status: it.status || 'published',
+          };
+        }).filter(r => r.status === 'published');
         setReflections(mapped);
         setLoading(false);
       },

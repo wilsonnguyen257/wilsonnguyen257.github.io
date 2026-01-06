@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 import type { Event } from '../types/content';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, memo } from 'react';
 import EventCountdown from '../components/EventCountdown';
 import { useLanguage } from '../contexts/LanguageContext';
 import { subscribeJson } from '../lib/storage';
@@ -9,6 +9,20 @@ import { hasEventPassed } from '../lib/timezone';
 import { db } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { CHURCH_INFO, UI_CONSTANTS } from '../lib/constants';
+
+// Debounce hook to prevent excessive re-renders
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
+  return debouncedValue;
+}
 
 type Reflection = { 
   id?: string;
@@ -48,7 +62,7 @@ declare global {
  * @param pattern - The pattern type to use
  * @returns Style object for the background pattern
  */
-function getBackgroundPatternStyle(pattern: BackgroundPattern): React.CSSProperties {
+const getBackgroundPatternStyle = (pattern: BackgroundPattern): React.CSSProperties => {
   switch (pattern) {
     case 'dots':
       return {
@@ -87,7 +101,7 @@ function getBackgroundPatternStyle(pattern: BackgroundPattern): React.CSSPropert
   }
 }
 
-export default function Home() {
+const Home: React.FC = () => {
   const { t, language } = useLanguage();
 
   useEffect(() => {
@@ -100,6 +114,7 @@ export default function Home() {
   // State to control the hero background pattern (can be changed dynamically)
   const [heroBackgroundPattern, setHeroBackgroundPattern] = useState<BackgroundPattern>('dots');
   const [heroBackgroundImage, setHeroBackgroundImage] = useState<string>('');
+  const debouncedHeroImage = useDebounce(heroBackgroundImage, 300);
 
   // Load saved pattern and image from Firestore with real-time updates
   useEffect(() => {
@@ -122,8 +137,16 @@ export default function Home() {
           localStorage.setItem('heroBackgroundPattern', data.heroBackgroundPattern);
         }
         if (data.heroBackgroundImageUrl) {
-          setHeroBackgroundImage(data.heroBackgroundImageUrl);
-          localStorage.setItem('heroBackgroundImageUrl', data.heroBackgroundImageUrl);
+          const imageUrl = data.heroBackgroundImageUrl;
+          setHeroBackgroundImage(imageUrl);
+          localStorage.setItem('heroBackgroundImageUrl', imageUrl);
+
+          // Preload the LCP image
+          const link = document.createElement('link');
+          link.rel = 'preload';
+          link.as = 'image';
+          link.href = imageUrl;
+          document.head.appendChild(link);
         } else {
           setHeroBackgroundImage('');
           localStorage.removeItem('heroBackgroundImageUrl');
@@ -251,12 +274,12 @@ export default function Home() {
         description={t('home.description')} 
       />
       {/* Hero - Modern Gradient Design */}
-      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-20 md:py-28 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-20 md:py-28 overflow-hidden min-h-[600px] md:min-h-[700px]">
         {/* Custom Background Image (if set) */}
-        {heroBackgroundImage && (
+        {debouncedHeroImage && (
           <div className="absolute inset-0">
             <img 
-              src={heroBackgroundImage} 
+              src={debouncedHeroImage} 
               alt="Hero background" 
               className="w-full h-full object-cover opacity-20 mix-blend-overlay"
             />
@@ -329,12 +352,13 @@ export default function Home() {
             </div>
 
             {/* Map Card */}
-            <div className="relative animate-slideInRight lg:translate-x-8">
+            <div className="relative animate-slideInRight lg:translate-x-8 aspect-w-1 aspect-h-1 md:aspect-w-4 md:aspect-h-3">
               <div className="absolute -inset-4 bg-gradient-to-r from-brand-400 to-brand-300 rounded-[2rem] blur-2xl opacity-30 animate-pulse"></div>
               <div className="relative bg-white p-2 rounded-[2rem] shadow-2xl rotate-1 hover:rotate-0 transition-transform duration-500">
                 <div className="relative rounded-[1.5rem] overflow-hidden border border-slate-100 h-[400px] md:h-[500px]">
                   <iframe 
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3150.982869339574!2d145.11869731531985!3d-37.81564207974633!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad6404f2b6c09f9%3A0x5045675218ce6e0!2s138%20Woodhouse%20Grove%2C%20Box%20Hill%20North%20VIC%203129!5e0!3m2!1sen!2sau!4v1734134400000!5m2!1sen!2sau"
+                    title="St Francis Xavier's Catholic Church Location"
                     className="w-full h-full"
                     style={{ border: 0 }}
                     loading="lazy"
@@ -527,7 +551,7 @@ export default function Home() {
             <div className="w-24 h-1.5 bg-brand-500 mx-auto rounded-full"></div>
           </div>
 
-          {upcomingEvents.length > 0 && (
+          {upcomingEvents.length > 0 ? (
             <div className="mb-16 transform hover:scale-[1.01] transition-transform duration-300">
               <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-2xl shadow-slate-200 overflow-hidden border border-slate-100">
                 <div className="grid md:grid-cols-2 gap-0">
@@ -538,7 +562,7 @@ export default function Home() {
                           src={upcomingEvents[0].thumbnail} 
                           alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          loading="eager"
+                          loading="lazy"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
                       </>
@@ -618,6 +642,10 @@ export default function Home() {
                   </div>
                 </div>
               </div>
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-slate-500">{t('home.no_events')}</p>
             </div>
           )}
 
@@ -933,4 +961,6 @@ export default function Home() {
       </section>
     </>
   );
-}
+};
+
+export default memo(Home);

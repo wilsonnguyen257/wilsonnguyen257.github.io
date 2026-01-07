@@ -566,7 +566,7 @@ const Home: React.FC = () => {
               </div>
             </div>
           ) : upcomingEvents.length > 0 ? (
-            <div className="mb-16 transform hover:scale-[1.01] transition-transform duration-300">
+            <Link to={`/events/${upcomingEvents[0].id}`} className="block mb-16 transform hover:scale-[1.01] transition-transform duration-300">
               <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-2xl shadow-slate-200 overflow-hidden border border-slate-100">
                 <div className="grid md:grid-cols-2 gap-0">
                   <div className="relative h-64 md:h-full min-h-[350px] overflow-hidden group">
@@ -656,7 +656,7 @@ const Home: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </Link>
           ) : (
             <div className="text-center py-12">
               <p className="text-slate-500">{t('home.no_events')}</p>
@@ -672,7 +672,7 @@ const Home: React.FC = () => {
                 {upcomingEvents.slice(1).map(event => (
                   <Link
                     key={event.id}
-                    to="/events"
+                    to={`/events/${event.id}`}
                     className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-200 hover:-translate-y-1"
                   >
                     {event.thumbnail && (

@@ -22,6 +22,7 @@ const Gallery = lazy(() => import('./pages/Gallery'));
 const Contact = lazy(() => import('./pages/Contact'));
 const Reflections = lazy(() => import('./pages/Reflections'));
 const ReflectionDetail = lazy(() => import('./pages/ReflectionDetail'));
+const EventDetail = lazy(() => import('./pages/EventDetail'));
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Lazy load admin pages
@@ -52,6 +53,7 @@ export default function App() {
                 <Route path="/about" element={<About />} />
                 <Route path="/ministries" element={<Ministries />} />
                 <Route path="/events" element={<Events />} />
+                <Route path="/events/:id" element={<EventDetail />} />
                 <Route path="/give" element={<Give />} />
                 <Route path="/gallery" element={<Gallery />} />
                 <Route path="/contact" element={<Contact />} />

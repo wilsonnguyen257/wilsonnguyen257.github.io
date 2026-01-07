@@ -109,6 +109,12 @@ const translations = {
     'events.date': 'Ngày',
     'events.time': 'Giờ',
     'events.location': 'Địa điểm',
+    'events.details': 'Chi Tiết Sự Kiện',
+    'events.links': 'Liên Kết',
+    'events.video': 'Video',
+    'events.back_to_events': 'Quay lại Sự kiện',
+    'events.not_found': 'Không tìm thấy sự kiện',
+    'events.not_found_desc': 'Sự kiện này không tồn tại hoặc đã bị xóa.',
     
     // Reflections
     'reflections.title': 'Phúc Âm & Suy Niệm',
@@ -420,6 +426,12 @@ const translations = {
     'events.date': 'Date',
     'events.time': 'Time',
     'events.location': 'Location',
+    'events.details': 'Event Details',
+    'events.links': 'Links',
+    'events.video': 'Video',
+    'events.back_to_events': 'Back to Events',
+    'events.not_found': 'Event Not Found',
+    'events.not_found_desc': 'This event does not exist or has been removed.',
     
     // Reflections
     'reflections.title': 'Gospel & Reflections',

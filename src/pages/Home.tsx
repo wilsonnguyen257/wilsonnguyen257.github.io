@@ -9,6 +9,7 @@ import { hasEventPassed } from '../lib/timezone';
 import { db } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { CHURCH_INFO, UI_CONSTANTS } from '../lib/constants';
+import LazyLoadSection from '../components/LazyLoadSection';
 
 // Debounce hook to prevent excessive re-renders
 function useDebounce<T>(value: T, delay: number): T {
@@ -110,6 +111,7 @@ const Home: React.FC = () => {
   }, []);
 
   const [events, setEvents] = useState<Event[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(true);
   
   // State to control the hero background pattern (can be changed dynamically)
   const [heroBackgroundPattern, setHeroBackgroundPattern] = useState<BackgroundPattern>('dots');
@@ -260,8 +262,12 @@ const Home: React.FC = () => {
           };
         }).filter(e => e.status === 'published').sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
         setEvents(mapped);
+        setEventsLoading(false);
       },
-      () => setEvents([])
+      () => {
+        setEvents([]);
+        setEventsLoading(false);
+      }
     );
 
     return () => { unsubRefl(); unsubEvents(); };
@@ -388,6 +394,7 @@ const Home: React.FC = () => {
       </section>
 
       {/* Welcome Message - Elevated Cards */}
+      <LazyLoadSection placeholderHeight="700px">
       <section className="py-24 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
         {/* Decorative Background Elements */}
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
@@ -429,8 +436,10 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+      </LazyLoadSection>
 
       {/* Mass Times & Location - Modern Information Cards */}
+      <LazyLoadSection placeholderHeight="700px">
       <section className="py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 relative">
         <div className="absolute top-1/2 left-0 w-64 h-64 bg-brand-50 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 opacity-50"></div>
         <div className="container-xl relative z-10">
@@ -534,8 +543,10 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+      </LazyLoadSection>
 
       {/* Upcoming Events */}
+      <LazyLoadSection placeholderHeight="600px">
       <section className="py-24 bg-white">
         <div className="container-xl">
           <div className="text-center mb-16">
@@ -551,7 +562,15 @@ const Home: React.FC = () => {
             <div className="w-24 h-1.5 bg-brand-500 mx-auto rounded-full"></div>
           </div>
 
-          {upcomingEvents.length > 0 ? (
+          {eventsLoading ? (
+            <div className="text-center py-12 px-6 bg-white rounded-xl border border-slate-200 min-h-[400px] flex flex-col justify-center items-center">
+              <div className="animate-pulse">
+                <div className="w-16 h-16 bg-slate-200 rounded-full mx-auto mb-4"></div>
+                <div className="h-6 w-48 bg-slate-200 rounded-md mx-auto mb-2"></div>
+                <div className="h-4 w-64 bg-slate-200 rounded-md mx-auto"></div>
+              </div>
+            </div>
+          ) : upcomingEvents.length > 0 ? (
             <div className="mb-16 transform hover:scale-[1.01] transition-transform duration-300">
               <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-2xl shadow-slate-200 overflow-hidden border border-slate-100">
                 <div className="grid md:grid-cols-2 gap-0">
@@ -723,8 +742,10 @@ const Home: React.FC = () => {
           )}
         </div>
       </section>
+      </LazyLoadSection>
 
       {/* Ministries */}
+      <LazyLoadSection placeholderHeight="500px">
       <section className="py-20 bg-gradient-to-b from-slate-50 to-white">
         <div className="container-xl">
           <div className="text-center mb-12">
@@ -776,8 +797,10 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+      </LazyLoadSection>
 
       {/* Latest Content */}
+      <LazyLoadSection placeholderHeight="600px">
       <section className={`${UI_CONSTANTS.SECTION_PADDING} bg-white`}>
         <div className="container-xl">
           <div className="text-center mb-12">
@@ -914,9 +937,11 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+      </LazyLoadSection>
 
       {/* Call to Action */}
       {/* CTA */}
+      <LazyLoadSection placeholderHeight="400px">
       <section className={`relative ${UI_CONSTANTS.SECTION_PADDING} bg-gradient-to-br from-brand-600 to-brand-800 overflow-hidden`}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)] pointer-events-none"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent)] pointer-events-none"></div>
@@ -959,6 +984,7 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
+      </LazyLoadSection>
     </>
   );
 };

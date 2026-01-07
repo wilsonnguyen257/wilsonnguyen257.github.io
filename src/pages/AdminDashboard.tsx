@@ -4,13 +4,10 @@ import { onAuthStateChanged, type User } from "../lib/firebase";
 import { startSessionTimeout, stopSessionTimeout } from "../lib/sessionTimeout";
 import { logAuditAction } from "../lib/audit";
 import SessionTimeoutWarning from "../components/SessionTimeoutWarning";
-import AdminReflections from "./AdminReflections";
-import AdminEvents from "./AdminEvents";
-import AdminGallery from "./AdminGallery";
+import { Outlet, NavLink } from "react-router-dom";
 
 export default function AdminDashboard() {
   const { t, language } = useLanguage();
-  const [view, setView] = useState<'reflections' | 'events' | 'gallery'>('reflections');
   const [user, setUser] = useState<User | null>(null);
   const [showTimeoutWarning, setShowTimeoutWarning] = useState(false);
 
@@ -91,54 +88,58 @@ export default function AdminDashboard() {
       <section className="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
         <div className="container-xl">
           <div className="flex gap-2 overflow-x-auto py-4">
-            <button
-              onClick={() => setView('reflections')}
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-all duration-300 ${
-                view === 'reflections'
-                  ? 'bg-brand-600 text-white shadow-lg'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
+            <NavLink
+              to="/admin/reflections"
+              className={({ isActive }) =>
+                `inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-all duration-300 ${
+                  isActive
+                    ? 'bg-brand-600 text-white shadow-lg'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`
+              }
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
               </svg>
               {t('admin.manage_reflections')}
-            </button>
-            <button
-              onClick={() => setView('events')}
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-all duration-300 ${
-                view === 'events'
-                  ? 'bg-brand-600 text-white shadow-lg'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
+            </NavLink>
+            <NavLink
+              to="/admin/events"
+              className={({ isActive }) =>
+                `inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-all duration-300 ${
+                  isActive
+                    ? 'bg-brand-600 text-white shadow-lg'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`
+              }
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
               </svg>
               {t('admin.manage_events')}
-            </button>
-            <button
-              onClick={() => setView('gallery')}
-              className={`inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-all duration-300 ${
-                view === 'gallery'
-                  ? 'bg-brand-600 text-white shadow-lg'
-                  : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-              }`}
+            </NavLink>
+            <NavLink
+              to="/admin/gallery"
+              className={({ isActive }) =>
+                `inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-all duration-300 ${
+                  isActive
+                    ? 'bg-brand-600 text-white shadow-lg'
+                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`
+              }
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
               {t('admin.manage_gallery')}
-            </button>
+            </NavLink>
           </div>
         </div>
       </section>
 
       {/* Content Area */}
       <section className="py-8">
-        {view === 'reflections' ? <AdminReflections /> : 
-         view === 'events' ? <AdminEvents /> : 
-         <AdminGallery />}
+        <Outlet />
       </section>
     </div>
   );

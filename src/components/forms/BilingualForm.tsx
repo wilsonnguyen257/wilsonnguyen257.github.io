@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import type { Translation } from '../../types/content';
+import VisualEditor from '../VisualEditor';
 
 interface BilingualFormProps {
   title: string;
   value: Translation;
   onChange: (value: Translation) => void;
   placeholder?: { vi: string; en: string };
-  type?: 'input' | 'textarea';
+  type?: 'input' | 'textarea' | 'editor';
   rows?: number;
   autoTranslate?: boolean;
   onAutoTranslate?: (from: 'vi' | 'en', to: 'vi' | 'en', text: string) => Promise<string>;
@@ -125,7 +126,12 @@ export default function BilingualForm({
           </button>
         </div>
         
-        {type === 'textarea' ? (
+        {type === 'editor' ? (
+          <VisualEditor
+            value={value[activeTab] || ''}
+            onChange={(newContent) => handleTextChange(activeTab, newContent)}
+          />
+        ) : type === 'textarea' ? (
           <textarea
             value={value[activeTab] || ''}
             onChange={(e) => handleTextChange(activeTab, e.target.value)}

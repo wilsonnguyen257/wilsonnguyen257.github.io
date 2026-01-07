@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useLanguage } from '../../contexts/LanguageContext';
-import ModernRichTextEditor from '../../components/editor/ModernRichTextEditor';
 import type { Reflection } from '../../types/content';
 import toast from 'react-hot-toast';
 import SEO from '../../components/SEO';
@@ -236,34 +235,18 @@ export default function AdminReflections() {
                 />
 
                 {/* Content */}
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    {language === 'vi' ? 'Nội dung' : 'Content'}
-                  </label>
-                  <ModernRichTextEditor
-                    document={{
-                      id: formData.id || '',
-                      title: formData.title,
-                      content: formData.content,
-                      date: formData.date,
-                      author: formData.author,
-                      metadata: {
-                        lastModified: new Date().toISOString(),
-                        wordCount: { vi: 0, en: 0 },
-                        status: 'published',
-                        publishedAt: undefined,
-                        createdAt: new Date().toISOString(),
-                        updatedAt: new Date().toISOString(),
-                      },
-                    }}
-                    onChange={(updatedDoc) => {
-                      setFormData({ 
-                        ...formData, 
-                        content: updatedDoc.content 
-                      });
-                    }}
-                  />
-                </div>
+                <BilingualForm
+                  title={language === 'vi' ? 'Nội dung' : 'Content'}
+                  value={formData.content}
+                  onChange={(content) => setFormData({ ...formData, content })}
+                  placeholder={{
+                    vi: 'Nhập nội dung tiếng Việt...',
+                    en: 'Enter English content...'
+                  }}
+                  type="editor"
+                  autoTranslate={autoTranslate}
+                  onAutoTranslate={mockTranslate}
+                />
 
                 {/* Date and Author */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

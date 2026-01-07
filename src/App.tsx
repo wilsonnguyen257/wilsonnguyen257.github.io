@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -25,7 +25,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Lazy load admin pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const AdminReflections = lazy(() => import('./pages/AdminReflections'));
+const AdminReflections = lazy(() => import('./pages/admin/AdminReflections'));
 const AdminEvents = lazy(() => import('./pages/AdminEvents'));
 const AdminGallery = lazy(() => import('./pages/AdminGallery'));
 
@@ -67,31 +67,12 @@ export default function App() {
                       <AdminDashboard />
                     </ProtectedRoute>
                   }
-                />
-                <Route
-                  path="/admin/reflections"
-                  element={
-                    <ProtectedRoute>
-                      <AdminReflections />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/events"
-                  element={
-                    <ProtectedRoute>
-                      <AdminEvents />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/gallery"
-                  element={
-                    <ProtectedRoute>
-                      <AdminGallery />
-                    </ProtectedRoute>
-                  }
-                />
+                >
+                  <Route index element={<Navigate to="reflections" replace />} />
+                  <Route path="reflections" element={<AdminReflections />} />
+                  <Route path="events" element={<AdminEvents />} />
+                  <Route path="gallery" element={<AdminGallery />} />
+                </Route>
                 
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -27,7 +27,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Lazy load admin pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
-const AdminReflections = lazy(() => import('./pages/admin/AdminReflections'));
+const AdminReflections = lazy(() => import('./pages/AdminReflections'));
 const AdminEvents = lazy(() => import('./pages/AdminEvents'));
 const AdminGallery = lazy(() => import('./pages/AdminGallery'));
 

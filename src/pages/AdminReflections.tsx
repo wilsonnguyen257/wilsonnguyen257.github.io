@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { useLanguage } from '../../contexts/LanguageContext';
-import type { Reflection } from '../../types/content';
+import { useLanguage } from '../contexts/LanguageContext';
+import type { Reflection } from '../types/content';
 import toast from 'react-hot-toast';
-import SEO from '../../components/SEO';
-import BilingualForm from '../../components/forms/BilingualForm';
+import SEO from '../components/SEO';
+import BilingualForm from '../components/forms/BilingualForm';
 import { Link } from 'react-router-dom';
 
 // Mock translation function (replace with real API)

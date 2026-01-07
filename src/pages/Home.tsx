@@ -274,7 +274,7 @@ const Home: React.FC = () => {
         description={t('home.description')} 
       />
       {/* Hero - Modern Gradient Design */}
-      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-20 md:py-28 overflow-hidden min-h-[600px] md:min-h-[700px]">
+      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-20 md:py-28 overflow-hidden h-[800px] md:h-auto md:min-h-[700px]">
         {/* Custom Background Image (if set) */}
         {debouncedHeroImage && (
           <div className="absolute inset-0">
@@ -296,7 +296,7 @@ const Home: React.FC = () => {
         <div className="container-xl relative z-10">
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
             {/* Content */}
-            <div className="text-white animate-fadeIn text-center lg:text-left">
+            <div className="text-white text-center lg:text-left">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-8 shadow-sm hover:bg-white/20 transition-colors">
                 <span className="flex h-2 w-2 relative">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
@@ -352,7 +352,7 @@ const Home: React.FC = () => {
             </div>
 
             {/* Map Card */}
-            <div className="relative animate-slideInRight lg:translate-x-8 aspect-w-1 aspect-h-1 md:aspect-w-4 md:aspect-h-3">
+            <div className="relative lg:translate-x-8 aspect-w-1 aspect-h-1 md:aspect-w-4 md:aspect-h-3">
               <div className="absolute -inset-4 bg-gradient-to-r from-brand-400 to-brand-300 rounded-[2rem] blur-2xl opacity-30 animate-pulse"></div>
               <div className="relative bg-white p-2 rounded-[2rem] shadow-2xl rotate-1 hover:rotate-0 transition-transform duration-500">
                 <div className="relative rounded-[1.5rem] overflow-hidden border border-slate-100 h-[400px] md:h-[500px]">
@@ -395,7 +395,7 @@ const Home: React.FC = () => {
         <div className="absolute -right-64 bottom-0 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
 
         <div className="container-xl relative z-10">
-          <div className="text-center mb-20 animate-fadeIn">
+          <div className="text-center mb-20">
             <div className="inline-flex items-center gap-2 bg-brand-50 border border-brand-100/50 rounded-full px-5 py-2 mb-8 shadow-sm">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
@@ -449,7 +449,7 @@ const Home: React.FC = () => {
           
           <div className="grid gap-8 lg:grid-cols-2 max-w-6xl mx-auto">
             {/* Mass Times */}
-            <div className="bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 hover:border-brand-200 transition-all duration-300 hover:-translate-y-1 animate-slideInLeft relative overflow-hidden group">
+            <div className="bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 hover:border-brand-200 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
               
               <div className="flex items-center gap-6 mb-10 relative">
@@ -490,7 +490,7 @@ const Home: React.FC = () => {
             </div>
 
             {/* Contact Info */}
-            <div className="bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 hover:border-brand-200 transition-all duration-300 hover:-translate-y-1 animate-slideInRight relative overflow-hidden group">
+            <div className="bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 hover:border-brand-200 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
               
               <div className="flex items-center gap-6 mb-10 relative">

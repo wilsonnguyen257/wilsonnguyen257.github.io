@@ -105,11 +105,6 @@ const getBackgroundPatternStyle = (pattern: BackgroundPattern): React.CSSPropert
 const Home: React.FC = () => {
   const { t, language } = useLanguage();
 
-  useEffect(() => {
-    // Scroll to top on mount
-    window.scrollTo(0, 0);
-  }, []);
-
   const [events, setEvents] = useState<Event[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   

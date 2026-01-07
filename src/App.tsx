@@ -7,6 +7,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import ErrorBoundary from './components/ErrorBoundary';
 import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'react-hot-toast';
+import ScrollToTop from './components/ScrollToTop';
 
 // Eager load critical pages
 import Home from "./pages/Home";
@@ -41,6 +42,7 @@ export default function App() {
       <HelmetProvider>
         <LanguageProvider>
           <div className="flex min-h-screen flex-col">
+            <ScrollToTop />
             <Toaster position="top-center" />
             <Navbar />
           <main className="flex-1">

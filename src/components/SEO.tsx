@@ -9,12 +9,10 @@ interface SEOProps {
 export default function SEO({ title, description }: SEOProps) {
   const { language } = useLanguage();
   
-  // Default values can be adjusted based on actual site name
-  const siteName = language === 'vi' ? 'Cộng Đoàn Vinh Sơn Liêm' : 'Vinh Son Liem Community';
+  const siteName = language === 'vi' ? 'Cộng Đoàn Công Giáo Việt Nam Thánh Anê Lê Thị Thành' : 'Vietnamese Catholic Community St Ane Le Thi Thanh';
   const defaultDesc = language === 'vi' 
-    ? 'Chào mừng đến với Cộng Đoàn Công Giáo Việt Nam Vinh Sơn Liêm.' 
-    : 'Welcome to the Vinh Son Liem Vietnamese Catholic Community.';
-
+    ? 'Chào mừng đến với Cộng Đoàn Công Giáo Việt Nam Thánh Anê Lê Thị Thành.' 
+    : 'Welcome to the Vietnamese Catholic Community St Ane Le Thi Thanh.';
   const fullTitle = `${title} | ${siteName}`;
 
   return (

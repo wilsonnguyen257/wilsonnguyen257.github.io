@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import { createMelbourneEventDate } from '../lib/timezone';
+import { createMelbourneEventDate, getMelbourneNow } from '../lib/timezone';
 
 type CountdownProps = {
   eventDate: string;
@@ -21,7 +21,7 @@ export default function EventCountdown({ eventDate, eventTime }: CountdownProps)
       try {
         // Use Melbourne timezone utilities to create proper event date
         const eventDateTime = createMelbourneEventDate(eventDate, eventTime);
-        const now = new Date();
+        const now = getMelbourneNow();
         const difference = eventDateTime.getTime() - now.getTime();
         
         if (difference > 0) {

@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { parseEventDate } from '../lib/timezone';
 import type { EnhancedEvent } from '../types/event';
 
 interface CalendarProps {
@@ -41,14 +42,19 @@ export default function Calendar({ events, onDateClick, onEventClick, selectedDa
 
   // Get events for a specific date
   const getEventsForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    // Construct YYYY-MM-DD string from local date components to avoid timezone shifts
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${day}`;
+
     return events.filter(event => {
       if (event.date === dateStr) return true;
       
       // Check recurring events
       if (event.isRecurring && event.recurrence) {
-        const eventStart = new Date(event.date);
-        const eventEnd = event.recurrence.endDate ? new Date(event.recurrence.endDate) : null;
+        const eventStart = parseEventDate(event.date);
+        const eventEnd = event.recurrence.endDate ? parseEventDate(event.recurrence.endDate) : null;
         
         if (date >= eventStart && (!eventEnd || date <= eventEnd)) {
           // Check if this date matches the recurrence pattern

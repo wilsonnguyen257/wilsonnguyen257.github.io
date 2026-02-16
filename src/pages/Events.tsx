@@ -4,12 +4,12 @@ import SEO from "../components/SEO";
 import type { Event } from "../types/content";
 import { subscribeJson } from "../lib/storage";
 import { useLanguage } from "../contexts/LanguageContext";
-import { hasEventPassed } from "../lib/timezone";
+import { hasEventPassed, parseEventDate } from "../lib/timezone";
 import { CardSkeleton } from "../components/Skeleton";
 
 function groupEventsByMonth(events: Event[], language: string): Record<string, Event[]> {
   return events.reduce((groups: Record<string, Event[]>, event) => {
-    const date = new Date(event.date);
+    const date = parseEventDate(event.date);
     const locale = language === 'vi' ? 'vi-VN' : 'en-US';
     const monthYear = date.toLocaleString(locale, { month: 'long', year: 'numeric' });
     if (!groups[monthYear]) {
@@ -52,7 +52,7 @@ export default function Events() {
             driveLink: d.driveLink,
             status: d.status || 'published',
           };
-        }).filter(e => e.status === 'published').sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        }).filter(e => e.status === 'published').sort((a, b) => parseEventDate(a.date).getTime() - parseEventDate(b.date).getTime());
         setEvents(mapped);
       }
     );
@@ -65,7 +65,7 @@ export default function Events() {
     try {
       return !hasEventPassed(e.date, e.time || '11:59 PM');
     } catch {
-      return new Date(e.date) >= now;
+      return parseEventDate(e.date) >= now;
     }
   }), [events, now]);
   
@@ -131,8 +131,8 @@ export default function Events() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80 md:opacity-40"></div>
                   <div className="absolute top-4 left-4 bg-white/95 backdrop-blur-sm text-brand-700 px-4 py-2 rounded-xl shadow-lg font-bold border border-brand-100 flex flex-col items-center min-w-[70px]">
-                    <span className="text-sm uppercase tracking-wider">{new Date(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</span>
-                    <span className="text-2xl leading-none">{new Date(upcomingEvents[0].date).getDate()}</span>
+                    <span className="text-sm uppercase tracking-wider">{parseEventDate(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</span>
+                    <span className="text-2xl leading-none">{parseEventDate(upcomingEvents[0].date).getDate()}</span>
                   </div>
                 </div>
                 <div className="p-8 md:p-10 flex flex-col justify-center bg-gradient-to-br from-white to-brand-50/30">
@@ -277,10 +277,10 @@ export default function Events() {
                           {/* Date Overlay (Bottom Left) */}
                           <div className="absolute bottom-3 left-3 bg-white/95 backdrop-blur px-3 py-1.5 rounded-lg shadow-sm border border-slate-100 flex flex-col items-center min-w-[50px]">
                             <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
-                              {new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}
+                              {parseEventDate(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}
                             </span>
                             <span className="text-lg font-bold text-slate-900 leading-none">
-                              {new Date(event.date).getDate()}
+                              {parseEventDate(event.date).getDate()}
                             </span>
                           </div>
                         </div>

@@ -5,7 +5,7 @@ import { useEffect, useState, memo } from 'react';
 import EventCountdown from '../components/EventCountdown';
 import { useLanguage } from '../contexts/LanguageContext';
 import { subscribeJson } from '../lib/storage';
-import { hasEventPassed } from '../lib/timezone';
+import { hasEventPassed, parseEventDate } from '../lib/timezone';
 import { db } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
 import { CHURCH_INFO, UI_CONSTANTS } from '../lib/constants';
@@ -255,7 +255,7 @@ const Home: React.FC = () => {
             driveLink: d.driveLink,
             status: d.status || 'published',
           };
-        }).filter(e => e.status === 'published').sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+        }).filter(e => e.status === 'published').sort((a, b) => parseEventDate(a.date).getTime() - parseEventDate(b.date).getTime());
         setEvents(mapped);
         setEventsLoading(false);
       },
@@ -583,8 +583,8 @@ const Home: React.FC = () => {
                     )}
                     {/* Date Badge Overlay */}
                     <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md text-brand-700 px-4 py-3 rounded-2xl shadow-xl font-bold border border-white/50 flex flex-col items-center min-w-[80px]">
-                      <span className="text-sm uppercase tracking-wider font-bold text-slate-500">{new Date(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</span>
-                      <span className="text-3xl leading-none text-slate-900">{new Date(upcomingEvents[0].date).getDate()}</span>
+                      <span className="text-sm uppercase tracking-wider font-bold text-slate-500">{parseEventDate(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</span>
+                      <span className="text-3xl leading-none text-slate-900">{parseEventDate(upcomingEvents[0].date).getDate()}</span>
                     </div>
                   </div>
                   
@@ -611,7 +611,7 @@ const Home: React.FC = () => {
                         <div>
                           <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t('events.date')}</p>
                           <p className="text-lg font-bold text-slate-900">
-                            {new Date(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { 
+                            {parseEventDate(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { 
                               weekday: 'long',
                               year: 'numeric',
                               month: 'long',
@@ -695,7 +695,7 @@ const Home: React.FC = () => {
                           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
-                          <span>{new Date(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { 
+                          <span>{parseEventDate(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { 
                             weekday: 'short', 
                             month: 'short', 
                             day: 'numeric'

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { parseEventDate } from '../../lib/timezone';
 import type { EventRegistration } from '../../types/event';
 
 interface EventRegistrationFormProps {
@@ -113,7 +114,7 @@ export default function EventRegistrationForm({
         </h3>
         <div className="text-sm text-slate-600 space-y-1">
           <p>
-            {t('Date', 'Ngày')}: {new Date(eventDate).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
+            {t('Date', 'Ngày')}: {parseEventDate(eventDate).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
               weekday: 'long',
               year: 'numeric',
               month: 'long',

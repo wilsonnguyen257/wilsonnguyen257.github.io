@@ -1,11 +1,11 @@
-﻿import { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 import type { Event } from '../types/content';
 import { subscribeJson } from '../lib/storage';
 import EventCountdown from '../components/EventCountdown';
 import { useLanguage } from '../contexts/LanguageContext';
-import { hasEventPassed } from '../lib/timezone';
+import { hasEventPassed, parseEventDate } from '../lib/timezone';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -109,7 +109,7 @@ export default function EventDetail() {
 
   const isPast = hasEventPassed(event.date, event.time || '11:59 PM');
   const eventName = event.name[language] || event.name.vi;
-  const formattedDate = new Date(event.date).toLocaleDateString(
+  const formattedDate = parseEventDate(event.date).toLocaleDateString(
     language === 'vi' ? 'vi-VN' : 'en-US',
     { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
   );

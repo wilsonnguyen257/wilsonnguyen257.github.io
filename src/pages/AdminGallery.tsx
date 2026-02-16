@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getJson, saveJson, saveItem, deleteItem } from '../lib/storage';
+import { getJson, saveItem, deleteItem } from '../lib/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';

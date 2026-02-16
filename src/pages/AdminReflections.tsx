@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useLanguage } from '../contexts/LanguageContext';
-import { subscribeJson, saveJson, saveItem, deleteItem } from '../lib/storage';
+import { subscribeJson, saveItem, deleteItem } from '../lib/storage';
 import { logAuditAction } from '../lib/audit';
 import VisualEditor from '../components/VisualEditor';
 import type { Reflection } from '../types/content';

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import { useLanguage } from '../contexts/LanguageContext';
-import { subscribeJson, saveJson } from '../lib/storage';
+import { subscribeJson, saveJson, saveItem, deleteItem } from '../lib/storage';
 import { logAuditAction } from '../lib/audit';
 import VisualEditor from '../components/VisualEditor';
 import type { Reflection } from '../types/content';
@@ -139,7 +139,7 @@ export default function AdminReflections() {
         : [...reflections, reflection];
 
       await Promise.all([
-        saveJson('reflections', updated),
+        saveItem('reflections', reflection),
         logAuditAction(editingId ? 'reflection.update' : 'reflection.create', { id: reflection.id })
       ]);
       
@@ -159,9 +159,11 @@ export default function AdminReflections() {
     
     try {
       const updated: Reflection[] = reflections.map(r => r.id === id ? { ...r, status: 'deleted' as const, deletedAt: new Date().toISOString() } : r);
+      const item = updated.find(r => r.id === id);
+      if (!item) return;
       
       await Promise.all([
-        saveJson('reflections', updated),
+        saveItem('reflections', item),
         logAuditAction('reflection.delete', { id })
       ]);
       
@@ -176,9 +178,12 @@ export default function AdminReflections() {
   const handleRestore = async (id: string) => {
     setRestoringId(id);
     const updated: Reflection[] = reflections.map(r => r.id === id ? { ...r, status: 'published' as const, deletedAt: undefined } : r);
+    const item = updated.find(r => r.id === id);
+    if (!item) return;
+
     try {
       await Promise.all([
-        saveJson('reflections', updated),
+        saveItem('reflections', item),
         logAuditAction('reflection.update', { id })
       ]);
       setReflections(updated);
@@ -196,7 +201,7 @@ export default function AdminReflections() {
     try {
       const updated = reflections.filter(r => r.id !== id);
       await Promise.all([
-        saveJson('reflections', updated),
+        deleteItem('reflections', id),
         logAuditAction('reflection.delete', { id })
       ]);
       setReflections(updated);

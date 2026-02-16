@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getJson, saveJson } from '../lib/storage';
+import { getJson, saveJson, saveItem, deleteItem } from '../lib/storage';
 import { v4 as uuidv4 } from 'uuid';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -71,7 +71,7 @@ export default function AdminGallery() {
       }
       const newItem: GalleryItem = { id: uid, url, name: compressedFile.name || 'image', created: Date.now(), path };
       const updated = [...images, newItem];
-      await saveJson('gallery', updated);
+      await saveItem('gallery', newItem);
       setImages(updated);
       setFile(null);
       toast.success(t('admin.gallery.upload_success') || 'Upload successful');
@@ -97,17 +97,17 @@ export default function AdminGallery() {
 
   const saveEdit = async (id: string) => {
     try {
-      const updated = images.map(img => {
-        if (img.id === id) {
-          return {
-            ...img,
-            name: editName,
-            created: new Date(editDate).getTime()
-          };
-        }
-        return img;
-      });
-      await saveJson('gallery', updated);
+      const itemToUpdate = images.find(img => img.id === id);
+      if (!itemToUpdate) return;
+      
+      const newItem = {
+        ...itemToUpdate,
+        name: editName,
+        created: new Date(editDate).getTime()
+      };
+      
+      const updated = images.map(img => img.id === id ? newItem : img);
+      await saveItem('gallery', newItem);
       setImages(updated);
       cancelEdit();
       toast.success(t('admin.gallery.update_success') || 'Update successful');
@@ -131,7 +131,7 @@ export default function AdminGallery() {
         }
       }
       const updated = images.filter(img => img.id !== id);
-      await saveJson('gallery', updated);
+      await deleteItem('gallery', id);
       setImages(updated);
       toast.success(t('admin.gallery.delete_success') || 'Delete successful');
     } catch (err) {

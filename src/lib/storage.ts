@@ -90,32 +90,45 @@ export async function saveJson(name: JsonName, data: unknown): Promise<void> {
         
         // 1. Get existing docs to identify deletions
         const existingSnap = await getDocs(colRef);
-        const existingIds = new Set(existingSnap.docs.map(d => d.id));
+        const existingDataMap = new Map();
+        existingSnap.docs.forEach(d => existingDataMap.set(d.id, d.data()));
+
         const newIds = new Set();
+        let operationsCount = 0;
         
         // 2. Set/Update new items
         // We assume items have an 'id' field, if not, we generate one or skip
         for (const item of data) {
            const id = (item as { id?: string }).id;
            if (id) {
-               const docRef = doc(colRef, id);
-               batch.set(docRef, item);
                newIds.add(id);
+               const existingItem = existingDataMap.get(id);
+               
+               // Only update if item has changed
+               // Simple JSON stringify comparison is usually sufficient for our use case
+               // This prevents writing unchanged documents and exhausting write limits
+               if (!existingItem || JSON.stringify(existingItem) !== JSON.stringify(item)) {
+                   const docRef = doc(colRef, id);
+                   batch.set(docRef, item);
+                   operationsCount++;
+               }
            }
         }
         
         // 3. Delete removed items
-        for (const id of existingIds) {
+        for (const [id] of existingDataMap) {
             if (!newIds.has(id)) {
                 batch.delete(doc(colRef, id));
+                operationsCount++;
             }
         }
         
         // 4. Update parent doc timestamp for listeners
-        const parentRef = doc(db, 'site-data', name);
-        batch.set(parentRef, { updatedAt: serverTimestamp(), type: 'collection' });
-
-        await batch.commit();
+        if (operationsCount > 0) {
+            const parentRef = doc(db, 'site-data', name);
+            batch.set(parentRef, { updatedAt: serverTimestamp(), type: 'collection' });
+            await batch.commit();
+        }
       } else {
           // Single document save (legacy/small data)
           const ref = doc(db, 'site-data', name);
@@ -143,6 +156,75 @@ export async function saveJson(name: JsonName, data: unknown): Promise<void> {
     try { localStorage.setItem(LOCAL_KEY(name), json); } catch { /* ignore */ }
   }
   announceJsonUpdate(name);
+}
+
+/**
+ * Save a single item to a collection
+ * More efficient than saving the entire collection when only one item changes
+ * 
+ * @param name - Name of the data collection
+ * @param item - Item to save (must have an id)
+ */
+export async function saveItem(name: JsonName, item: { id: string; [key: string]: any }): Promise<void> {
+  if (IS_FIREBASE_CONFIGURED && db) {
+    try {
+      const colRef = collection(db, 'site-data', name, 'items');
+      const docRef = doc(colRef, item.id);
+      await setDoc(docRef, item);
+      
+      // Update parent timestamp
+      const parentRef = doc(db, 'site-data', name);
+      await setDoc(parentRef, { updatedAt: serverTimestamp(), type: 'collection' }, { merge: true });
+      
+      announceJsonUpdate(name);
+      return;
+    } catch (err) {
+      console.error(`Firestore saveItem error for ${name}/${item.id}:`, err);
+      throw err;
+    }
+  }
+  
+  // Fallback to full save
+  const items = await getJson<any[]>(name);
+  const index = items.findIndex((i: any) => i.id === item.id);
+  if (index >= 0) {
+    items[index] = item;
+  } else {
+    items.push(item);
+  }
+  await saveJson(name, items);
+}
+
+/**
+ * Delete a single item from a collection
+ * More efficient than saving the entire collection
+ * 
+ * @param name - Name of the data collection
+ * @param id - ID of the item to delete
+ */
+export async function deleteItem(name: JsonName, id: string): Promise<void> {
+  if (IS_FIREBASE_CONFIGURED && db) {
+    try {
+      const colRef = collection(db, 'site-data', name, 'items');
+      const docRef = doc(colRef, id);
+      await import('firebase/firestore').then(m => m.deleteDoc(docRef));
+      
+      // Update parent timestamp
+      const parentRef = doc(db, 'site-data', name);
+      await setDoc(parentRef, { updatedAt: serverTimestamp(), type: 'collection' }, { merge: true });
+      
+      announceJsonUpdate(name);
+      return;
+    } catch (err) {
+      console.error(`Firestore deleteItem error for ${name}/${id}:`, err);
+      throw err;
+    }
+  }
+  
+  // Fallback to full save
+  const items = await getJson<any[]>(name);
+  const filtered = items.filter((i: any) => i.id !== id);
+  await saveJson(name, filtered);
 }
 
 /**

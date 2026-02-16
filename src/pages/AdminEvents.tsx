@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { useLanguage } from '../contexts/LanguageContext';
-import { getJson, saveJson } from '../lib/storage';
+import { getJson, saveJson, saveItem, deleteItem } from '../lib/storage';
 import { logAuditAction } from '../lib/audit';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
@@ -144,7 +144,7 @@ export default function AdminEvents() {
     setIsSubmitting(true);
     try {
       await Promise.all([
-        saveJson('events', updated),
+        saveItem('events', event),
         logAuditAction(editingId ? 'event.update' : 'event.create', { id: event.id })
       ]);
       
@@ -170,6 +170,9 @@ export default function AdminEvents() {
     // Optimistically update the UI
     const originalEvents = [...events];
     const updated: Event[] = events.map(e => e.id === id ? { ...e, status: 'deleted' as const, deletedAt: new Date().toISOString() } : e);
+    const eventToUpdate = updated.find(e => e.id === id);
+    if (!eventToUpdate) return;
+
     setEvents(updated);
 
     // Perform the actual save in the background
@@ -178,7 +181,7 @@ export default function AdminEvents() {
       toast.success(language === 'vi' ? 'Đã lưu trữ sự kiện!' : 'Event archived!');
       
       await Promise.all([
-        saveJson('events', updated),
+        saveItem('events', eventToUpdate),
         logAuditAction('event.delete', { id }),
       ]);
     } catch (err) {
@@ -194,9 +197,12 @@ export default function AdminEvents() {
   const handleRestore = async (id: string) => {
     setRestoringId(id);
     const updated: Event[] = events.map(e => e.id === id ? { ...e, status: 'published' as const, deletedAt: undefined } : e);
+    const eventToUpdate = updated.find(e => e.id === id);
+    if (!eventToUpdate) return;
+
     try {
       await Promise.all([
-        saveJson('events', updated),
+        saveItem('events', eventToUpdate),
         logAuditAction('event.update', { id })
       ]);
       setEvents(updated);
@@ -210,13 +216,25 @@ export default function AdminEvents() {
   };
 
   const handlePermanentDelete = async (id: string) => {
+    // Immediate UI update for better UX
     if (!confirm(language === 'vi' ? 'Xóa vĩnh viễn sự kiện này?' : 'Permanently delete this event?')) return;
+    
     setDeletingId(id);
-    const event = events.find(e => e.id === id);
+    
+    // Optimistically update the UI
+    const originalEvents = [...events];
     const updated = events.filter(e => e.id !== id);
+    setEvents(updated);
+
+    const event = originalEvents.find(e => e.id === id);
+
+    // Perform the actual save in the background
     try {
+      // Don't await the toast, just show it immediately
+      toast.success(language === 'vi' ? 'Đã xóa vĩnh viễn!' : 'Permanently deleted!');
+      
       await Promise.all([
-        saveJson('events', updated),
+        deleteItem('events', id),
         logAuditAction('event.delete', { id }),
         (async () => {
           if (event?.thumbnail && IS_FIREBASE_CONFIGURED && fbStorage) {
@@ -229,10 +247,10 @@ export default function AdminEvents() {
           }
         })()
       ]);
-      setEvents(updated);
-      toast.success(language === 'vi' ? 'Đã xóa vĩnh viễn!' : 'Permanently deleted!');
     } catch (err) {
       console.error('Permanent delete error:', err);
+      // Revert UI on error
+      setEvents(originalEvents);
       toast.error(language === 'vi' ? 'Lỗi khi xóa vĩnh viễn.' : 'Error permanently deleting.');
     } finally {
       setDeletingId(null);

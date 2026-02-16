@@ -162,21 +162,29 @@ export default function AdminEvents() {
 
   // Delete event
   const handleDelete = async (id: string) => {
+    // Immediate UI update for better UX
     if (!confirm(language === 'vi' ? 'Chuyển sự kiện vào lưu trữ?' : 'Archive this event?')) return;
     
     setDeletingId(id);
+    
+    // Optimistically update the UI
+    const originalEvents = [...events];
     const updated: Event[] = events.map(e => e.id === id ? { ...e, status: 'deleted' as const, deletedAt: new Date().toISOString() } : e);
+    setEvents(updated);
 
+    // Perform the actual save in the background
     try {
+      // Don't await the toast, just show it immediately
+      toast.success(language === 'vi' ? 'Đã lưu trữ sự kiện!' : 'Event archived!');
+      
       await Promise.all([
         saveJson('events', updated),
         logAuditAction('event.delete', { id }),
       ]);
-
-      setEvents(updated);
-      toast.success(language === 'vi' ? 'Đã lưu trữ sự kiện!' : 'Event archived!');
     } catch (err) {
       console.error('Delete error:', err);
+      // Revert UI on error
+      setEvents(originalEvents);
       toast.error(language === 'vi' ? 'Lỗi khi lưu trữ.' : 'Error archiving.');
     } finally {
       setDeletingId(null);

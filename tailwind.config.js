@@ -6,6 +6,10 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+        serif: ['"Playfair Display"', 'serif'],
+      },
       colors: {
         // Brand colors
         brand: {

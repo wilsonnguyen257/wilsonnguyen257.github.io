@@ -102,28 +102,31 @@ export default function Ministries() {
   return (
     <div className="bg-slate-50">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white py-20 md:py-24">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
-        <div className="container-xl relative">
+      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white py-20 md:py-28 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
+        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-96 h-96 bg-brand-500/30 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/3 w-64 h-64 bg-brand-400/20 rounded-full blur-3xl"></div>
+        
+        <div className="container-xl relative z-10">
           <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6 shadow-sm hover:bg-white/20 transition-colors">
+              <svg className="w-5 h-5 text-brand-100" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
               </svg>
-              <span className="font-medium">{t('ministries.serving_together')}</span>
+              <span className="font-medium text-brand-50">{t('ministries.serving_together')}</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{t('ministries.title')}</h1>
-            <p className="text-xl text-white/90 leading-relaxed">{t('ministries.description')}</p>
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 font-serif tracking-tight">{t('ministries.title')}</h1>
+            <p className="text-xl text-brand-100 leading-relaxed max-w-2xl mx-auto">{t('ministries.description')}</p>
           </div>
         </div>
       </section>
 
       {/* Call to Service Section */}
-      <section className="py-12 bg-white">
+      <section className="relative -mt-16 z-20 pb-12">
         <div className="container-xl">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-gradient-to-br from-slate-50 to-white rounded-2xl shadow-xl p-8 border-l-4 border-brand-600">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4">{t('ministries.join_title')}</h2>
+            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10 border border-slate-100">
+              <h2 className="text-2xl font-bold text-slate-900 mb-4 font-serif">{t('ministries.join_title')}</h2>
               <p className="text-lg text-slate-600 leading-relaxed">
                 {t('ministries.join_desc')}
               </p>
@@ -141,13 +144,13 @@ export default function Ministries() {
               return (
                 <div
                   key={ministry.key}
-                  className={`group bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 border border-slate-100 hover:border-brand-200`}
+                  className={`group bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 border border-slate-100 hover:border-brand-200 hover:-translate-y-1`}
                 >
-                  <div className={`w-16 h-16 ${colors.bg} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${colors.text}`}>
+                  <div className={`w-16 h-16 ${colors.bg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${colors.text} shadow-inner`}>
                     {ministry.icon}
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4">
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4 font-serif">
                     {t(`ministries.${ministry.key}`)}
                   </h3>
                   
@@ -156,17 +159,19 @@ export default function Ministries() {
                   </p>
 
                   {/* Activities List */}
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-3">
+                  <div className="space-y-2 pt-6 border-t border-slate-50">
+                    <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
                       {t('ministries.activities')}
                     </h4>
-                    <ul className="space-y-2">
+                    <ul className="space-y-3">
                       {[1, 2, 3].map((num) => (
-                        <li key={num} className="flex items-start gap-2 text-sm text-slate-600">
-                          <svg className={`w-5 h-5 flex-shrink-0 mt-0.5 ${colors.text}`} fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                          </svg>
-                          <span>{t(`ministries.${ministry.key}_activity_${num}`)}</span>
+                        <li key={num} className="flex items-start gap-3 text-sm text-slate-600 group/item">
+                          <span className={`flex-shrink-0 mt-0.5 w-5 h-5 rounded-full ${colors.bg} flex items-center justify-center`}>
+                            <svg className={`w-3 h-3 ${colors.text}`} fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
+                            </svg>
+                          </span>
+                          <span className="group-hover/item:text-slate-900 transition-colors">{t(`ministries.${ministry.key}_activity_${num}`)}</span>
                         </li>
                       ))}
                     </ul>

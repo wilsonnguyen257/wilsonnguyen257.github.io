@@ -331,8 +331,10 @@ const Home: React.FC = () => {
               {/* Quick Info Bar */}
               <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-8 pt-8 border-t border-white/10">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <span className="text-xl">⛪</span>
+                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                    </svg>
                   </div>
                   <div className="text-left">
                     <p className="text-xs text-brand-200 uppercase tracking-wider font-semibold">{t('home.mass')}</p>
@@ -341,8 +343,11 @@ const Home: React.FC = () => {
                 </div>
                 <div className="w-px h-10 bg-white/10 hidden sm:block"></div>
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm">
-                    <span className="text-xl">📍</span>
+                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm text-white">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                    </svg>
                   </div>
                   <div className="text-left">
                     <p className="text-xs text-brand-200 uppercase tracking-wider font-semibold">{t('home.location')}</p>
@@ -413,13 +418,52 @@ const Home: React.FC = () => {
           
           <div className="grid gap-8 md:grid-cols-3">
             {[
-              { icon: '🙏', title: t('home.faith_title'), desc: t('home.faith_desc'), color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', border: 'border-blue-100', delay: 'delay-100' },
-              { icon: '❤️', title: t('home.community_title'), desc: t('home.community_desc'), color: 'from-red-500 to-red-600', bg: 'bg-red-50', border: 'border-red-100', delay: 'delay-200' },
-              { icon: '✨', title: t('home.service_title'), desc: t('home.service_desc'), color: 'from-amber-500 to-amber-600', bg: 'bg-amber-50', border: 'border-amber-100', delay: 'delay-300' }
+              { 
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                  </svg>
+                ), 
+                title: t('home.faith_title'), 
+                desc: t('home.faith_desc'), 
+                color: 'from-blue-500 to-blue-600', 
+                bg: 'bg-blue-50', 
+                border: 'border-blue-100', 
+                delay: 'delay-100',
+                text: 'text-blue-600'
+              },
+              { 
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                  </svg>
+                ), 
+                title: t('home.community_title'), 
+                desc: t('home.community_desc'), 
+                color: 'from-red-500 to-red-600', 
+                bg: 'bg-red-50', 
+                border: 'border-red-100', 
+                delay: 'delay-200',
+                text: 'text-red-600'
+              },
+              { 
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                  </svg>
+                ), 
+                title: t('home.service_title'), 
+                desc: t('home.service_desc'), 
+                color: 'from-amber-500 to-amber-600', 
+                bg: 'bg-amber-50', 
+                border: 'border-amber-100', 
+                delay: 'delay-300',
+                text: 'text-amber-600'
+              }
             ].map((item, idx) => (
               <div key={idx} className={`group relative bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-brand-900/10 transition-all duration-500 border border-slate-100 hover:-translate-y-2 ${item.delay}`}>
-                <div className={`w-20 h-20 ${item.bg} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-inner`}>
-                  <span className="text-4xl">{item.icon}</span>
+                <div className={`w-20 h-20 ${item.bg} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-inner ${item.text}`}>
+                  {item.icon}
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-brand-700 transition-colors">{item.title}</h3>
                 <p className="text-slate-600 leading-relaxed text-lg">{item.desc}</p>
@@ -458,7 +502,9 @@ const Home: React.FC = () => {
               
               <div className="flex items-center gap-6 mb-10 relative">
                 <div className="p-5 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl shadow-lg shadow-brand-500/20 text-white">
-                  <span className="text-3xl">📅</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0h18M5.25 12h13.5h-13.5zm1.5 6a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zm6.75-4.5a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5zm2.25-9a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0121 7.5v11.25a2.25 2.25 0 01-2.25 2.25h-1.5a2.25 2.25 0 01-2.25-2.25V7.5z" />
+                  </svg>
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-slate-900">{t('home.mass_schedule_subtitle')}</h3>
@@ -468,7 +514,11 @@ const Home: React.FC = () => {
               
               <div className="space-y-4">
                 <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">⛪</div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-brand-600 shadow-sm group-hover/item:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                    </svg>
+                  </div>
                   <div>
                     <p className="font-bold text-lg text-slate-900">{t('home.sunday')}</p>
                     <p className="text-brand-600 font-bold">{t('home.sunday_time')}</p>
@@ -476,7 +526,11 @@ const Home: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">🎉</div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-amber-500 shadow-sm group-hover/item:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                    </svg>
+                  </div>
                   <div>
                     <p className="font-bold text-lg text-slate-900">{t('home.special_days')}</p>
                     <p className="text-slate-600 font-medium">{t('home.special_days_desc')}</p>
@@ -484,7 +538,11 @@ const Home: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">🙏</div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-purple-600 shadow-sm group-hover/item:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
+                    </svg>
+                  </div>
                   <div>
                     <p className="font-bold text-lg text-slate-900">{t('home.confession')}</p>
                     <p className="text-slate-600 font-medium">{t('home.confession_time')}</p>
@@ -499,7 +557,10 @@ const Home: React.FC = () => {
               
               <div className="flex items-center gap-6 mb-10 relative">
                 <div className="p-5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg shadow-blue-500/20 text-white">
-                  <span className="text-3xl">📍</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                  </svg>
                 </div>
                 <div>
                   <h3 className="text-2xl font-bold text-slate-900">{t('home.info_title')}</h3>
@@ -509,7 +570,11 @@ const Home: React.FC = () => {
               
               <div className="space-y-4">
                 <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">🏠</div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm group-hover/item:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
+                    </svg>
+                  </div>
                   <div>
                     <p className="font-bold text-lg text-slate-900">{t('home.address_label')}</p>
                     <p className="text-slate-600 font-medium">{t('home.address_value')}</p>
@@ -517,7 +582,11 @@ const Home: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">🚗</div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm group-hover/item:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
+                    </svg>
+                  </div>
                   <div>
                     <p className="font-bold text-lg text-slate-900">{t('home.parking_label')}</p>
                     <p className="text-slate-600 font-medium">{t('home.parking_desc')}</p>
@@ -525,7 +594,11 @@ const Home: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl shadow-sm group-hover/item:scale-110 transition-transform">📞</div>
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm group-hover/item:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                    </svg>
+                  </div>
                   <div>
                     <p className="font-bold text-lg text-slate-900">{t('home.contact_label')}</p>
                     <a href="tel:0422-400-116" className="text-brand-600 hover:underline font-bold text-lg block">
@@ -757,10 +830,46 @@ const Home: React.FC = () => {
 
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
             {[
-              { icon: '👨‍👩‍👧‍👦', title: t('home.family_ministry'), desc: t('home.family_desc'), color: 'blue' as const },
-              { icon: '🙋', title: t('home.youth_ministry'), desc: t('home.youth_desc'), color: 'purple' as const },
-              { icon: '⛪', title: t('ministries.liturgy'), desc: t('ministries.liturgy_desc'), color: 'rose' as const },
-              { icon: '🎵', title: t('home.choir_ministry'), desc: t('home.choir_desc'), color: 'amber' as const }
+              { 
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                  </svg>
+                ), 
+                title: t('home.family_ministry'), 
+                desc: t('home.family_desc'), 
+                color: 'blue' as const 
+              },
+              { 
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.05 4.575a1.575 1.575 0 10-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 013.15 0v1.5m-3.15 0l.075 5.925m3.075.75V4.575m0 0a1.575 1.575 0 013.15 0V15M6.9 7.575a1.575 1.575 0 10-3.15 0v8.175a6.75 6.75 0 006.75 6.75h2.018a5.25 5.25 0 003.712-1.538l1.732-1.732a5.25 5.25 0 001.538-3.712l.003-2.024a.668.668 0 01.198-.471 1.575 1.575 0 10-2.228-2.228 3.818 3.818 0 00-1.12 2.687M6.9 7.575V12m6.27 4.318A4.49 4.49 0 0116.35 15m.002 0h-.002" />
+                  </svg>
+                ), 
+                title: t('home.youth_ministry'), 
+                desc: t('home.youth_desc'), 
+                color: 'purple' as const 
+              },
+              { 
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+                  </svg>
+                ), 
+                title: t('ministries.liturgy'), 
+                desc: t('ministries.liturgy_desc'), 
+                color: 'rose' as const 
+              },
+              { 
+                icon: (
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+                  </svg>
+                ), 
+                title: t('home.choir_ministry'), 
+                desc: t('home.choir_desc'), 
+                color: 'amber' as const 
+              }
             ].map((ministry, idx) => {
               const colorMap = {
                 blue: { border: 'border-blue-600', bg: 'bg-blue-100', text: 'text-blue-600' },

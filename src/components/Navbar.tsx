@@ -80,7 +80,7 @@ export default function Navbar() {
           <img src={logo} alt="Logo" className="bg-white border-2 border-brand-200 shadow-lg max-h-16 max-w-[80px] p-1.5 rounded-full transition-transform duration-300 group-hover:scale-105 group-hover:shadow-xl" />
         </Link>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 xl:flex">
           {links.map((link) => navItem(link.to, link.key))}
 
           {/* Admin link (only shown when user is signed in) */}
@@ -124,7 +124,7 @@ export default function Navbar() {
         </nav>
 
         <button
-          className="md:hidden rounded-xl border-2 border-slate-200 p-3 min-w-[44px] min-h-[44px] hover:bg-slate-100 transition-colors duration-200"
+          className="xl:hidden rounded-xl border-2 border-slate-200 p-3 min-w-[44px] min-h-[44px] hover:bg-slate-100 transition-colors duration-200"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle Menu"
           aria-expanded={open}
@@ -160,7 +160,7 @@ export default function Navbar() {
       {open && (
         <div 
           id="mobile-menu" 
-          className="md:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md shadow-lg animate-fadeIn"
+          className="xl:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md shadow-lg animate-fadeIn"
         >
           <div className="container-xl flex flex-col gap-2 py-4">
             {links.map((l) => navItem(l.to, l.key))}

@@ -275,7 +275,7 @@ const Home: React.FC = () => {
         description={t('home.description')} 
       />
       {/* Hero - Modern Gradient Design */}
-      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-20 md:py-28 overflow-hidden h-[800px] md:h-auto md:min-h-[700px]">
+      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-20 md:py-28 overflow-hidden min-h-screen md:min-h-[700px] h-auto">
         {/* Custom Background Image (if set) */}
         {debouncedHeroImage && (
           <div className="absolute inset-0">
@@ -329,29 +329,29 @@ const Home: React.FC = () => {
               </div>
 
               {/* Quick Info Bar */}
-              <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-8 pt-8 border-t border-white/10">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm text-white">
+              <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-start gap-4 md:gap-8 pt-8 border-t border-white/10 w-full">
+                <div className="flex items-start sm:items-center gap-3 max-w-full">
+                  <div className="w-10 h-10 shrink-0 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm text-white mt-1 sm:mt-0">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
                     </svg>
                   </div>
-                  <div className="text-left">
+                  <div className="text-left flex-1 min-w-0">
                     <p className="text-xs text-brand-200 uppercase tracking-wider font-semibold">{t('home.mass')}</p>
-                    <p className="font-bold text-white">{t('home.mass_time')}</p>
+                    <p className="font-bold text-white text-sm md:text-base leading-snug break-words whitespace-normal">{t('home.mass_time')}</p>
                   </div>
                 </div>
-                <div className="w-px h-10 bg-white/10 hidden sm:block"></div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm text-white">
+                <div className="w-full sm:w-px h-px sm:h-10 bg-white/10"></div>
+                <div className="flex items-start sm:items-center gap-3 max-w-full">
+                  <div className="w-10 h-10 shrink-0 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm text-white mt-1 sm:mt-0">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                     </svg>
                   </div>
-                  <div className="text-left">
+                  <div className="text-left flex-1 min-w-0">
                     <p className="text-xs text-brand-200 uppercase tracking-wider font-semibold">{t('home.location')}</p>
-                    <p className="font-bold text-white">{t('home.location_short')}</p>
+                    <p className="font-bold text-white text-sm md:text-base leading-snug break-words whitespace-normal">{t('home.location_short')}</p>
                   </div>
                 </div>
               </div>

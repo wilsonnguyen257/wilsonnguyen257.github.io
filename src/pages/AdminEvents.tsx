@@ -72,11 +72,11 @@ export default function AdminEvents() {
   // Edit event
   const handleEdit = (e: Event) => {
     setFormData({
-      nameVi: e.name.vi,
-      nameEn: e.name.en,
-      date: e.date,
-      time: e.time,
-      location: e.location,
+      nameVi: e.name?.vi || '',
+      nameEn: e.name?.en || '',
+      date: e.date || new Date().toISOString().split('T')[0],
+      time: e.time || '5:00 PM',
+      location: e.location || '',
       contentVi: e.content?.vi || '',
       contentEn: e.content?.en || '',
       thumbnail: e.thumbnail || '',
@@ -110,6 +110,12 @@ export default function AdminEvents() {
 
   // Save (create or update)
   const handleSave = async () => {
+    // Validate required fields to prevent blank events
+    if (!formData.nameVi.trim() || !formData.date || !formData.time || !formData.location.trim()) {
+      toast.error(language === 'vi' ? 'Vui lòng điền đầy đủ Tên, Ngày, Giờ và Địa điểm.' : 'Please fill in Name, Date, Time, and Location.');
+      return;
+    }
+
     const event: Event = editingId
       ? {
           ...events.find(e => e.id === editingId)!,
@@ -264,12 +270,21 @@ export default function AdminEvents() {
     .filter(e => {
       if (activeTab === 'active' && e.status === 'deleted') return false;
       if (activeTab === 'archive' && e.status !== 'deleted') return false;
+      
+      if (!searchTerm) return true;
       const searchLower = searchTerm.toLowerCase();
+      
+      // Safe access properties to prevent crashes
+      const nameVi = e.name?.vi?.toLowerCase() || '';
+      const nameEn = e.name?.en?.toLowerCase() || '';
+      const location = e.location?.toLowerCase() || '';
+      const date = e.date || '';
+
       return (
-        e.name.vi.toLowerCase().includes(searchLower) ||
-        e.name.en.toLowerCase().includes(searchLower) ||
-        e.location.toLowerCase().includes(searchLower) ||
-        e.date.includes(searchLower)
+        nameVi.includes(searchLower) ||
+        nameEn.includes(searchLower) ||
+        location.includes(searchLower) ||
+        date.includes(searchLower)
       );
     })
     .sort((a, b) => {
@@ -278,8 +293,8 @@ export default function AdminEvents() {
           ? a.date.localeCompare(b.date)
           : b.date.localeCompare(a.date);
       } else {
-        const nameA = a.name.vi || a.name.en;
-        const nameB = b.name.vi || b.name.en;
+        const nameA = a.name?.vi || a.name?.en || '';
+        const nameB = b.name?.vi || b.name?.en || '';
         return sortConfig.direction === 'asc'
           ? nameA.localeCompare(nameB)
           : nameB.localeCompare(nameA);
@@ -344,24 +359,26 @@ export default function AdminEvents() {
           <div className="grid md:grid-cols-3 gap-6">
             <div className="md:col-span-2">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Tên sự kiện' : 'Event Name'}
+                {language === 'vi' ? 'Tên sự kiện' : 'Event Name'} <span className="text-red-500">*</span>
               </label>
               <input
                 placeholder={language === 'vi' ? 'Nhập tên sự kiện...' : 'Enter event name...'}
                 value={formData.nameVi}
                 onChange={e => setFormData({ ...formData, nameVi: e.target.value })}
                 className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Ngày' : 'Date'}
+                {language === 'vi' ? 'Ngày' : 'Date'} <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 value={formData.date}
                 onChange={e => setFormData({ ...formData, date: e.target.value })}
                 className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                required
               />
             </div>
           </div>
@@ -369,18 +386,19 @@ export default function AdminEvents() {
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Giờ' : 'Time'}
+                {language === 'vi' ? 'Giờ' : 'Time'} <span className="text-red-500">*</span>
               </label>
               <input
                 placeholder="e.g. 5:00 PM"
                 value={formData.time}
                 onChange={e => setFormData({ ...formData, time: e.target.value })}
                 className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                required
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Địa điểm' : 'Location'}
+                {language === 'vi' ? 'Địa điểm' : 'Location'} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <input
@@ -388,6 +406,7 @@ export default function AdminEvents() {
                   value={formData.location}
                   onChange={e => setFormData({ ...formData, location: e.target.value })}
                   className="w-full border rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                  required
                 />
                 <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -585,9 +604,9 @@ export default function AdminEvents() {
                         {e.thumbnail && (
                         <img src={e.thumbnail} alt="" className="w-12 h-12 rounded object-cover" />
                         )}
-                        <span className="font-medium text-gray-900">{e.name.vi || e.name.en}</span>
+                        <span className="font-medium text-gray-900">{e.name?.vi || e.name?.en || 'Unnamed Event'}</span>
                     </div>
-                    {e.name.en && e.name.vi && e.name.en !== e.name.vi && <div className="text-sm text-gray-500 mt-1">{e.name.en}</div>}
+                    {e.name?.en && e.name?.vi && e.name.en !== e.name.vi && <div className="text-sm text-gray-500 mt-1">{e.name.en}</div>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">

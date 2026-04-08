@@ -287,14 +287,51 @@ export function subscribeJson<T = unknown>(
   // Initial fetch
   void load();
 
-  // If Firebase configured, also live-listen to the doc
-  let unsubscribeFirestore: (() => void) | null = null;
+  // If Firebase configured, live-listen to both collection-backed data and legacy single-doc data.
+  let unsubscribeFirestoreDoc: (() => void) | null = null;
+  let unsubscribeFirestoreCollection: (() => void) | null = null;
   if (IS_FIREBASE_CONFIGURED && db) {
+    let storageMode: 'unknown' | 'collection' | 'document' = 'unknown';
+
     try {
+      const colRef = collection(db, 'site-data', name, 'items');
+      unsubscribeFirestoreCollection = onSnapshot(colRef, (snap) => {
+        if (!active) return;
+
+        const items = snap.docs.map((d) => d.data()) as unknown as T;
+        if (!snap.empty) {
+          storageMode = 'collection';
+          callback(items);
+          return;
+        }
+
+        // Only emit an empty list when we already know this dataset uses collection storage.
+        if (storageMode === 'collection') {
+          callback(items);
+        }
+      }, (err) => {
+        console.error('Firestore collection subscribe error:', err);
+        onError?.(err);
+      });
+
       const ref = doc(db, 'site-data', name);
-      unsubscribeFirestore = onSnapshot(ref, (snap: DocumentSnapshot<DocumentData>) => {
-        const data = (snap.data() as { value?: T } | undefined)?.value;
-        if (data !== undefined) callback(data);
+      unsubscribeFirestoreDoc = onSnapshot(ref, (snap: DocumentSnapshot<DocumentData>) => {
+        if (!active) return;
+
+        const data = snap.data() as { value?: T; type?: string } | undefined;
+        if (data?.value !== undefined) {
+          storageMode = 'document';
+          callback(data.value);
+          return;
+        }
+
+        // Collection mode stores items in a sub-collection and only metadata on the parent doc.
+        if (data?.type === 'collection') {
+          storageMode = 'collection';
+        }
+      }, (err) => {
+        console.error('Firestore document subscribe error:', err);
+        onError?.(err);
       });
     } catch (err) {
       console.error('Firestore subscribe error:', err);
@@ -332,8 +369,11 @@ export function subscribeJson<T = unknown>(
       try { bc.close(); } catch { /* ignore close errors */ void 0; }
     }
     window.clearInterval(interval);
-    if (unsubscribeFirestore) {
-      try { unsubscribeFirestore(); } catch { /* ignore */ }
+    if (unsubscribeFirestoreDoc) {
+      try { unsubscribeFirestoreDoc(); } catch { /* ignore */ }
+    }
+    if (unsubscribeFirestoreCollection) {
+      try { unsubscribeFirestoreCollection(); } catch { /* ignore */ }
     }
   };
 }

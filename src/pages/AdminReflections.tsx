@@ -6,6 +6,8 @@ import { logAuditAction } from '../lib/audit';
 import VisualEditor from '../components/VisualEditor';
 import type { Reflection } from '../types/content';
 import toast from 'react-hot-toast';
+import { sanitizeRichHtml } from '../lib/sanitizeHtml';
+import { validateOptionalExternalUrl } from '../lib/validation';
 
 export default function AdminReflections() {
   const { language } = useLanguage();
@@ -108,26 +110,37 @@ export default function AdminReflections() {
   // Save (create or update)
   const handleSave = async () => {
     try {
+      const sanitizedContent = sanitizeRichHtml(formData.contentVi);
+      const facebook = validateOptionalExternalUrl(formData.facebookLink, 'facebook');
+      const youtube = validateOptionalExternalUrl(formData.youtubeLink, 'youtube');
+      const drive = validateOptionalExternalUrl(formData.driveLink, 'drive');
+
+      const linkError = facebook.error || youtube.error || drive.error;
+      if (linkError) {
+        toast.error(linkError);
+        return;
+      }
+
       const reflection: Reflection = editingId
         ? {
             ...reflections.find(r => r.id === editingId)!,
             title: { vi: formData.titleVi, en: formData.titleVi },
-            content: { vi: formData.contentVi, en: formData.contentVi },
+            content: { vi: sanitizedContent, en: sanitizedContent },
             author: formData.author,
-            facebookLink: formData.facebookLink,
-            youtubeLink: formData.youtubeLink,
-            driveLink: formData.driveLink,
+            facebookLink: facebook.normalized,
+            youtubeLink: youtube.normalized,
+            driveLink: drive.normalized,
             date: formData.date,
             updatedAt: new Date().toISOString(),
           }
         : {
             id: uuidv4(),
             title: { vi: formData.titleVi, en: formData.titleVi },
-            content: { vi: formData.contentVi, en: formData.contentVi },
+            content: { vi: sanitizedContent, en: sanitizedContent },
             author: formData.author,
-            facebookLink: formData.facebookLink,
-            youtubeLink: formData.youtubeLink,
-            driveLink: formData.driveLink,
+            facebookLink: facebook.normalized,
+            youtubeLink: youtube.normalized,
+            driveLink: drive.normalized,
             date: formData.date,
             status: 'published',
             createdAt: new Date().toISOString(),

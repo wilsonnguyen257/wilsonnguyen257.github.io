@@ -9,6 +9,8 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 import VisualEditor from '../components/VisualEditor';
 import type { Event } from '../types/content';
 import { compressImage } from '../lib/image';
+import { sanitizeRichHtml } from '../lib/sanitizeHtml';
+import { validateImageFile, validateOptionalExternalUrl } from '../lib/validation';
 
 export default function AdminEvents() {
   const { language } = useLanguage();
@@ -91,6 +93,12 @@ export default function AdminEvents() {
   // Upload image
   const handleImageUpload = async (file: File) => {
     if (!IS_FIREBASE_CONFIGURED || !fbStorage) return '';
+
+    const fileError = validateImageFile(file);
+    if (fileError) {
+      toast.error(fileError);
+      return '';
+    }
     
     setUploading(true);
     try {
@@ -116,6 +124,17 @@ export default function AdminEvents() {
       return;
     }
 
+    const sanitizedContent = sanitizeRichHtml(formData.contentVi);
+    const facebook = validateOptionalExternalUrl(formData.facebookLink, 'facebook');
+    const youtube = validateOptionalExternalUrl(formData.youtubeLink, 'youtube');
+    const drive = validateOptionalExternalUrl(formData.driveLink, 'drive');
+
+    const linkError = facebook.error || youtube.error || drive.error;
+    if (linkError) {
+      toast.error(linkError);
+      return;
+    }
+
     const event: Event = editingId
       ? {
           ...events.find(e => e.id === editingId)!,
@@ -123,11 +142,11 @@ export default function AdminEvents() {
           date: formData.date,
           time: formData.time,
           location: formData.location,
-          content: { vi: formData.contentVi, en: formData.contentVi },
+          content: { vi: sanitizedContent, en: sanitizedContent },
           thumbnail: formData.thumbnail,
-          facebookLink: formData.facebookLink,
-          youtubeLink: formData.youtubeLink,
-          driveLink: formData.driveLink,
+          facebookLink: facebook.normalized,
+          youtubeLink: youtube.normalized,
+          driveLink: drive.normalized,
         }
       : {
           id: uuidv4(),
@@ -135,11 +154,11 @@ export default function AdminEvents() {
           date: formData.date,
           time: formData.time,
           location: formData.location,
-          content: { vi: formData.contentVi, en: formData.contentVi },
+          content: { vi: sanitizedContent, en: sanitizedContent },
           thumbnail: formData.thumbnail,
-          facebookLink: formData.facebookLink,
-          youtubeLink: formData.youtubeLink,
-          driveLink: formData.driveLink,
+          facebookLink: facebook.normalized,
+          youtubeLink: youtube.normalized,
+          driveLink: drive.normalized,
           status: 'published',
         };
 

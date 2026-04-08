@@ -3,6 +3,8 @@ import SEO from "../components/SEO";
 import { useEffect, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { subscribeJson } from "../lib/storage";
+import { sanitizeRichHtml } from "../lib/sanitizeHtml";
+import { getFacebookPluginUrl, getGoogleDriveEmbedUrl, getYouTubeEmbedUrl, validateOptionalExternalUrl } from "../lib/validation";
 
 type Reflection = { 
   title: {
@@ -67,6 +69,13 @@ export default function ReflectionDetail() {
 
   const title = typeof reflection.title === 'string' ? reflection.title : (reflection.title[language] || reflection.title.vi);
   const content = typeof reflection.content === 'string' ? reflection.content : (reflection.content[language] || reflection.content.vi);
+  const safeContent = sanitizeRichHtml(content);
+  const facebookLink = validateOptionalExternalUrl(reflection.facebookLink || '', 'facebook').normalized;
+  const youtubeLink = validateOptionalExternalUrl(reflection.youtubeLink || '', 'youtube').normalized;
+  const driveLink = validateOptionalExternalUrl(reflection.driveLink || '', 'drive').normalized;
+  const facebookPluginUrl = getFacebookPluginUrl(facebookLink);
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(youtubeLink);
+  const driveEmbedUrl = getGoogleDriveEmbedUrl(driveLink);
   
   const stripHtml = (html: string) => {
     const tmp = document.createElement('div');
@@ -78,7 +87,7 @@ export default function ReflectionDetail() {
     <div className="bg-slate-50 min-h-screen">
       <SEO 
         title={title}
-        description={stripHtml(content).slice(0, 160) + '...'}
+        description={stripHtml(safeContent).slice(0, 160) + '...'}
       />
       {/* Header */}
       <section className="relative bg-gradient-to-br from-brand-600 to-brand-800 text-white py-16">
@@ -124,9 +133,9 @@ export default function ReflectionDetail() {
             )}
             
             {/* Social Links */}
-            {reflection.facebookLink && (
+            {facebookLink && (
               <a 
-                href={reflection.facebookLink}
+                href={facebookLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-[#1877F2]/80 hover:bg-[#1877F2] backdrop-blur-sm rounded-lg px-3 py-2 transition-colors"
@@ -137,9 +146,9 @@ export default function ReflectionDetail() {
                 <span>Facebook</span>
               </a>
             )}
-            {reflection.driveLink && (
+            {driveLink && (
               <a 
-                href={reflection.driveLink}
+                href={driveLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 bg-[#1FA463]/80 hover:bg-[#1FA463] backdrop-blur-sm rounded-lg px-3 py-2 transition-colors"
@@ -161,27 +170,17 @@ export default function ReflectionDetail() {
             <div 
               className="prose prose-lg max-w-none prose-headings:text-slate-900 prose-p:text-slate-700 prose-p:leading-relaxed"
               dangerouslySetInnerHTML={{ 
-                __html: typeof reflection.content === 'string' 
-                  ? reflection.content 
-                  : (reflection.content[language] || reflection.content.vi) 
+                __html: safeContent
               }}
             />
             
             {/* YouTube Video Embed */}
-            {reflection.youtubeLink && (
+            {youtubeEmbedUrl && (
               <div className="mt-8">
                 <div className="relative pt-[56.25%] rounded-xl overflow-hidden shadow-lg bg-black">
                    <iframe
                      className="absolute inset-0 w-full h-full"
-                     src={
-                       reflection.youtubeLink.includes('embed') 
-                         ? reflection.youtubeLink 
-                         : `https://www.youtube.com/embed/${
-                             reflection.youtubeLink.includes('v=') 
-                               ? reflection.youtubeLink.split('v=')[1]?.split('&')[0] 
-                               : reflection.youtubeLink.split('/').pop()
-                           }`
-                     }
+                     src={youtubeEmbedUrl}
                      title="YouTube video player"
                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                      allowFullScreen
@@ -191,12 +190,12 @@ export default function ReflectionDetail() {
             )}
 
             {/* Facebook Embed */}
-            {reflection.facebookLink && (
+            {facebookPluginUrl && (
               <div className="mt-8 flex justify-center">
                 <iframe 
-                  src={`https://www.facebook.com/plugins/${reflection.facebookLink.includes('video') || reflection.facebookLink.includes('watch') ? 'video' : 'post'}.php?href=${encodeURIComponent(reflection.facebookLink)}&show_text=true&width=500`}
+                  src={facebookPluginUrl}
                   width="500" 
-                  height={reflection.facebookLink.includes('video') || reflection.facebookLink.includes('watch') ? "300" : "600"} 
+                  height={facebookLink.includes('/videos/') || facebookLink.includes('/watch') || facebookLink.includes('fb.watch') ? "300" : "600"} 
                   style={{border:'none', overflow:'hidden'}} 
                   scrolling="no" 
                   frameBorder="0" 
@@ -208,11 +207,11 @@ export default function ReflectionDetail() {
             )}
 
             {/* Google Drive Video Embed */}
-            {reflection.driveLink && reflection.driveLink.includes('drive.google.com') && (
+            {driveEmbedUrl && (
               <div className="mt-8">
                 <div className="relative pt-[56.25%] rounded-xl overflow-hidden shadow-lg bg-black">
                   <iframe 
-                    src={reflection.driveLink.replace('/view', '/preview').replace('/usp=sharing', '')} 
+                    src={driveEmbedUrl} 
                     className="absolute inset-0 w-full h-full"
                     allow="autoplay"
                     title="Google Drive Video"

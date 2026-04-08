@@ -6,6 +6,7 @@ import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
 import { compressImage } from '../lib/image';
+import { validateDateInput, validateImageFile, validateRequiredText } from '../lib/validation';
 
 type GalleryItem = { id: string; url: string; name: string; created: number; path?: string };
 
@@ -41,11 +42,31 @@ export default function AdminGallery() {
   }, [t]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFile(e.target.files?.[0] || null);
+    const nextFile = e.target.files?.[0] || null;
+    if (!nextFile) {
+      setFile(null);
+      return;
+    }
+
+    const fileError = validateImageFile(nextFile);
+    if (fileError) {
+      toast.error(fileError);
+      e.target.value = '';
+      setFile(null);
+      return;
+    }
+
+    setFile(nextFile);
   };
 
   const handleUpload = async () => {
     if (!file) return;
+
+    const fileError = validateImageFile(file);
+    if (fileError) {
+      toast.error(fileError);
+      return;
+    }
     
     setUploading(true);
     
@@ -99,11 +120,19 @@ export default function AdminGallery() {
     try {
       const itemToUpdate = images.find(img => img.id === id);
       if (!itemToUpdate) return;
+
+      const nameError = validateRequiredText(editName, 'Image name');
+      const dateError = validateDateInput(editDate);
+      const validationError = nameError || dateError;
+      if (validationError) {
+        toast.error(validationError);
+        return;
+      }
       
       const newItem = {
         ...itemToUpdate,
-        name: editName,
-        created: new Date(editDate).getTime()
+        name: editName.trim(),
+        created: new Date(`${editDate}T00:00:00`).getTime()
       };
       
       const updated = images.map(img => img.id === id ? newItem : img);

@@ -12,7 +12,6 @@ export default function ProtectedRoute({ children, redirectPath = '/login' }: Pr
   const [user, setUser] = useState<User | undefined>(undefined);
 
   useEffect(() => {
-    // If Firebase auth not configured, allow access immediately
     if (!IS_FIREBASE_CONFIGURED) {
       setUser(null);
       return;
@@ -30,9 +29,8 @@ export default function ProtectedRoute({ children, redirectPath = '/login' }: Pr
     };
   }, []);
 
-  // If Firebase not configured, allow access
   if (!IS_FIREBASE_CONFIGURED) {
-    return <>{children}</>;
+    return <Navigate to={redirectPath} replace state={{ from: location.pathname }} />;
   }
 
   if (user === undefined) {

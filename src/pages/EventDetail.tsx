@@ -6,6 +6,8 @@ import { subscribeJson } from '../lib/storage';
 import EventCountdown from '../components/EventCountdown';
 import { useLanguage } from '../contexts/LanguageContext';
 import { hasEventPassed, parseEventDate } from '../lib/timezone';
+import { sanitizeRichHtml } from '../lib/sanitizeHtml';
+import { getGoogleDriveEmbedUrl, getYouTubeEmbedUrl, validateOptionalExternalUrl } from '../lib/validation';
 
 export default function EventDetail() {
   const { id } = useParams<{ id: string }>();
@@ -109,6 +111,12 @@ export default function EventDetail() {
 
   const isPast = hasEventPassed(event.date, event.time || '11:59 PM');
   const eventName = event.name[language] || event.name.vi;
+  const eventContent = sanitizeRichHtml(event.content?.[language] || event.content?.vi || '');
+  const facebookLink = validateOptionalExternalUrl(event.facebookLink || '', 'facebook').normalized;
+  const youtubeLink = validateOptionalExternalUrl(event.youtubeLink || '', 'youtube').normalized;
+  const driveLink = validateOptionalExternalUrl(event.driveLink || '', 'drive').normalized;
+  const youtubeEmbedUrl = getYouTubeEmbedUrl(youtubeLink);
+  const driveEmbedUrl = getGoogleDriveEmbedUrl(driveLink);
   const formattedDate = parseEventDate(event.date).toLocaleDateString(
     language === 'vi' ? 'vi-VN' : 'en-US',
     { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }
@@ -212,11 +220,11 @@ export default function EventDetail() {
             </div>
 
             {/* Social Links in Hero */}
-            {(event.facebookLink || event.youtubeLink || event.driveLink) && (
+            {(facebookLink || youtubeLink || driveLink) && (
               <div className="flex flex-wrap gap-3 mt-6">
-                {event.facebookLink && (
+                {facebookLink && (
                   <a 
-                    href={event.facebookLink}
+                    href={facebookLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 bg-[#1877F2]/80 hover:bg-[#1877F2] backdrop-blur-sm rounded-lg px-4 py-2 transition-colors"
@@ -227,9 +235,9 @@ export default function EventDetail() {
                     Facebook
                   </a>
                 )}
-                {event.youtubeLink && (
+                {youtubeLink && (
                   <a 
-                    href={event.youtubeLink}
+                    href={youtubeLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 bg-[#FF0000]/80 hover:bg-[#FF0000] backdrop-blur-sm rounded-lg px-4 py-2 transition-colors"
@@ -240,9 +248,9 @@ export default function EventDetail() {
                     YouTube
                   </a>
                 )}
-                {event.driveLink && (
+                {driveLink && (
                   <a 
-                    href={event.driveLink}
+                    href={driveLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 bg-[#1FA463]/80 hover:bg-[#1FA463] backdrop-blur-sm rounded-lg px-4 py-2 transition-colors"
@@ -283,7 +291,7 @@ export default function EventDetail() {
             )}
 
             {/* Event Description */}
-            {event.content && (
+            {eventContent && (
               <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 mb-10">
                 <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                   <div className="w-10 h-10 bg-brand-100 rounded-lg flex items-center justify-center">
@@ -295,13 +303,13 @@ export default function EventDetail() {
                 </h2>
                 <div 
                   className="prose prose-lg max-w-none prose-p:text-slate-600 prose-headings:text-slate-900 prose-a:text-brand-600 prose-strong:text-slate-900"
-                  dangerouslySetInnerHTML={{ __html: event.content[language] || event.content.vi }}
+                  dangerouslySetInnerHTML={{ __html: eventContent }}
                 />
               </div>
             )}
 
             {/* YouTube Video Embed */}
-            {event.youtubeLink && (
+            {youtubeEmbedUrl && (
               <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 mb-10">
                 <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                   <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
@@ -314,15 +322,7 @@ export default function EventDetail() {
                 <div className="relative pt-[56.25%] rounded-xl overflow-hidden shadow-lg bg-black">
                   <iframe
                     className="absolute inset-0 w-full h-full"
-                    src={
-                      event.youtubeLink.includes('embed') 
-                        ? event.youtubeLink 
-                        : 'https://www.youtube.com/embed/' + (
-                            event.youtubeLink.includes('v=') 
-                              ? event.youtubeLink.split('v=')[1]?.split('&')[0] 
-                              : event.youtubeLink.split('/').pop()
-                          )
-                    }
+                    src={youtubeEmbedUrl}
                     title="YouTube video player"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -332,7 +332,7 @@ export default function EventDetail() {
             )}
 
             {/* Google Drive Video Embed */}
-            {event.driveLink && event.driveLink.includes('drive.google.com') && (
+            {driveEmbedUrl && (
               <div className="bg-white rounded-2xl shadow-lg p-6 md:p-10 mb-10">
                 <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-3">
                   <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -344,7 +344,7 @@ export default function EventDetail() {
                 </h2>
                 <div className="relative pt-[56.25%] rounded-xl overflow-hidden shadow-lg bg-black">
                   <iframe 
-                    src={event.driveLink.replace('/view', '/preview').replace('/usp=sharing', '')} 
+                    src={driveEmbedUrl}
                     className="absolute inset-0 w-full h-full"
                     allow="autoplay"
                     title="Google Drive Video"

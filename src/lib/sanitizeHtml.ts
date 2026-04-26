@@ -5,6 +5,7 @@ const ALLOWED_TAGS = [
   'b',
   'blockquote',
   'br',
+  'div',
   'em',
   'h1',
   'h2',

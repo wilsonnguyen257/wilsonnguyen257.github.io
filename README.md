@@ -7,6 +7,7 @@ A multilingual church website with Vietnamese and English support, reflections a
 For production deployment and making content available online, see:
 - **[📘 DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete Firebase setup guide
 - **[🔐 GITHUB_SECRETS.md](./GITHUB_SECRETS.md)** - GitHub Actions deployment setup
+- **[📊 VERCEL_ANALYTICS.md](./docs/VERCEL_ANALYTICS.md)** - Getting started with Vercel Web Analytics
 
 For local development, continue reading below.
 

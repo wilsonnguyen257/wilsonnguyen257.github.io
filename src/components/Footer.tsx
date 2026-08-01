@@ -24,7 +24,7 @@ export default function Footer() {
             </p>
             <div className="flex gap-3">
               <a 
-                href="https://www.facebook.com/sttimvn" 
+                href="https://www.facebook.com/anethanhvn"
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="w-11 h-11 rounded-xl bg-slate-200 flex items-center justify-center hover:bg-brand-600 hover:text-white transition-all duration-300 hover:scale-110 hover:shadow-lg text-slate-600"

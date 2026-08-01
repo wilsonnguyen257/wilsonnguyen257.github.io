@@ -6,8 +6,8 @@ export const CHURCH_INFO = {
   ADDRESS: 'St Clare Catholic Church, 138 Woodhouse Grove, Box Hill North VIC 3129',
   PHONE: '0422-400-116',
   EMAIL: 'anethanhvn@gmail.com',
-  FACEBOOK_URL: 'https://www.facebook.com/sttimvn',
-  FACEBOOK_DISPLAY: 'facebook.com/sttimvn',
+  FACEBOOK_URL: 'https://www.facebook.com/anethanhvn',
+  FACEBOOK_DISPLAY: 'facebook.com/anethanhvn',
   MASS_TIME: {
     vi: 'Chúa Nhật 5:00pm - 6:00pm',
     en: 'Sunday 5:00pm - 6:00pm'

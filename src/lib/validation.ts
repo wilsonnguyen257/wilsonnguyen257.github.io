@@ -142,6 +142,18 @@ export function getFacebookPluginUrl(raw: string | undefined): string | null {
   const url = new URL(normalized);
   const path = url.pathname.toLowerCase();
   const isVideo = url.hostname.toLowerCase() === 'fb.watch' || path.includes('/videos/') || path.includes('/watch');
+
+  // Facebook's embed plugin only renders links to specific content (a post,
+  // video, or photo). A bare profile/page URL (e.g. facebook.com/username)
+  // shows a confusing "This Facebook post is no longer available" message
+  // instead of failing gracefully, so skip the embed for those — the plain
+  // "Facebook" link button still works fine for any URL.
+  const looksLikeContent =
+    isVideo ||
+    /\/(posts|photos|permalink\.php|story\.php|photo\.php)\b/i.test(path) ||
+    /[?&](story_fbid|fbid|v)=/i.test(url.search);
+  if (!looksLikeContent) return null;
+
   const pluginType = isVideo ? 'video' : 'post';
 
   return `https://www.facebook.com/plugins/${pluginType}.php?href=${encodeURIComponent(normalized)}&show_text=true&width=500`;

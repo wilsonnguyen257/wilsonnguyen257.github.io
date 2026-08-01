@@ -1,5 +1,6 @@
 import { useLanguage } from '../contexts/LanguageContext';
 import SEO from '../components/SEO';
+import PageHero from '../components/PageHero';
 
 export default function About() {
   const { t } = useLanguage();
@@ -10,19 +11,7 @@ export default function About() {
         title={t('about.title')} 
         description={t('about.welcome')} 
       />
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white py-20 md:py-28 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
-        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-96 h-96 bg-brand-500/30 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/3 w-64 h-64 bg-brand-400/20 rounded-full blur-3xl"></div>
-        
-        <div className="container-xl relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 font-serif tracking-tight">{t('about.title')}</h1>
-            <p className="text-xl text-brand-100 leading-relaxed max-w-2xl mx-auto">{t('about.welcome')}</p>
-          </div>
-        </div>
-      </section>
+      <PageHero title={t('about.title')} subtitle={t('about.welcome')} />
 
       {/* History Section with Timeline */}
       <section className="py-20">
@@ -280,7 +269,7 @@ export default function About() {
               <div className="flex flex-wrap justify-center gap-4">
             <a 
               href="tel:0422-400-116" 
-              className="group inline-flex items-center gap-2 px-8 py-3 bg-white text-brand-700 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+              className="group inline-flex items-center gap-2 px-8 py-3 bg-accent-500 text-white font-semibold rounded-xl shadow-lg hover:bg-accent-600 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
             >
               <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />

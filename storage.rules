@@ -19,6 +19,12 @@ service firebase.storage {
       allow write: if isAdmin(); // only admins can upload/delete
     }
 
+    // Publicly readable reflection thumbnails
+    match /reflections/{allPaths=**} {
+      allow read: if true; // anyone can view reflection thumbnails
+      allow write: if isAdmin(); // only admins can upload/delete
+    }
+
     // Default: deny other paths unless you configure them
     match /{allPaths=**} {
       allow read, write: if false;

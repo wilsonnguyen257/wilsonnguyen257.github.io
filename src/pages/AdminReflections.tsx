@@ -3,11 +3,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { useLanguage } from '../contexts/LanguageContext';
 import { subscribeJson, saveItem, deleteItem } from '../lib/storage';
 import { logAuditAction } from '../lib/audit';
+import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import VisualEditor from '../components/VisualEditor';
 import type { Reflection } from '../types/content';
 import toast from 'react-hot-toast';
+import { compressImage } from '../lib/image';
 import { sanitizeRichHtml } from '../lib/sanitizeHtml';
-import { validateOptionalExternalUrl } from '../lib/validation';
+import { validateImageFile, validateOptionalExternalUrl } from '../lib/validation';
 
 export default function AdminReflections() {
   const { language } = useLanguage();
@@ -16,12 +19,14 @@ export default function AdminReflections() {
   const [activeTab, setActiveTab] = useState<'active' | 'archive'>('active');
   const retentionDays = 90;
   const [restoringId, setRestoringId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     titleVi: '',
     titleEn: '',
     contentVi: '',
     contentEn: '',
     author: '',
+    thumbnail: '',
     facebookLink: '',
     youtubeLink: '',
     driveLink: '',
@@ -82,6 +87,7 @@ export default function AdminReflections() {
       contentVi: '',
       contentEn: '',
       author: '',
+      thumbnail: '',
       facebookLink: '',
       youtubeLink: '',
       driveLink: '',
@@ -98,6 +104,7 @@ export default function AdminReflections() {
       contentVi: r.content.vi,
       contentEn: r.content.en,
       author: r.author,
+      thumbnail: r.thumbnail || '',
       facebookLink: r.facebookLink || '',
       youtubeLink: r.youtubeLink || '',
       driveLink: r.driveLink || '',
@@ -105,6 +112,32 @@ export default function AdminReflections() {
     });
     setEditingId(r.id);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Upload thumbnail image
+  const handleImageUpload = async (file: File) => {
+    if (!IS_FIREBASE_CONFIGURED || !fbStorage) return '';
+
+    const fileError = validateImageFile(file);
+    if (fileError) {
+      toast.error(fileError);
+      return '';
+    }
+
+    setUploading(true);
+    try {
+      const compressedFile = await compressImage(file);
+      const filename = `reflections/${uuidv4()}-${compressedFile.name}`;
+      const storageRef = ref(fbStorage, filename);
+      await uploadBytes(storageRef, compressedFile);
+      const url = await getDownloadURL(storageRef);
+      return url;
+    } catch {
+      toast.error('Upload failed');
+      return '';
+    } finally {
+      setUploading(false);
+    }
   };
 
   // Save (create or update)
@@ -127,6 +160,7 @@ export default function AdminReflections() {
             title: { vi: formData.titleVi, en: formData.titleVi },
             content: { vi: sanitizedContent, en: sanitizedContent },
             author: formData.author,
+            thumbnail: formData.thumbnail,
             facebookLink: facebook.normalized,
             youtubeLink: youtube.normalized,
             driveLink: drive.normalized,
@@ -138,6 +172,7 @@ export default function AdminReflections() {
             title: { vi: formData.titleVi, en: formData.titleVi },
             content: { vi: sanitizedContent, en: sanitizedContent },
             author: formData.author,
+            thumbnail: formData.thumbnail,
             facebookLink: facebook.normalized,
             youtubeLink: youtube.normalized,
             driveLink: drive.normalized,
@@ -212,10 +247,21 @@ export default function AdminReflections() {
   const handlePermanentDelete = async (id: string) => {
     if (!confirm(language === 'vi' ? 'Xóa vĩnh viễn bài suy niệm này?' : 'Permanently delete this reflection?')) return;
     try {
+      const item = reflections.find(r => r.id === id);
       const updated = reflections.filter(r => r.id !== id);
       await Promise.all([
         deleteItem('reflections', id),
-        logAuditAction('reflection.delete', { id })
+        logAuditAction('reflection.delete', { id }),
+        (async () => {
+          if (item?.thumbnail && IS_FIREBASE_CONFIGURED && fbStorage) {
+            try {
+              const fileRef = ref(fbStorage, item.thumbnail);
+              await deleteObject(fileRef);
+            } catch {
+              void 0;
+            }
+          }
+        })()
       ]);
       setReflections(updated);
       toast.success(language === 'vi' ? 'Đã xóa vĩnh viễn!' : 'Permanently deleted!');
@@ -359,6 +405,52 @@ export default function AdminReflections() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              {language === 'vi' ? 'Hình ảnh' : 'Image'}
+            </label>
+            <div className="flex items-start gap-6">
+              <div className="flex-1">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all">
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg className="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                    <p className="mb-2 text-sm text-gray-500">
+                      <span className="font-semibold">{language === 'vi' ? 'Nhấn để tải lên' : 'Click to upload'}</span>
+                    </p>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const url = await handleImageUpload(file);
+                        if (url) setFormData({ ...formData, thumbnail: url });
+                      }
+                    }}
+                    className="hidden"
+                    disabled={uploading}
+                  />
+                </label>
+              </div>
+              {formData.thumbnail && (
+                <div className="relative w-32 h-32 rounded-lg overflow-hidden shadow-md group">
+                  <img src={formData.thumbnail} alt="Preview" className="w-full h-full object-cover" />
+                  <button
+                    onClick={() => setFormData({ ...formData, thumbnail: '' })}
+                    className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white transition-opacity"
+                  >
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -406,12 +498,25 @@ export default function AdminReflections() {
             )}
             <button
               onClick={handleSave}
-              className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 shadow-sm hover:shadow transition-all"
+              disabled={uploading}
+              className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow transition-all"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              {editingId ? (language === 'vi' ? 'Cập Nhật' : 'Update') : (language === 'vi' ? 'Lưu Bài Viết' : 'Save Reflection')}
+              {uploading ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {language === 'vi' ? 'Đang tải...' : 'Uploading...'}
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  {editingId ? (language === 'vi' ? 'Cập Nhật' : 'Update') : (language === 'vi' ? 'Lưu Bài Viết' : 'Save Reflection')}
+                </>
+              )}
             </button>
           </div>
         </div>
@@ -464,8 +569,15 @@ export default function AdminReflections() {
             {paginatedReflections.map(r => (
               <tr key={r.id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4">
-                  <div className="font-medium text-gray-900">{r.title.vi || r.title.en}</div>
-                  {r.title.en && r.title.vi && r.title.en !== r.title.vi && <div className="text-sm text-gray-500">{r.title.en}</div>}
+                  <div className="flex items-center gap-3">
+                    {r.thumbnail && (
+                      <img src={r.thumbnail} alt="" className="w-12 h-12 rounded object-cover flex-shrink-0" />
+                    )}
+                    <div>
+                      <div className="font-medium text-gray-900">{r.title.vi || r.title.en}</div>
+                      {r.title.en && r.title.vi && r.title.en !== r.title.vi && <div className="text-sm text-gray-500">{r.title.en}</div>}
+                    </div>
+                  </div>
                 </td>
                 <td className="px-6 py-4 text-gray-600">{r.author}</td>
                 <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{r.date}</td>

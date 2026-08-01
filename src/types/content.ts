@@ -24,6 +24,7 @@ export interface ReflectionFormData {
   content: Translation;
   date: string;     // ISO yyyy-mm-dd
   author: string;
+  thumbnail?: string; // URL to reflection thumbnail image
   facebookLink?: string;
   youtubeLink?: string;
   driveLink?: string;

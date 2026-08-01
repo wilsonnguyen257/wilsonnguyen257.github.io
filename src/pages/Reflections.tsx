@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
 import SEO from "../components/SEO";
+import PageHero from "../components/PageHero";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { subscribeJson } from "../lib/storage";
 import { CardSkeleton } from "../components/Skeleton";
 
-type Reflection = { 
+type Reflection = {
   title: {
     vi: string;
     en: string;
@@ -14,8 +15,9 @@ type Reflection = {
     vi: string;
     en: string;
   };
-  date?: string; 
+  date?: string;
   author?: string;
+  thumbnail?: string;
   status?: 'draft' | 'published';
 };
 type ReflectionItem = Reflection & { id: string };
@@ -54,6 +56,7 @@ export default function Reflections() {
             content: { vi: contentVi, en: contentEn },
             date: it.date,
             author: it.author,
+            thumbnail: it.thumbnail,
             status: it.status || 'published',
           };
         }).filter(r => r.status === 'published');
@@ -106,25 +109,16 @@ export default function Reflections() {
         title={t('reflections.title')} 
         description={t('reflections.subtitle')} 
       />
-      {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 text-white py-20 md:py-28 overflow-hidden">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-20"></div>
-        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-96 h-96 bg-brand-500/30 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/3 w-64 h-64 bg-brand-400/20 rounded-full blur-3xl"></div>
-        
-        <div className="container-xl relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-6 shadow-sm hover:bg-white/20 transition-colors">
-              <svg className="w-5 h-5 text-brand-100" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
-              </svg>
-              <span className="font-medium text-brand-50">{t('reflections.gospel')}</span>
-            </div>
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 font-serif tracking-tight">{t('reflections.title')}</h1>
-            <p className="text-xl text-brand-100 leading-relaxed max-w-2xl mx-auto">{t('reflections.subtitle')}</p>
-          </div>
-        </div>
-      </section>
+      <PageHero
+        title={t('reflections.title')}
+        subtitle={t('reflections.subtitle')}
+        badgeLabel={t('reflections.gospel')}
+        badgeIcon={
+          <svg className="w-5 h-5 text-brand-100" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
+          </svg>
+        }
+      />
 
       {/* Featured Reflection */}
       {featuredReflection && (
@@ -135,8 +129,21 @@ export default function Reflections() {
                 to={`/reflections/${featuredReflection.id}`}
                 className="group block bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100 hover:border-brand-200 hover:-translate-y-1 relative"
               >
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-50 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110 opacity-50"></div>
-                
+                <div className={featuredReflection.thumbnail ? 'grid md:grid-cols-2 gap-0' : ''}>
+                {featuredReflection.thumbnail && (
+                  <div className="relative h-64 md:h-full min-h-[350px] overflow-hidden">
+                    <img
+                      src={featuredReflection.thumbnail}
+                      alt={featuredReflection.title[language] || featuredReflection.title.vi}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+                  </div>
+                )}
+                {!featuredReflection.thumbnail && (
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-brand-50 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110 opacity-50"></div>
+                )}
+
                 <div className="p-8 md:p-12 relative">
                   <div className="flex flex-wrap items-center gap-4 mb-8">
                     <span className="inline-flex items-center gap-2 bg-brand-100 text-brand-700 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider">
@@ -179,6 +186,7 @@ export default function Reflections() {
                       </svg>
                     </span>
                   </div>
+                </div>
                 </div>
               </Link>
             </div>
@@ -330,6 +338,15 @@ export default function Reflections() {
                         to={`/reflections/${reflection.id}`}
                         className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-100 hover:border-brand-200 hover:-translate-y-1 flex flex-col h-full"
                       >
+                        {reflection.thumbnail && (
+                          <div className="relative aspect-[16/9] overflow-hidden">
+                            <img
+                              src={reflection.thumbnail}
+                              alt={reflection.title[language] || reflection.title.vi}
+                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                            />
+                          </div>
+                        )}
                         <div className="p-8 flex flex-col flex-1">
                           <div className="flex items-center gap-2 mb-4">
                             <span className="inline-flex items-center gap-1.5 bg-brand-50 text-brand-700 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider">

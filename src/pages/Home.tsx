@@ -279,11 +279,12 @@ const Home: React.FC = () => {
         {/* Custom Background Image (if set) */}
         {debouncedHeroImage && (
           <div className="absolute inset-0">
-            <img 
-              src={debouncedHeroImage} 
-              alt="Hero background" 
-              className="w-full h-full object-cover opacity-20 mix-blend-overlay"
+            <img
+              src={debouncedHeroImage}
+              alt="Hero background"
+              className="w-full h-full object-cover opacity-70"
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-900/80 via-brand-900/20 to-transparent"></div>
           </div>
         )}
         
@@ -317,7 +318,7 @@ const Home: React.FC = () => {
               </p>
               
               <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start mb-12">
-                <Link to="/about" className="w-full sm:w-auto px-8 py-4 bg-white text-brand-700 font-bold rounded-xl hover:bg-brand-50 hover:-translate-y-1 transition-all duration-300 shadow-xl shadow-brand-900/20 flex items-center justify-center gap-2 group">
+                <Link to="/about" className="w-full sm:w-auto px-8 py-4 bg-accent-500 text-white font-bold rounded-xl hover:bg-accent-600 hover:-translate-y-1 transition-all duration-300 shadow-xl shadow-brand-900/20 flex items-center justify-center gap-2 group">
                   {t('home.learn_more')}
                   <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
@@ -461,13 +462,22 @@ const Home: React.FC = () => {
                 text: 'text-amber-600'
               }
             ].map((item, idx) => (
-              <div key={idx} className={`group relative bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-brand-900/10 transition-all duration-500 border border-slate-100 hover:-translate-y-2 ${item.delay}`}>
-                <div className={`w-20 h-20 ${item.bg} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-inner ${item.text}`}>
-                  {item.icon}
+              <div key={idx} className={`group relative bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-brand-900/10 transition-all duration-500 border border-slate-100 hover:-translate-y-2 overflow-hidden ${item.delay}`}>
+                {/* Photo-ready placeholder */}
+                <div className="relative aspect-[4/3] bg-gradient-to-br from-brand-100 to-accent-100 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 text-brand-900/10">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                  </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-brand-700 transition-colors">{item.title}</h3>
-                <p className="text-slate-600 leading-relaxed text-lg">{item.desc}</p>
-                
+                <div className="p-10">
+                  <div className={`w-20 h-20 ${item.bg} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-inner ${item.text}`}>
+                    {item.icon}
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-brand-700 transition-colors">{item.title}</h3>
+                  <p className="text-slate-600 leading-relaxed text-lg">{item.desc}</p>
+                </div>
+
                 {/* Hover Effect Line */}
                 <div className={`absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r ${item.color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-b-[2rem]`}></div>
               </div>
@@ -1068,7 +1078,7 @@ const Home: React.FC = () => {
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                       <Link 
                         to="/contact" 
-                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-brand-600 font-bold rounded-xl shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-accent-500 text-white font-bold rounded-xl shadow-xl hover:bg-accent-600 hover:shadow-2xl hover:scale-105 transition-all duration-300"
                       >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />

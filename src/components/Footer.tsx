@@ -168,7 +168,7 @@ export default function Footer() {
               <Link to="/contact" className="text-slate-600 hover:text-brand-600 transition-all duration-200 font-medium hover:scale-105">
                 {t('footer.contact')}
               </Link>
-              <Link to="/give" className="text-slate-600 hover:text-brand-600 transition-all duration-200 font-medium hover:scale-105">
+              <Link to="/give" className="text-slate-600 hover:text-accent-600 transition-all duration-200 font-medium hover:scale-105">
                 {t('nav.give')}
               </Link>
             </div>

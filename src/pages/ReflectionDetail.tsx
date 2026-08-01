@@ -6,7 +6,7 @@ import { subscribeJson } from "../lib/storage";
 import { sanitizeRichHtml } from "../lib/sanitizeHtml";
 import { getFacebookPluginUrl, getGoogleDriveEmbedUrl, getYouTubeEmbedUrl, validateOptionalExternalUrl } from "../lib/validation";
 
-type Reflection = { 
+type Reflection = {
   title: {
     vi: string;
     en: string;
@@ -15,8 +15,9 @@ type Reflection = {
     vi: string;
     en: string;
   };
-  date?: string; 
+  date?: string;
   author?: string;
+  thumbnail?: string;
   facebookLink?: string;
   youtubeLink?: string;
   driveLink?: string;
@@ -41,16 +42,17 @@ export default function ReflectionDetail() {
         }
         const mapped: Reflection = {
           // Ensure both languages have content
-          title: { 
-            vi: found.title?.vi || found.title?.en || '', 
-            en: found.title?.en || found.title?.vi || '' 
+          title: {
+            vi: found.title?.vi || found.title?.en || '',
+            en: found.title?.en || found.title?.vi || ''
           },
-          content: { 
-            vi: found.content?.vi || found.content?.en || '', 
-            en: found.content?.en || found.content?.vi || '' 
+          content: {
+            vi: found.content?.vi || found.content?.en || '',
+            en: found.content?.en || found.content?.vi || ''
           },
           date: found.date,
           author: found.author,
+          thumbnail: found.thumbnail,
           facebookLink: found.facebookLink,
           youtubeLink: found.youtubeLink,
           driveLink: found.driveLink,
@@ -90,8 +92,14 @@ export default function ReflectionDetail() {
         description={stripHtml(safeContent).slice(0, 160) + '...'}
       />
       {/* Header */}
-      <section className="relative bg-gradient-to-br from-brand-600 to-brand-800 text-white py-16">
+      <section className="relative bg-gradient-to-br from-brand-600 to-brand-800 text-white py-16 overflow-hidden">
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
+        {reflection.thumbnail && (
+          <div className="absolute inset-0">
+            <img src={reflection.thumbnail} alt="" className="w-full h-full object-cover opacity-20" />
+            <div className="absolute inset-0 bg-gradient-to-t from-brand-900/90 via-brand-800/70 to-brand-700/50"></div>
+          </div>
+        )}
         <div className="container-xl max-w-4xl mx-auto relative">
           <button 
             onClick={() => navigate("/reflections")}
@@ -166,6 +174,16 @@ export default function ReflectionDetail() {
       {/* Content */}
       <section className="py-20">
         <div className="container-xl max-w-4xl mx-auto">
+          {reflection.thumbnail && (
+            <div className="mb-10 rounded-2xl overflow-hidden shadow-xl bg-white">
+              <img
+                src={reflection.thumbnail}
+                alt={title}
+                className="w-full h-auto"
+                loading="lazy"
+              />
+            </div>
+          )}
           <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border border-slate-200">
             <div 
               className="prose prose-lg max-w-none prose-headings:text-slate-900 prose-p:text-slate-700 prose-p:leading-relaxed"

@@ -5,7 +5,7 @@ export default function Give() {
   const { t } = useLanguage();
 
   return (
-    <div className="bg-slate-50">
+    <div className="bg-white">
       <PageHero
         title={t('give.title')}
         subtitle={t('give.subtitle')}
@@ -58,7 +58,7 @@ export default function Give() {
             </div>
 
             {/* Contact Card */}
-            <div className="bg-gradient-to-br from-slate-50 to-white rounded-2xl shadow-xl p-8 border-l-4 border-brand-600">
+            <div className="card !p-8">
               <div className="flex items-start gap-6">
                 <div className="flex-shrink-0 w-16 h-16 bg-brand-100 rounded-xl flex items-center justify-center">
                   <svg className="w-8 h-8 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">

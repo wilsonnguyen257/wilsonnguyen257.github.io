@@ -7,36 +7,49 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Be Vietnam Pro"', 'sans-serif'],
+        // System-first stack (San Francisco on Apple devices) with Be Vietnam Pro
+        // as the web fallback so Vietnamese diacritics always render correctly.
+        sans: [
+          '-apple-system', 'BlinkMacSystemFont', '"Be Vietnam Pro"',
+          '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif',
+        ],
+        // Kept available for anyone who wants an editorial moment, but no
+        // longer the default for headings — the new look is sans throughout.
         serif: ['"Playfair Display"', 'serif'],
       },
       colors: {
-        // Brand colors (sky blue)
+        // Primary accent — a single, precise blue used for links, primary
+        // actions and focus states (kept the `brand` key so it cascades
+        // through every existing usage across the app).
         brand: {
-          50: '#f0f9ff',
-          100: '#e0f2fe',
-          200: '#bae6fd',
-          300: '#7dd3fc',
-          400: '#38bdf8',
-          500: '#0ea5e9',
-          600: '#0284c7',
-          700: '#0369a1',
-          800: '#075985',
-          900: '#0c4a6e',
+          50: '#f0f7ff',
+          100: '#dcedff',
+          200: '#b9daff',
+          300: '#8ac1ff',
+          400: '#529eff',
+          500: '#1f7cf5',
+          600: '#0071e3',
+          700: '#0058b3',
+          800: '#00427f',
+          900: '#012c54',
         },
-        // Accent colors (coral/orange, used sparingly for primary CTAs)
+        // Secondary accent — reserved for a small number of deliberate
+        // moments (the Give/donate call-to-action, live/urgent badges).
         accent: {
-          50: '#fff4ed',
-          100: '#ffe4d3',
-          200: '#ffc7a6',
-          300: '#ffa170',
-          400: '#ff7f50',
-          500: '#f9603a',
-          600: '#e6472a',
-          700: '#c23716',
-          800: '#9c2f18',
-          900: '#7e2a17',
+          50: '#fff1f0',
+          100: '#ffe1de',
+          200: '#ffc3bd',
+          300: '#ff9d92',
+          400: '#ff6f61',
+          500: '#ff3b30',
+          600: '#e0271d',
+          700: '#b81f17',
+          800: '#8f1810',
+          900: '#6b120c',
         },
+        // Apple's own neutral "off-white" — used for alternating section
+        // backgrounds and the footer instead of colored gradients.
+        surface: '#f5f5f7',
       },
     },
   },

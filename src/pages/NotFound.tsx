@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-white flex items-center justify-center px-4">
+    <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="max-w-2xl mx-auto text-center">
         {/* 404 Illustration */}
         <div className="mb-8">
@@ -12,7 +12,7 @@ export default function NotFound() {
         </div>
 
         {/* Error Message */}
-        <div className="bg-white rounded-2xl shadow-2xl p-12 border border-slate-200">
+        <div className="bg-white rounded-2xl p-12 border border-slate-200">
           <h1 className="text-8xl md:text-9xl font-bold text-brand-600 mb-4">404</h1>
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
             Page Not Found
@@ -25,7 +25,7 @@ export default function NotFound() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link 
               to="/" 
-              className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-lg shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+              className="btn btn-primary"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />

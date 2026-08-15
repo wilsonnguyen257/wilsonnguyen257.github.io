@@ -48,78 +48,21 @@ const stripHtml = (html: string): string => {
   return tmp.textContent || tmp.innerText || '';
 };
 
-// Background pattern types
-export type BackgroundPattern = 'dots' | 'grid' | 'diagonal' | 'waves' | 'crosses' | 'none';
-
-// Extend Window interface for global function
-declare global {
-  interface Window {
-    changeHeroBackground?: (pattern: BackgroundPattern) => void;
-  }
-}
-
-/**
- * Get background pattern style for the hero section
- * @param pattern - The pattern type to use
- * @returns Style object for the background pattern
- */
-const getBackgroundPatternStyle = (pattern: BackgroundPattern): React.CSSProperties => {
-  switch (pattern) {
-    case 'dots':
-      return {
-        backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-        backgroundSize: '40px 40px'
-      };
-    case 'grid':
-      return {
-        backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)',
-        backgroundSize: '50px 50px'
-      };
-    case 'diagonal':
-      return {
-        backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 35px, white 35px, white 37px)',
-        backgroundSize: '100% 100%'
-      };
-    case 'waves':
-      return {
-        backgroundImage: 'radial-gradient(circle at 100% 50%, transparent 20%, white 21%, white 22%, transparent 22%, transparent), radial-gradient(circle at 0% 50%, transparent 20%, white 21%, white 22%, transparent 22%, transparent)',
-        backgroundSize: '80px 80px',
-        backgroundPosition: '0 0, 40px 40px'
-      };
-    case 'crosses':
-      return {
-        backgroundImage: 'linear-gradient(white 2px, transparent 2px), linear-gradient(90deg, white 2px, transparent 2px)',
-        backgroundSize: '20px 20px',
-        backgroundPosition: 'center center'
-      };
-    case 'none':
-      return {};
-    default:
-      return {
-        backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)',
-        backgroundSize: '40px 40px'
-      };
-  }
-}
-
 const Home: React.FC = () => {
   const { t, language } = useLanguage();
 
   const [events, setEvents] = useState<Event[]>([]);
   const [eventsLoading, setEventsLoading] = useState(true);
-  
-  // State to control the hero background pattern (can be changed dynamically)
-  const [heroBackgroundPattern, setHeroBackgroundPattern] = useState<BackgroundPattern>('dots');
+
+  // Optional admin-set hero background image (site-settings/homepage in Firestore)
   const [heroBackgroundImage, setHeroBackgroundImage] = useState<string>('');
   const debouncedHeroImage = useDebounce(heroBackgroundImage, 300);
 
-  // Load saved pattern and image from Firestore with real-time updates
+  // Load the saved image with real-time updates
   useEffect(() => {
     if (!db) {
       // Fallback to localStorage if Firebase not configured
-      const savedPattern = localStorage.getItem('heroBackgroundPattern') as BackgroundPattern;
       const savedImageUrl = localStorage.getItem('heroBackgroundImageUrl');
-      if (savedPattern) setHeroBackgroundPattern(savedPattern);
       if (savedImageUrl) setHeroBackgroundImage(savedImageUrl);
       return;
     }
@@ -129,10 +72,6 @@ const Home: React.FC = () => {
     const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.heroBackgroundPattern) {
-          setHeroBackgroundPattern(data.heroBackgroundPattern);
-          localStorage.setItem('heroBackgroundPattern', data.heroBackgroundPattern);
-        }
         if (data.heroBackgroundImageUrl) {
           const imageUrl = data.heroBackgroundImageUrl;
           setHeroBackgroundImage(imageUrl);
@@ -150,17 +89,13 @@ const Home: React.FC = () => {
         }
       } else {
         // No settings in Firestore, try localStorage
-        const savedPattern = localStorage.getItem('heroBackgroundPattern') as BackgroundPattern;
         const savedImageUrl = localStorage.getItem('heroBackgroundImageUrl');
-        if (savedPattern) setHeroBackgroundPattern(savedPattern);
         if (savedImageUrl) setHeroBackgroundImage(savedImageUrl);
       }
     }, (error) => {
       console.error('Error loading settings:', error);
       // Fallback to localStorage on error
-      const savedPattern = localStorage.getItem('heroBackgroundPattern') as BackgroundPattern;
       const savedImageUrl = localStorage.getItem('heroBackgroundImageUrl');
-      if (savedPattern) setHeroBackgroundPattern(savedPattern);
       if (savedImageUrl) setHeroBackgroundImage(savedImageUrl);
     });
 
@@ -173,36 +108,6 @@ const Home: React.FC = () => {
   const upcomingEvents = events.slice(startIndex, startIndex + 3);
   const [latestReflections, setLatestReflections] = useState<Reflection[]>([]);
   const [expandedReflectionId, setExpandedReflectionId] = useState<string | null>(null);
-  
-  // Function to change the hero background pattern
-  const changeHeroBackground = (pattern: BackgroundPattern) => {
-    setHeroBackgroundPattern(pattern);
-  };
-
-  // Make changeHeroBackground function available globally for easy access
-  useEffect(() => {
-    // Expose function to window object for console access
-    window.changeHeroBackground = changeHeroBackground;
-    
-    // Log usage instructions to console for developers
-    console.log(
-      '%c🎨 Homepage Background Pattern Changer',
-      'font-size: 16px; font-weight: bold; color: #4f46e5;'
-    );
-    console.log(
-      '%cAvailable patterns: dots, grid, diagonal, waves, crosses, none',
-      'font-size: 12px; color: #6b7280;'
-    );
-    console.log(
-      '%cUsage: window.changeHeroBackground("grid")',
-      'font-size: 12px; color: #059669; font-family: monospace;'
-    );
-    
-    return () => {
-      // Cleanup on unmount
-      delete window.changeHeroBackground;
-    };
-  }, []);
 
   useEffect(() => {
     // Live reflections
@@ -274,96 +179,72 @@ const Home: React.FC = () => {
         title={t('home.title')} 
         description={t('home.description')} 
       />
-      {/* Hero - Modern Gradient Design */}
-      <section className="relative bg-gradient-to-br from-brand-600 via-brand-700 to-brand-800 py-20 md:py-28 overflow-hidden min-h-screen md:min-h-[700px] h-auto">
-        {/* Custom Background Image (if set) */}
+      {/* Hero — plain, bright, and text-led. An admin-set background image
+          is still supported, shown quietly behind a light scrim. */}
+      <section className="relative bg-white overflow-hidden">
         {debouncedHeroImage && (
           <div className="absolute inset-0">
             <img
               src={debouncedHeroImage}
-              alt="Hero background"
-              className="w-full h-full object-cover opacity-70"
+              alt=""
+              className="w-full h-full object-cover opacity-15"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-brand-900/80 via-brand-900/20 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-b from-white via-white/95 to-white"></div>
           </div>
         )}
-        
-        {/* Background Pattern & Effects */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={getBackgroundPatternStyle(heroBackgroundPattern)}></div>
-        </div>
-        <div className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/3 w-96 h-96 bg-brand-400/30 rounded-full blur-3xl"></div>
-        <div className="absolute bottom-0 left-0 translate-y-1/2 -translate-x-1/3 w-80 h-80 bg-brand-500/20 rounded-full blur-3xl"></div>
-        
-        <div className="container-xl relative z-10">
-          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+
+        <div className="container-xl relative z-10 py-12 sm:py-16 md:py-24 lg:py-28">
+          <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-20">
             {/* Content */}
-            <div className="text-white text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-4 py-1.5 mb-8 shadow-sm hover:bg-white/20 transition-colors">
-                <span className="flex h-2 w-2 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            <div className="text-center lg:text-left">
+              <div className="eyebrow mb-5 justify-center lg:justify-start">
+                <span className="relative flex h-1.5 w-1.5">
+                  <span className="inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                 </span>
-                <span className="font-medium text-sm text-brand-50">{t('home.welcome_badge') || 'Chào mừng đến với Cộng đoàn'}</span>
+                <span>{t('home.welcome_badge') || 'Chào mừng đến với Cộng đoàn'}</span>
               </div>
 
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 bg-clip-text text-transparent bg-gradient-to-r from-white via-brand-50 to-brand-100 tracking-tight">
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-semibold leading-[1.05] mb-6 text-slate-900 tracking-tight">
                 {t('home.title')}
               </h1>
-              <p className="text-xl md:text-2xl text-brand-100 mb-6 leading-relaxed font-medium max-w-2xl mx-auto lg:mx-0">
+              <p className="text-xl md:text-2xl text-slate-600 mb-4 leading-relaxed max-w-2xl mx-auto lg:mx-0">
                 {t('home.subtitle')}
               </p>
-              <p className="text-base md:text-lg text-brand-200 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+              <p className="text-base md:text-lg text-slate-500 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
                 {t('home.description')}
               </p>
-              
-              <div className="flex flex-col sm:flex-row items-center gap-4 justify-center lg:justify-start mb-12">
-                <Link to="/about" className="w-full sm:w-auto px-8 py-4 bg-accent-500 text-white font-bold rounded-xl hover:bg-accent-600 hover:-translate-y-1 transition-all duration-300 shadow-xl shadow-brand-900/20 flex items-center justify-center gap-2 group">
+
+              <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-12">
+                <Link to="/about" className="btn btn-primary w-full sm:w-auto">
                   {t('home.learn_more')}
-                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                   </svg>
                 </Link>
-                <Link to="/contact" className="w-full sm:w-auto px-8 py-4 bg-brand-800/40 backdrop-blur-sm text-white font-bold rounded-xl border border-white/20 hover:bg-brand-800/60 hover:-translate-y-1 transition-all duration-300 shadow-lg flex items-center justify-center">
+                <Link to="/contact" className="btn btn-outline w-full sm:w-auto">
                   {t('home.contact_us')}
                 </Link>
               </div>
 
               {/* Quick Info Bar */}
-              <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-start gap-4 md:gap-8 pt-8 border-t border-white/10 w-full">
+              <div className="flex justify-center lg:justify-start pt-8 border-t border-slate-200 w-full">
                 <div className="flex items-start sm:items-center gap-3 max-w-full">
-                  <div className="w-10 h-10 shrink-0 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm text-white mt-1 sm:mt-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
-                    </svg>
-                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-brand-600 shrink-0 mt-1 sm:mt-0">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+                  </svg>
                   <div className="text-left flex-1 min-w-0">
-                    <p className="text-xs text-brand-200 uppercase tracking-wider font-semibold">{t('home.mass')}</p>
-                    <p className="font-bold text-white text-sm md:text-base leading-snug break-words whitespace-normal">{t('home.mass_time')}</p>
-                  </div>
-                </div>
-                <div className="w-full sm:w-px h-px sm:h-10 bg-white/10"></div>
-                <div className="flex items-start sm:items-center gap-3 max-w-full">
-                  <div className="w-10 h-10 shrink-0 bg-white/10 rounded-lg flex items-center justify-center backdrop-blur-sm text-white mt-1 sm:mt-0">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                    </svg>
-                  </div>
-                  <div className="text-left flex-1 min-w-0">
-                    <p className="text-xs text-brand-200 uppercase tracking-wider font-semibold">{t('home.location')}</p>
-                    <p className="font-bold text-white text-sm md:text-base leading-snug break-words whitespace-normal">{t('home.location_short')}</p>
+                    <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">{t('home.mass')}</p>
+                    <p className="font-semibold text-slate-900 text-sm md:text-base leading-snug break-words whitespace-normal">{t('home.mass_time')}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Map Card */}
-            <div className="relative lg:translate-x-8 aspect-w-1 aspect-h-1 md:aspect-w-4 md:aspect-h-3">
-              <div className="absolute -inset-4 bg-gradient-to-r from-brand-400 to-brand-300 rounded-[2rem] blur-2xl opacity-30 animate-pulse"></div>
-              <div className="relative bg-white p-2 rounded-[2rem] shadow-2xl rotate-1 hover:rotate-0 transition-transform duration-500">
-                <div className="relative rounded-[1.5rem] overflow-hidden border border-slate-100 h-[400px] md:h-[500px]">
-                  <iframe 
+            <div className="relative">
+              <div className="relative bg-white rounded-3xl shadow-[0_8px_40px_rgb(0,0,0,0.08)] border border-slate-100 overflow-hidden">
+                <div className="relative h-[360px] md:h-[460px]">
+                  <iframe
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3150.982869339574!2d145.11869731531985!3d-37.81564207974633!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad6404f2b6c09f9%3A0x5045675218ce6e0!2s138%20Woodhouse%20Grove%2C%20Box%20Hill%20North%20VIC%203129!5e0!3m2!1sen!2sau!4v1734134400000!5m2!1sen!2sau"
                     title="St Francis Xavier's Catholic Church Location"
                     className="w-full h-full"
@@ -371,18 +252,18 @@ const Home: React.FC = () => {
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                   ></iframe>
-                  
+
                   {/* Map Overlay Card */}
-                  <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-lg border border-slate-100">
+                  <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-slate-100">
                     <div className="flex items-start gap-3">
-                      <div className="p-2 bg-brand-50 rounded-lg text-brand-600">
+                      <div className="p-2 bg-brand-50 rounded-full text-brand-600">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                       </div>
                       <div>
-                        <p className="font-bold text-slate-900 text-sm">St Francis Xavier's Catholic Church</p>
+                        <p className="font-semibold text-slate-900 text-sm">St Francis Xavier's Catholic Church</p>
                         <p className="text-slate-500 text-xs mt-0.5">138 Woodhouse Grove, Box Hill North</p>
                       </div>
                     </div>
@@ -394,92 +275,53 @@ const Home: React.FC = () => {
         </div>
       </section>
 
-      {/* Welcome Message - Elevated Cards */}
+      {/* Welcome Message */}
       <LazyLoadSection placeholderHeight="700px">
-      <section className="py-24 bg-gradient-to-b from-white to-slate-50 relative overflow-hidden">
-        {/* Decorative Background Elements */}
-        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-slate-200 to-transparent"></div>
-        <div className="absolute -left-64 top-1/2 w-96 h-96 bg-brand-50 rounded-full blur-3xl opacity-50"></div>
-        <div className="absolute -right-64 bottom-0 w-96 h-96 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
-
-        <div className="container-xl relative z-10">
-          <div className="text-center mb-20">
-            <div className="inline-flex items-center gap-2 bg-brand-50 border border-brand-100/50 rounded-full px-5 py-2 mb-8 shadow-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
-              </span>
-              <span className="font-bold text-brand-800 text-sm tracking-wide uppercase">Welcome</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
+      <section className="py-24 bg-surface">
+        <div className="container-xl">
+          <div className="text-center mb-16">
+            <p className="eyebrow justify-center mb-4">Welcome</p>
+            <h2 className="h2">
               {t('home.welcome_title')}
             </h2>
-            <div className="w-24 h-1.5 bg-brand-500 mx-auto rounded-full"></div>
           </div>
-          
-          <div className="grid gap-8 md:grid-cols-3">
+
+          <div className="grid gap-6 md:grid-cols-3">
             {[
-              { 
+              {
                 icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
                   </svg>
-                ), 
-                title: t('home.faith_title'), 
-                desc: t('home.faith_desc'), 
-                color: 'from-blue-500 to-blue-600', 
-                bg: 'bg-blue-50', 
-                border: 'border-blue-100', 
-                delay: 'delay-100',
-                text: 'text-blue-600'
+                ),
+                title: t('home.faith_title'),
+                desc: t('home.faith_desc'),
               },
-              { 
+              {
                 icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
                   </svg>
-                ), 
-                title: t('home.community_title'), 
-                desc: t('home.community_desc'), 
-                color: 'from-red-500 to-red-600', 
-                bg: 'bg-red-50', 
-                border: 'border-red-100', 
-                delay: 'delay-200',
-                text: 'text-red-600'
+                ),
+                title: t('home.community_title'),
+                desc: t('home.community_desc'),
               },
-              { 
+              {
                 icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-10 h-10">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
                   </svg>
-                ), 
-                title: t('home.service_title'), 
-                desc: t('home.service_desc'), 
-                color: 'from-amber-500 to-amber-600', 
-                bg: 'bg-amber-50', 
-                border: 'border-amber-100', 
-                delay: 'delay-300',
-                text: 'text-amber-600'
+                ),
+                title: t('home.service_title'),
+                desc: t('home.service_desc'),
               }
             ].map((item, idx) => (
-              <div key={idx} className={`group relative bg-white rounded-[2rem] shadow-xl shadow-slate-200/50 hover:shadow-2xl hover:shadow-brand-900/10 transition-all duration-500 border border-slate-100 hover:-translate-y-2 overflow-hidden ${item.delay}`}>
-                {/* Photo-ready placeholder */}
-                <div className="relative aspect-[4/3] bg-gradient-to-br from-brand-100 to-accent-100 flex items-center justify-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor" className="w-16 h-16 text-brand-900/10">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                  </svg>
+              <div key={idx} className="card">
+                <div className="w-12 h-12 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center mb-6">
+                  {item.icon}
                 </div>
-                <div className="p-10">
-                  <div className={`w-20 h-20 ${item.bg} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500 shadow-inner ${item.text}`}>
-                    {item.icon}
-                  </div>
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4 group-hover:text-brand-700 transition-colors">{item.title}</h3>
-                  <p className="text-slate-600 leading-relaxed text-lg">{item.desc}</p>
-                </div>
-
-                {/* Hover Effect Line */}
-                <div className={`absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-r ${item.color} transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-b-[2rem]`}></div>
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">{item.title}</h3>
+                <p className="text-slate-500 leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -487,134 +329,77 @@ const Home: React.FC = () => {
       </section>
       </LazyLoadSection>
 
-      {/* Mass Times & Location - Modern Information Cards */}
+      {/* Mass Times & Location */}
       <LazyLoadSection placeholderHeight="700px">
-      <section className="py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 relative">
-        <div className="absolute top-1/2 left-0 w-64 h-64 bg-brand-50 rounded-full blur-3xl -translate-y-1/2 -translate-x-1/2 opacity-50"></div>
-        <div className="container-xl relative z-10">
+      <section className="py-24 bg-white">
+        <div className="container-xl">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-brand-50 border border-brand-100/50 rounded-full px-5 py-2.5 mb-6">
-              <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
-              </svg>
-              <span className="font-bold text-brand-700 text-sm tracking-wide uppercase">Schedule</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-5 tracking-tight">
+            <p className="eyebrow justify-center mb-4">Schedule</p>
+            <h2 className="h2">
               {t('home.mass_schedule_title')}
             </h2>
-            <div className="w-24 h-1.5 bg-brand-500 mx-auto rounded-full"></div>
           </div>
-          
-          <div className="grid gap-8 lg:grid-cols-2 max-w-6xl mx-auto">
+
+          <div className="grid gap-6 lg:grid-cols-2 max-w-6xl mx-auto">
             {/* Mass Times */}
-            <div className="bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 hover:border-brand-200 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-              
-              <div className="flex items-center gap-6 mb-10 relative">
-                <div className="p-5 bg-gradient-to-br from-brand-500 to-brand-600 rounded-2xl shadow-lg shadow-brand-500/20 text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+            <div className="card !p-8 md:!p-10">
+              <div className="flex items-center gap-5 mb-8">
+                <div className="w-14 h-14 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0h18M5.25 12h13.5h-13.5zm1.5 6a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zm6.75-4.5a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5zm2.25-9a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0121 7.5v11.25a2.25 2.25 0 01-2.25 2.25h-1.5a2.25 2.25 0 01-2.25-2.25V7.5z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-slate-900">{t('home.mass_schedule_subtitle')}</h3>
-                  <p className="text-slate-500 mt-1">Weekly Worship Services</p>
+                  <h3 className="text-xl font-semibold text-slate-900">{t('home.mass_schedule_subtitle')}</h3>
+                  <p className="text-slate-500 text-sm mt-0.5">Weekly Worship Services</p>
                 </div>
               </div>
-              
-              <div className="space-y-4">
-                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-brand-600 shadow-sm group-hover/item:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-bold text-lg text-slate-900">{t('home.sunday')}</p>
-                    <p className="text-brand-600 font-bold">{t('home.sunday_time')}</p>
-                  </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4 py-4 border-t border-slate-100">
+                  <p className="font-medium text-slate-900">{t('home.sunday')}</p>
+                  <p className="text-brand-600 font-semibold">{t('home.sunday_time')}</p>
                 </div>
-                
-                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-amber-500 shadow-sm group-hover/item:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-bold text-lg text-slate-900">{t('home.special_days')}</p>
-                    <p className="text-slate-600 font-medium">{t('home.special_days_desc')}</p>
-                  </div>
+                <div className="flex items-center justify-between gap-4 py-4 border-t border-slate-100">
+                  <p className="font-medium text-slate-900">{t('home.special_days')}</p>
+                  <p className="text-slate-500">{t('home.special_days_desc')}</p>
                 </div>
-                
-                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-purple-600 shadow-sm group-hover/item:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-bold text-lg text-slate-900">{t('home.confession')}</p>
-                    <p className="text-slate-600 font-medium">{t('home.confession_time')}</p>
-                  </div>
+                <div className="flex items-center justify-between gap-4 py-4 border-t border-b border-slate-100">
+                  <p className="font-medium text-slate-900">{t('home.confession')}</p>
+                  <p className="text-slate-500">{t('home.confession_time')}</p>
                 </div>
               </div>
             </div>
 
             {/* Contact Info */}
-            <div className="bg-white rounded-[2rem] p-10 shadow-xl shadow-slate-200/50 border border-slate-100 hover:border-brand-200 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-[4rem] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-              
-              <div className="flex items-center gap-6 mb-10 relative">
-                <div className="p-5 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-lg shadow-blue-500/20 text-white">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
+            <div className="card !p-8 md:!p-10">
+              <div className="flex items-center gap-5 mb-8">
+                <div className="w-14 h-14 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
                   </svg>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold text-slate-900">{t('home.info_title')}</h3>
-                  <p className="text-slate-500 mt-1">{t('home.visit_contact')}</p>
+                  <h3 className="text-xl font-semibold text-slate-900">{t('home.info_title')}</h3>
+                  <p className="text-slate-500 text-sm mt-0.5">{t('home.visit_contact')}</p>
                 </div>
               </div>
-              
-              <div className="space-y-4">
-                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm group-hover/item:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-bold text-lg text-slate-900">{t('home.address_label')}</p>
-                    <p className="text-slate-600 font-medium">{t('home.address_value')}</p>
-                  </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-4 py-4 border-t border-slate-100">
+                  <p className="font-medium text-slate-900">{t('home.address_label')}</p>
+                  <p className="text-slate-500 text-right">{t('home.address_value')}</p>
                 </div>
-                
-                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm group-hover/item:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 18.75a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 01-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m3 0h1.125c.621 0 1.129-.504 1.09-1.124a17.902 17.902 0 00-3.213-9.193 2.056 2.056 0 00-1.58-.86H14.25M16.5 18.75h-2.25m0-11.177v-.958c0-.568-.422-1.048-.987-1.106a48.554 48.554 0 00-10.026 0 1.106 1.106 0 00-.987 1.106v7.635m12-6.677v6.677m0 4.5v-4.5m0 0h-12" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-bold text-lg text-slate-900">{t('home.parking_label')}</p>
-                    <p className="text-slate-600 font-medium">{t('home.parking_desc')}</p>
-                  </div>
+                <div className="flex items-center justify-between gap-4 py-4 border-t border-slate-100">
+                  <p className="font-medium text-slate-900">{t('home.parking_label')}</p>
+                  <p className="text-slate-500 text-right">{t('home.parking_desc')}</p>
                 </div>
-                
-                <div className="flex items-center gap-5 p-5 bg-slate-50/80 rounded-2xl border border-slate-100 hover:bg-white hover:shadow-md transition-all duration-300 group/item">
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-blue-600 shadow-sm group-hover/item:scale-110 transition-transform">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <p className="font-bold text-lg text-slate-900">{t('home.contact_label')}</p>
-                    <a href="tel:0422-400-116" className="text-brand-600 hover:underline font-bold text-lg block">
-                      0422-400-116
-                    </a>
-                  </div>
+                <div className="flex items-center justify-between gap-4 py-4 border-t border-b border-slate-100">
+                  <p className="font-medium text-slate-900">{t('home.contact_label')}</p>
+                  <a href="tel:0422-400-116" className="text-brand-600 hover:underline font-semibold">
+                    0422-400-116
+                  </a>
                 </div>
               </div>
             </div>
@@ -625,19 +410,13 @@ const Home: React.FC = () => {
 
       {/* Upcoming Events */}
       <LazyLoadSection placeholderHeight="600px">
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-surface">
         <div className="container-xl">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 bg-brand-50 border border-brand-100 rounded-full px-4 py-2 mb-6">
-              <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
-              </svg>
-              <span className="font-bold text-brand-700 text-sm tracking-wide uppercase">{t('home.upcoming_events')}</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
+            <p className="eyebrow justify-center mb-4">{t('home.upcoming_events')}</p>
+            <h2 className="h2">
               {t('home.important_event')}
             </h2>
-            <div className="w-24 h-1.5 bg-brand-500 mx-auto rounded-full"></div>
           </div>
 
           {eventsLoading ? (
@@ -649,90 +428,57 @@ const Home: React.FC = () => {
               </div>
             </div>
           ) : upcomingEvents.length > 0 ? (
-            <Link to={`/events/${upcomingEvents[0].id}`} className="block mb-16 transform hover:scale-[1.01] transition-transform duration-300">
-              <div className="max-w-5xl mx-auto bg-white rounded-[2rem] shadow-2xl shadow-slate-200 overflow-hidden border border-slate-100">
+            <Link to={`/events/${upcomingEvents[0].id}`} className="block mb-16 group">
+              <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.1)] transition-shadow duration-300 overflow-hidden border border-slate-100">
                 <div className="grid md:grid-cols-2 gap-0">
-                  <div className="relative h-64 md:h-full min-h-[350px] overflow-hidden group">
+                  <div className="relative h-64 md:h-full min-h-[350px] overflow-hidden bg-slate-100">
                     {upcomingEvents[0].thumbnail && (
-                      <>
-                        <img 
-                          src={upcomingEvents[0].thumbnail} 
-                          alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                          loading="lazy"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
-                      </>
+                      <img
+                        src={upcomingEvents[0].thumbnail}
+                        alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        loading="lazy"
+                      />
                     )}
                     {/* Date Badge Overlay */}
-                    <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md text-brand-700 px-4 py-3 rounded-2xl shadow-xl font-bold border border-white/50 flex flex-col items-center min-w-[80px]">
-                      <span className="text-sm uppercase tracking-wider font-bold text-slate-500">{parseEventDate(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</span>
-                      <span className="text-3xl leading-none text-slate-900">{parseEventDate(upcomingEvents[0].date).getDate()}</span>
+                    <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md text-slate-900 px-4 py-3 rounded-2xl shadow-sm font-semibold flex flex-col items-center min-w-[76px]">
+                      <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">{parseEventDate(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</span>
+                      <span className="text-2xl leading-tight text-slate-900">{parseEventDate(upcomingEvents[0].date).getDate()}</span>
                     </div>
                   </div>
-                  
-                  <div className="p-8 md:p-12 flex flex-col justify-center bg-gradient-to-br from-white to-brand-50/30">
-                    <div className="inline-flex items-center gap-2 text-brand-600 font-bold mb-6 bg-brand-50 w-fit px-4 py-1.5 rounded-full text-xs uppercase tracking-wider border border-brand-100">
-                      <span className="relative flex h-2 w-2">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
-                      </span>
-                      {t('home.featured_event')}
-                    </div>
-                    
-                    <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight">
+
+                  <div className="p-8 md:p-12 flex flex-col justify-center">
+                    <p className="eyebrow mb-5">{t('home.featured_event')}</p>
+
+                    <h3 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-6 leading-tight">
                       {upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
                     </h3>
-                    
-                    <div className="space-y-4 mb-8">
-                      <div className="flex items-center gap-4 group/item">
-                        <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0 group-hover/item:bg-blue-100 transition-colors">
-                          <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t('events.date')}</p>
-                          <p className="text-lg font-bold text-slate-900">
-                            {parseEventDate(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { 
-                              weekday: 'long',
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            })}
-                          </p>
-                        </div>
+
+                    <div className="space-y-4 mb-8 text-sm">
+                      <div>
+                        <p className="text-slate-400 font-medium mb-0.5">{t('events.date')}</p>
+                        <p className="font-medium text-slate-900">
+                          {parseEventDate(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
                       </div>
-                      
-                      <div className="flex items-center gap-4 group/item">
-                        <div className="w-12 h-12 bg-purple-50 rounded-xl flex items-center justify-center flex-shrink-0 group-hover/item:bg-purple-100 transition-colors">
-                          <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t('events.time')}</p>
-                          <p className="text-lg font-bold text-slate-900">{upcomingEvents[0].time}</p>
-                        </div>
+                      <div>
+                        <p className="text-slate-400 font-medium mb-0.5">{t('events.time')}</p>
+                        <p className="font-medium text-slate-900">{upcomingEvents[0].time}</p>
                       </div>
-                      
-                      <div className="flex items-center gap-4 group/item">
-                        <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center flex-shrink-0 group-hover/item:bg-emerald-100 transition-colors">
-                          <svg className="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">{t('events.location')}</p>
-                          <p className="text-lg font-bold text-slate-900">{upcomingEvents[0].location}</p>
-                        </div>
+                      <div>
+                        <p className="text-slate-400 font-medium mb-0.5">{t('events.location')}</p>
+                        <p className="font-medium text-slate-900">{upcomingEvents[0].location}</p>
                       </div>
                     </div>
-                    
+
                     <div className="mt-auto">
-                      <EventCountdown 
-                        eventDate={upcomingEvents[0].date} 
+                      <EventCountdown
+                        eventDate={upcomingEvents[0].date}
                         eventTime={upcomingEvents[0].time}
                       />
                     </div>
@@ -756,12 +502,12 @@ const Home: React.FC = () => {
                   <Link
                     key={event.id}
                     to={`/events/${event.id}`}
-                    className="group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-200 hover:-translate-y-1"
+                    className="group card !p-0 overflow-hidden"
                   >
                     {event.thumbnail && (
-                      <div className="relative overflow-hidden">
-                        <img 
-                          src={event.thumbnail} 
+                      <div className="relative overflow-hidden bg-slate-100">
+                        <img
+                          src={event.thumbnail}
                           alt={event.name[language] || event.name.vi}
                           className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
                           loading="lazy"
@@ -769,36 +515,25 @@ const Home: React.FC = () => {
                       </div>
                     )}
                     <div className="p-6">
-                      <h4 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-brand-600 transition-colors">
+                      <h4 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-brand-600 transition-colors">
                         {event.name[language] || event.name.vi}
                       </h4>
-                      
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <span>{parseEventDate(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { 
-                            weekday: 'short', 
-                            month: 'short', 
-                            day: 'numeric'
-                          })}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-slate-600">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <span>{event.time}</span>
-                        </div>
+
+                      <div className="space-y-1 mb-4 text-sm text-slate-500">
+                        <div>{parseEventDate(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
+                          weekday: 'short',
+                          month: 'short',
+                          day: 'numeric'
+                        })} · {event.time}</div>
                       </div>
-                      
+
                       {event.content && (
-                        <p className="text-slate-600 text-sm line-clamp-2 mb-4">
+                        <p className="text-slate-500 text-sm line-clamp-2 mb-4">
                           {stripHtml(event.content[language] || event.content.vi)}
                         </p>
                       )}
-                      
-                      <span className="inline-flex items-center gap-2 text-brand-600 font-semibold text-sm group-hover:gap-3 transition-all">
+
+                      <span className="inline-flex items-center gap-1.5 text-brand-600 font-semibold text-sm">
                         {t('home.details')}
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -808,10 +543,10 @@ const Home: React.FC = () => {
                   </Link>
                 ))}
               </div>
-              <div className="text-center mt-8">
-                <Link to="/events" className="inline-flex items-center gap-2 px-8 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
+              <div className="text-center mt-10">
+                <Link to="/events" className="btn btn-outline">
                   {t('home.view_all_events')}
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </Link>
@@ -824,16 +559,11 @@ const Home: React.FC = () => {
 
       {/* Ministries */}
       <LazyLoadSection placeholderHeight="500px">
-      <section className="py-20 bg-gradient-to-b from-slate-50 to-white">
+      <section className="py-24 bg-surface">
         <div className="container-xl">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-brand-100 rounded-full px-4 py-2 mb-4">
-              <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z"/>
-              </svg>
-              <span className="font-medium text-brand-700">{t('home.ministries_title')}</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
+          <div className="text-center mb-16">
+            <p className="eyebrow justify-center mb-4">{t('home.ministries_title')}</p>
+            <h2 className="h2">
               {t('ministries.serving_together')}
             </h2>
           </div>
@@ -880,31 +610,21 @@ const Home: React.FC = () => {
                 desc: t('home.choir_desc'), 
                 color: 'amber' as const 
               }
-            ].map((ministry, idx) => {
-              const colorMap = {
-                blue: { border: 'border-blue-600', bg: 'bg-blue-100', text: 'text-blue-600' },
-                purple: { border: 'border-purple-600', bg: 'bg-purple-100', text: 'text-purple-600' },
-                rose: { border: 'border-rose-600', bg: 'bg-rose-100', text: 'text-rose-600' },
-                amber: { border: 'border-amber-600', bg: 'bg-amber-100', text: 'text-amber-600' }
-              };
-              const colors = colorMap[ministry.color];
-              
-              return (
-                <div key={idx} className={`group bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border-t-4 ${colors.border}`}>
-                  <div className={`w-14 h-14 ${colors.bg} ${colors.text} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform text-2xl`}>
-                    {ministry.icon}
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-2">{ministry.title}</h3>
-                  <p className="text-sm text-slate-600 leading-relaxed">{ministry.desc}</p>
+            ].map((ministry, idx) => (
+              <div key={idx} className="card">
+                <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center mb-5 text-brand-600">
+                  {ministry.icon}
                 </div>
-              );
-            })}
+                <h3 className="text-base font-semibold text-slate-900 mb-1.5">{ministry.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{ministry.desc}</p>
+              </div>
+            ))}
           </div>
 
-          <div className="text-center mt-8">
-            <Link to="/ministries" className="inline-flex items-center gap-2 px-8 py-3 bg-transparent border-2 border-brand-600 text-brand-600 hover:bg-brand-600 hover:text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
+          <div className="text-center mt-10">
+            <Link to="/ministries" className="btn btn-outline">
               {t('home.learn_more_about')}
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
             </Link>
@@ -917,14 +637,9 @@ const Home: React.FC = () => {
       <LazyLoadSection placeholderHeight="600px">
       <section className={`${UI_CONSTANTS.SECTION_PADDING} bg-white`}>
         <div className="container-xl">
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 bg-brand-100 rounded-full px-4 py-2 mb-4">
-              <svg className="w-5 h-5 text-brand-600" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
-              </svg>
-              <span className="font-medium text-brand-700">{t('home.latest_content')}</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900">
+          <div className="text-center mb-16">
+            <p className="eyebrow justify-center mb-4">{t('home.latest_content')}</p>
+            <h2 className="h2">
               {t('home.gospel')}
             </h2>
           </div>
@@ -937,34 +652,24 @@ const Home: React.FC = () => {
                 const content = stripHtml(reflection.content[language] || reflection.content.vi);
                 
                 return (
-                  <div
-                    key={index}
-                    className="group block bg-white rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 p-6 border border-slate-200"
-                  >
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="inline-flex items-center gap-1.5 bg-brand-100 text-brand-700 rounded-full px-3 py-1 text-xs font-semibold">
-                        <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
-                        </svg>
-                        {t('reflections.gospel')}
-                      </span>
-                    </div>
+                  <div key={index} className="card group">
+                    <p className="eyebrow mb-3 text-xs">{t('reflections.gospel')}</p>
                     <Link to={`/reflections/${reflection.id}`} className="block">
-                      <h4 className="text-lg font-bold text-slate-900 mb-2 group-hover:text-brand-600 transition-colors line-clamp-2">
+                      <h4 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-brand-600 transition-colors line-clamp-2">
                         {reflection.title[language] || reflection.title.vi}
                       </h4>
                     </Link>
-                    <div className={`text-slate-600 text-sm leading-relaxed mb-4 transition-all duration-300 ${isExpanded ? '' : 'line-clamp-3'}`}>
+                    <div className={`text-slate-500 text-sm leading-relaxed mb-4 transition-all duration-300 ${isExpanded ? '' : 'line-clamp-3'}`}>
                       {content}
                     </div>
-                    <button 
+                    <button
                       onClick={(e) => {
                         e.preventDefault();
                         if (reflection.id) {
                           setExpandedReflectionId(isExpanded ? null : reflection.id);
                         }
                       }}
-                      className="inline-flex items-center gap-2 text-brand-600 font-semibold text-sm hover:gap-3 transition-all"
+                      className="inline-flex items-center gap-1.5 text-brand-600 font-semibold text-sm"
                     >
                       {isExpanded ? (language === 'vi' ? 'Thu gọn' : 'Read less') : t('home.read_more')}
                       <svg className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -975,9 +680,9 @@ const Home: React.FC = () => {
                 );
               })}
               <div className="text-center">
-                <Link to="/reflections" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300">
+                <Link to="/reflections" className="btn btn-primary">
                   {t('home.view_all_gospel')}
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
                 </Link>
@@ -985,67 +690,56 @@ const Home: React.FC = () => {
             </div>
 
             {/* Connect Section */}
-            <div>
-              <div className="bg-gradient-to-br from-white to-slate-50 rounded-2xl shadow-xl p-8 border border-slate-200">
-                <h3 className="text-2xl font-bold text-slate-900 mb-6">{t('home.connect')}</h3>
-                <p className="text-slate-600 mb-6">{t('home.follow_us')}</p>
-                <div className="space-y-4">
-                  <a 
-                    href={CHURCH_INFO.FACEBOOK_URL} 
-                    className="flex items-center gap-4 p-4 bg-white rounded-lg hover:bg-blue-50 border border-slate-200 hover:border-blue-300 transition-all duration-300 group"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    <div className="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-slate-900">Facebook</p>
-                      <p className="text-sm text-slate-600">{CHURCH_INFO.FACEBOOK_DISPLAY}</p>
-                    </div>
-                    <svg className="w-5 h-5 text-slate-400 group-hover:text-blue-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <div className="card">
+              <h3 className="text-xl font-semibold text-slate-900 mb-1.5">{t('home.connect')}</h3>
+              <p className="text-slate-500 mb-6">{t('home.follow_us')}</p>
+              <div className="space-y-1">
+                <a
+                  href={CHURCH_INFO.FACEBOOK_URL}
+                  className="flex items-center gap-4 py-4 border-t border-slate-100 group"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-brand-600 transition-colors shrink-0">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
                     </svg>
-                  </a>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-slate-900 text-sm">Facebook</p>
+                    <p className="text-sm text-slate-500">{CHURCH_INFO.FACEBOOK_DISPLAY}</p>
+                  </div>
+                </a>
 
-                  <a 
-                    href={`mailto:${CHURCH_INFO.EMAIL}`}
-                    className="flex items-center gap-4 p-4 bg-white rounded-lg hover:bg-red-50 border border-slate-200 hover:border-red-300 transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 bg-red-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-slate-900">Email</p>
-                      <p className="text-sm text-slate-600 break-all">{CHURCH_INFO.EMAIL}</p>
-                    </div>
-                    <svg className="w-5 h-5 text-slate-400 group-hover:text-red-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <a
+                  href={`mailto:${CHURCH_INFO.EMAIL}`}
+                  className="flex items-center gap-4 py-4 border-t border-slate-100 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-brand-600 transition-colors shrink-0">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                  </a>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-slate-900 text-sm">Email</p>
+                    <p className="text-sm text-slate-500 break-all">{CHURCH_INFO.EMAIL}</p>
+                  </div>
+                </a>
 
-                  <Link 
-                    to="/contact"
-                    className="flex items-center gap-4 p-4 bg-white rounded-lg hover:bg-brand-50 border border-slate-200 hover:border-brand-300 transition-all duration-300 group"
-                  >
-                    <div className="w-12 h-12 bg-brand-600 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-semibold text-slate-900">{t('home.contact_direct')}</p>
-                      <p className="text-sm text-slate-600">{CHURCH_INFO.PHONE}</p>
-                    </div>
-                    <svg className="w-5 h-5 text-slate-400 group-hover:text-brand-600 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <Link
+                  to="/contact"
+                  className="flex items-center gap-4 py-4 border-t border-b border-slate-100 group"
+                >
+                  <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-brand-600 transition-colors shrink-0">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
                     </svg>
-                  </Link>
-                </div>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-slate-900 text-sm">{t('home.contact_direct')}</p>
+                    <p className="text-sm text-slate-500">{CHURCH_INFO.PHONE}</p>
+                  </div>
+                </Link>
               </div>
             </div>
           </div>
@@ -1054,47 +748,25 @@ const Home: React.FC = () => {
       </LazyLoadSection>
 
       {/* Call to Action */}
-      {/* CTA */}
       <LazyLoadSection placeholderHeight="400px">
-      <section className={`relative ${UI_CONSTANTS.SECTION_PADDING} bg-gradient-to-br from-brand-600 to-brand-800 overflow-hidden`}>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)] pointer-events-none"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.05),transparent)] pointer-events-none"></div>
-        <div className="container-xl text-center relative z-10">
-          <div className="max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-              <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z"/>
-              </svg>
-              <span className="font-medium text-white">{t('home.join_us_title')}</span>
-            </div>
-            
-            <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">
+      <section className={`${UI_CONSTANTS.SECTION_PADDING} bg-slate-900`}>
+        <div className="container-xl text-center">
+          <div className="max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-5xl font-semibold text-white mb-5 tracking-tight">
               {t('home.join_us_title')}
             </h2>
-            <p className="text-xl text-white/90 mb-8 leading-relaxed">
+            <p className="text-lg text-slate-400 mb-10 leading-relaxed">
               {t('home.join_us_desc')}
             </p>
-            
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                      <Link 
-                        to="/contact" 
-                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-accent-500 text-white font-bold rounded-xl shadow-xl hover:bg-accent-600 hover:shadow-2xl hover:scale-105 transition-all duration-300"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                        {t('home.contact_now')}
-                      </Link>
-                      <Link 
-                        to="/about" 
-                        className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 backdrop-blur-sm text-white border border-white/30 font-bold rounded-xl hover:bg-white hover:text-brand-600 hover:scale-105 transition-all duration-300"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {t('home.learn_more_about')}
-                      </Link>
-                    </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Link to="/contact" className="btn bg-white text-slate-900 hover:bg-slate-100">
+                {t('home.contact_now')}
+              </Link>
+              <Link to="/about" className="btn border border-white/20 text-white hover:bg-white/10">
+                {t('home.learn_more_about')}
+              </Link>
+            </div>
           </div>
         </div>
       </section>

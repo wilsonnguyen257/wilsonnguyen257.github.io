@@ -101,7 +101,7 @@ export default function Ministries() {
   const { t } = useLanguage();
   
   return (
-    <div className="bg-slate-50">
+    <div className="bg-surface">
       <PageHero
         title={t('ministries.title')}
         subtitle={t('ministries.description')}
@@ -117,8 +117,8 @@ export default function Ministries() {
       <section className="relative -mt-16 z-20 pb-12">
         <div className="container-xl">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-10 border border-slate-100">
-              <h2 className="text-2xl font-bold text-slate-900 mb-4 font-serif">{t('ministries.join_title')}</h2>
+            <div className="card !p-8 md:!p-10">
+              <h2 className="text-2xl font-semibold text-slate-900 mb-4">{t('ministries.join_title')}</h2>
               <p className="text-lg text-slate-600 leading-relaxed">
                 {t('ministries.join_desc')}
               </p>
@@ -136,13 +136,13 @@ export default function Ministries() {
               return (
                 <div
                   key={ministry.key}
-                  className={`group bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 p-8 border border-slate-100 hover:border-brand-200 hover:-translate-y-1`}
+                  className="group card !p-8"
                 >
-                  <div className={`w-16 h-16 ${colors.bg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${colors.text} shadow-inner`}>
+                  <div className={`w-14 h-14 rounded-full ${colors.bg} flex items-center justify-center mb-6 ${colors.text}`}>
                     {ministry.icon}
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-slate-900 mb-4 font-serif">
+                  <h3 className="text-xl font-semibold text-slate-900 mb-3">
                     {t(`ministries.${ministry.key}`)}
                   </h3>
                   
@@ -178,7 +178,7 @@ export default function Ministries() {
       {/* Safeguarding Policy Section */}
       <section className="py-12 bg-slate-50 border-t border-slate-200">
         <div className="container-xl">
-          <div className="bg-white rounded-xl shadow-lg p-8 md:p-12 border border-slate-100 flex flex-col md:flex-row items-center gap-8">
+          <div className="card !p-8 md:!p-12 flex flex-col md:flex-row items-center gap-8">
             <div className="flex-1">
               <div className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 rounded-full px-4 py-2 mb-4">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -186,7 +186,7 @@ export default function Ministries() {
                 </svg>
                 <span className="font-medium">{t('ministries.safeguarding_title')}</span>
               </div>
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-4">
+              <h2 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-4">
                 {t('ministries.safeguarding_heading')}
               </h2>
               <p className="text-lg text-slate-600 mb-6 leading-relaxed">
@@ -196,7 +196,7 @@ export default function Ministries() {
                 href="/documents/Safeguarding-and-Wellbeing-of-Children-and-Young-People-SWCYP-Policy-v2.0.pdf" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 text-white font-semibold rounded-xl hover:bg-brand-700 transition-colors shadow-md hover:shadow-lg"
+                className="btn btn-primary"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -209,7 +209,7 @@ export default function Ministries() {
                 href="/documents/Safeguarding-and-Wellbeing-of-Children-and-Young-People-SWCYP-Policy-v2.0.pdf" 
                 target="_blank"
                 rel="noopener noreferrer"
-                className="relative w-48 h-64 bg-slate-100 rounded-lg shadow-md border border-slate-200 flex items-center justify-center group cursor-pointer hover:scale-105 transition-transform duration-300"
+                className="relative w-48 h-64 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-center group cursor-pointer"
               >
                 <svg className="w-20 h-20 text-slate-300 group-hover:text-brand-500 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -224,31 +224,17 @@ export default function Ministries() {
       </section>
 
       {/* Contact CTA Section */}
-      <section className="relative py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-brand-600 to-brand-800"></div>
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGRlZnM+PHBhdHRlcm4gaWQ9ImdyaWQiIHdpZHRoPSI2MCIgaGVpZ2h0PSI2MCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+PHBhdGggZD0iTSAxMCAwIEwgMCAwIDAgMTAiIGZpbGw9Im5vbmUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS1vcGFjaXR5PSIwLjEiIHN0cm9rZS13aWR0aD0iMSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNncmlkKSIvPjwvc3ZnPg==')] opacity-30"></div>
-        <div className="container-xl relative text-center text-white">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">{t('ministries.get_involved')}</h2>
-          <p className="text-xl text-white/90 max-w-2xl mx-auto mb-8 leading-relaxed">
+      <section className="py-24 bg-slate-900">
+        <div className="container-xl text-center">
+          <h2 className="text-3xl md:text-4xl font-semibold text-white mb-4 tracking-tight">{t('ministries.get_involved')}</h2>
+          <p className="text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
             {t('ministries.get_involved_desc')}
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <a 
-              href="tel:0422-400-116" 
-              className="group inline-flex items-center gap-2 px-8 py-3 bg-accent-500 text-white font-semibold rounded-lg shadow-lg hover:bg-accent-600 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
-            >
-              <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-              </svg>
+          <div className="flex flex-wrap justify-center gap-3">
+            <a href="tel:0422-400-116" className="btn bg-white text-slate-900 hover:bg-slate-100">
               {t('ministries.call_us')}
             </a>
-            <a 
-              href="mailto:anethanhvn@gmail.com" 
-              className="group inline-flex items-center gap-2 px-8 py-3 bg-transparent border-2 border-white text-white font-semibold rounded-lg hover:bg-white hover:text-brand-700 transition-all duration-300 transform hover:-translate-y-0.5"
-            >
-              <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
+            <a href="mailto:anethanhvn@gmail.com" className="btn border border-white/20 text-white hover:bg-white/10">
               {t('ministries.email_us')}
             </a>
           </div>

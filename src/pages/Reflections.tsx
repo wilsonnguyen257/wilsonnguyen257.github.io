@@ -104,7 +104,7 @@ export default function Reflections() {
   const otherReflections = filteredReflections.slice(1);
 
   return (
-    <div className="bg-slate-50">
+    <div className="bg-white">
       <SEO 
         title={t('reflections.title')} 
         description={t('reflections.subtitle')} 
@@ -127,7 +127,7 @@ export default function Reflections() {
             <div className="max-w-5xl mx-auto">
               <Link
                 to={`/reflections/${featuredReflection.id}`}
-                className="group block bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden border border-slate-100 hover:border-brand-200 hover:-translate-y-1 relative"
+                className="group block bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.1)] transition-shadow duration-300 overflow-hidden border border-slate-100 relative"
               >
                 <div className={featuredReflection.thumbnail ? 'grid md:grid-cols-2 gap-0' : ''}>
                 {featuredReflection.thumbnail && (
@@ -140,10 +140,6 @@ export default function Reflections() {
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
                   </div>
                 )}
-                {!featuredReflection.thumbnail && (
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-brand-50 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110 opacity-50"></div>
-                )}
-
                 <div className="p-8 md:p-12 relative">
                   <div className="flex flex-wrap items-center gap-4 mb-8">
                     <span className="inline-flex items-center gap-2 bg-brand-100 text-brand-700 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider">
@@ -166,7 +162,7 @@ export default function Reflections() {
                     <span className="text-slate-500 text-sm font-medium">{featuredReflection.date || t('reflections.recently')}</span>
                   </div>
                   
-                  <h3 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 group-hover:text-brand-700 transition-colors font-serif leading-tight">
+                  <h3 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-6 group-hover:text-brand-700 transition-colors leading-tight tracking-tight">
                     {featuredReflection.title[language] || featuredReflection.title.vi}
                   </h3>
                   
@@ -195,7 +191,7 @@ export default function Reflections() {
       )}
 
       {/* Filter Section - Moved below featured */}
-      <section className="py-12 bg-slate-50">
+      <section className="py-12 bg-surface">
         <div className="container-xl">
           <div className="max-w-5xl mx-auto">
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-12">
@@ -304,7 +300,7 @@ export default function Reflections() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3 font-serif">{t('reflections.no_results')}</h3>
+                <h3 className="text-xl font-semibold text-slate-900 mb-3">{t('reflections.no_results')}</h3>
                 <p className="text-slate-600 mb-6">{t('reflections.no_results_desc')}</p>
                 <button 
                   onClick={() => {
@@ -324,12 +320,12 @@ export default function Reflections() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900 mb-3 font-serif">{t('reflections.no_reflections')}</h3>
+                <h3 className="text-xl font-semibold text-slate-900 mb-3">{t('reflections.no_reflections')}</h3>
                 <p className="text-slate-600">{t('reflections.no_reflections_desc')}</p>
               </div>
             ) : otherReflections.length > 0 ? (
               <>
-                <h2 className="text-2xl font-bold text-slate-900 mb-8 font-serif border-l-4 border-brand-500 pl-4">{t('reflections.all_reflections')}</h2>
+                <h2 className="text-2xl font-semibold text-slate-900 mb-8 border-l-2 border-brand-500 pl-4">{t('reflections.all_reflections')}</h2>
                 <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
                   {otherReflections.map((reflection) => {
                     return (
@@ -357,7 +353,7 @@ export default function Reflections() {
                             </span>
                           </div>
                           
-                          <h3 className="text-xl font-bold text-slate-900 mb-4 group-hover:text-brand-600 transition-colors line-clamp-2 font-serif">
+                          <h3 className="text-lg font-semibold text-slate-900 mb-4 group-hover:text-brand-600 transition-colors line-clamp-2">
                             {reflection.title[language] || reflection.title.vi}
                           </h3>
                           

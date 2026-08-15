@@ -382,19 +382,18 @@ export default function AdminEvents() {
         </div>
         
         <div className="grid gap-6">
-          <div className="grid md:grid-cols-3 gap-6 items-start">
-            <div className="md:col-span-2">
-              <BilingualForm
-                title={`${language === 'vi' ? 'Tên sự kiện' : 'Event Name'} *`}
-                type="input"
-                value={{ vi: formData.nameVi, en: formData.nameEn }}
-                onChange={(v) => setFormData({ ...formData, nameVi: v.vi, nameEn: v.en })}
-                placeholder={{
-                  vi: 'Nhập tên sự kiện...',
-                  en: 'Enter event name...',
-                }}
-              />
-            </div>
+          <BilingualForm
+            title={`${language === 'vi' ? 'Tên sự kiện' : 'Event Name'} *`}
+            type="input"
+            value={{ vi: formData.nameVi, en: formData.nameEn }}
+            onChange={(v) => setFormData({ ...formData, nameVi: v.vi, nameEn: v.en })}
+            placeholder={{
+              vi: 'Nhập tên sự kiện...',
+              en: 'Enter event name...',
+            }}
+          />
+
+          <div className="grid md:grid-cols-3 gap-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 {language === 'vi' ? 'Ngày' : 'Date'} <span className="text-red-500">*</span>
@@ -407,9 +406,6 @@ export default function AdminEvents() {
                 required
               />
             </div>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
                 {language === 'vi' ? 'Giờ' : 'Time'} <span className="text-red-500">*</span>

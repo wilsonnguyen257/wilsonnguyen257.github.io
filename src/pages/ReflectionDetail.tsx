@@ -175,12 +175,19 @@ export default function ReflectionDetail() {
       <section className="py-20">
         <div className="container-xl max-w-4xl mx-auto">
           {reflection.thumbnail && (
-            <div className="mb-10 rounded-2xl overflow-hidden shadow-xl bg-white">
+            <div className="relative mb-10 h-[320px] sm:h-[420px] md:h-[480px] rounded-2xl overflow-hidden shadow-xl bg-slate-900">
+              {/* Blurred, color-matched backdrop fills the frame regardless of the photo's aspect ratio */}
+              <div
+                className="absolute inset-0 bg-cover bg-center scale-110 blur-2xl opacity-50"
+                style={{ backgroundImage: `url(${reflection.thumbnail})` }}
+                aria-hidden="true"
+              />
+              {/* Full photo, never cropped, capped so it can't overwhelm the page */}
               <img
                 src={reflection.thumbnail}
                 alt={title}
-                className="w-full h-auto"
                 loading="lazy"
+                className="relative mx-auto h-full w-auto max-w-full object-contain"
               />
             </div>
           )}

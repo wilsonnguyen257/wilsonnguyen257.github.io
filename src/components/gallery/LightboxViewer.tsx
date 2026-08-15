@@ -178,7 +178,10 @@ export default function LightboxViewer({
               {currentImage.caption?.[language] || currentImage.originalName}
             </h3>
             <p className="text-sm opacity-75">
-              {currentIndex + 1} / {images.length} • {currentImage.width} × {currentImage.height}
+              {currentIndex + 1} / {images.length}
+              {currentImage.width && currentImage.height
+                ? ` • ${currentImage.width} × ${currentImage.height}`
+                : ''}
             </p>
           </div>
           

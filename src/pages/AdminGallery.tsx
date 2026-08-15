@@ -5,10 +5,27 @@ import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { useLanguage } from '../contexts/LanguageContext';
 import toast from 'react-hot-toast';
-import { compressImage } from '../lib/image';
+import { processImageForUpload } from '../lib/image';
 import { validateDateInput, validateImageFile, validateRequiredText } from '../lib/validation';
 
-type GalleryItem = { id: string; url: string; name: string; created: number; path?: string };
+type GalleryItem = {
+  id: string;
+  url: string;
+  name: string;
+  created: number;
+  path?: string;
+  thumbnailUrl?: string;
+  thumbnailPath?: string;
+};
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(file);
+  });
+}
 
 export default function AdminGallery() {
   const { t } = useLanguage();
@@ -71,26 +88,46 @@ export default function AdminGallery() {
     setUploading(true);
     
     try {
-      const compressedFile = await compressImage(file);
+      // Normalizes the photo to a consistent format/size and produces a
+      // small thumbnail alongside the full display version, so the grid
+      // doesn't have to download full-size images just to show a tile.
+      const { display, thumbnail } = await processImageForUpload(file);
       const uid = uuidv4();
       let url = '';
+      let thumbnailUrl = '';
       let path: string | undefined;
+      let thumbnailPath: string | undefined;
+
       if (IS_FIREBASE_CONFIGURED && fbStorage) {
-        // Upload to Firebase Storage and get a public URL
-        path = `gallery/${uid}/${compressedFile.name}`;
+        // Upload to Firebase Storage and get public URLs
+        path = `gallery/${uid}/${display.name}`;
         const objectRef = ref(fbStorage, path);
-        await uploadBytes(objectRef, compressedFile);
+        await uploadBytes(objectRef, display);
         url = await getDownloadURL(objectRef);
+
+        if (thumbnail !== display) {
+          thumbnailPath = `gallery/${uid}/${thumbnail.name}`;
+          const thumbRef = ref(fbStorage, thumbnailPath);
+          await uploadBytes(thumbRef, thumbnail);
+          thumbnailUrl = await getDownloadURL(thumbRef);
+        } else {
+          thumbnailUrl = url;
+          thumbnailPath = path;
+        }
       } else {
-        // Fallback: data URL for local/preview-only storage
-        url = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(String(reader.result));
-          reader.onerror = () => reject(reader.error);
-          reader.readAsDataURL(compressedFile);
-        });
+        // Fallback: data URLs for local/preview-only storage
+        url = await fileToDataUrl(display);
+        thumbnailUrl = thumbnail !== display ? await fileToDataUrl(thumbnail) : url;
       }
-      const newItem: GalleryItem = { id: uid, url, name: compressedFile.name || 'image', created: Date.now(), path };
+      const newItem: GalleryItem = {
+        id: uid,
+        url,
+        thumbnailUrl,
+        name: display.name || 'image',
+        created: Date.now(),
+        path,
+        thumbnailPath,
+      };
       const updated = [...images, newItem];
       await saveItem('gallery', newItem);
       setImages(updated);
@@ -157,6 +194,13 @@ export default function AdminGallery() {
           await deleteObject(ref(fbStorage, image.path));
         } catch (err) {
           console.warn('Failed to delete storage object; proceeding to update index', err);
+        }
+      }
+      if (IS_FIREBASE_CONFIGURED && fbStorage && image.thumbnailPath && image.thumbnailPath !== image.path) {
+        try {
+          await deleteObject(ref(fbStorage, image.thumbnailPath));
+        } catch (err) {
+          console.warn('Failed to delete thumbnail storage object; proceeding to update index', err);
         }
       }
       const updated = images.filter(img => img.id !== id);
@@ -243,7 +287,7 @@ export default function AdminGallery() {
                 <p className="mb-2 text-sm text-gray-500">
                   <span className="font-semibold">{file ? file.name : t('admin.gallery.choose_file')}</span>
                 </p>
-                {!file && <p className="text-xs text-gray-400">PNG, JPG, GIF up to 10MB</p>}
+                {!file && <p className="text-xs text-gray-400">PNG, JPG, GIF up to 10MB — automatically optimized to WebP</p>}
               </div>
               <input
                 id="file-upload"
@@ -313,7 +357,7 @@ export default function AdminGallery() {
               <div key={img.id} className="relative group bg-white rounded-xl shadow-sm overflow-hidden border border-gray-100 hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
                 <div className="relative overflow-hidden aspect-[4/3]">
                   <img
-                    src={img.url}
+                    src={img.thumbnailUrl || img.url}
                     alt={img.name}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     loading="lazy"

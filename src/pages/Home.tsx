@@ -252,22 +252,6 @@ const Home: React.FC = () => {
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
                   ></iframe>
-
-                  {/* Map Overlay Card */}
-                  <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-slate-100">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-brand-50 rounded-full text-brand-600">
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="font-semibold text-slate-900 text-sm">St Francis Xavier's Catholic Church</p>
-                        <p className="text-slate-500 text-xs mt-0.5">138 Woodhouse Grove, Box Hill North</p>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>

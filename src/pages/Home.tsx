@@ -196,7 +196,7 @@ const Home: React.FC = () => {
         <div className="container-xl relative z-10 py-10 sm:py-12 md:py-16 lg:py-20">
           <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12 lg:gap-20">
             {/* Content */}
-            <div className="text-center md:text-left bg-white rounded-3xl border border-slate-100 shadow-[0_8px_40px_rgb(0,0,0,0.08)] p-8 sm:p-10 lg:p-12">
+            <div className="text-center md:text-left">
               <div className="eyebrow mb-5 justify-center md:justify-start">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>

@@ -194,27 +194,27 @@ const Home: React.FC = () => {
         )}
 
         <div className="container-xl relative z-10 py-10 sm:py-12 md:py-16 lg:py-20">
-          <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-20">
+          <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12 lg:gap-20">
             {/* Content */}
-            <div className="text-center lg:text-left">
-              <div className="eyebrow mb-5 justify-center lg:justify-start">
+            <div className="text-center md:text-left">
+              <div className="eyebrow mb-5 justify-center md:justify-start">
                 <span className="relative flex h-1.5 w-1.5">
                   <span className="inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                 </span>
                 <span>{t('home.welcome_badge') || 'Chào mừng đến với Cộng đoàn'}</span>
               </div>
 
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-semibold leading-[1.05] mb-6 text-slate-900 tracking-tight">
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-semibold leading-[1.05] mb-6 text-slate-900 tracking-tight">
                 {t('home.title')}
               </h1>
-              <p className="text-xl md:text-2xl text-slate-600 mb-4 leading-relaxed max-w-2xl mx-auto lg:mx-0">
+              <p className="text-xl md:text-2xl text-slate-600 mb-4 leading-relaxed max-w-2xl mx-auto md:mx-0">
                 {t('home.subtitle')}
               </p>
-              <p className="text-base md:text-lg text-slate-500 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed">
+              <p className="text-base md:text-lg text-slate-500 mb-8 max-w-xl mx-auto md:mx-0 leading-relaxed">
                 {t('home.description')}
               </p>
 
-              <div className="flex flex-col sm:flex-row items-center gap-3 justify-center lg:justify-start mb-12">
+              <div className="flex flex-col sm:flex-row items-center gap-3 justify-center md:justify-start mb-10">
                 <Link to="/about" className="btn btn-primary w-full sm:w-auto">
                   {t('home.learn_more')}
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
@@ -227,7 +227,7 @@ const Home: React.FC = () => {
               </div>
 
               {/* Quick Info Bar */}
-              <div className="flex justify-center lg:justify-start pt-8 border-t border-slate-200 w-full">
+              <div className="flex justify-center md:justify-start pt-6 border-t border-slate-200 w-full">
                 <div className="flex items-start sm:items-center gap-3 max-w-full">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-brand-600 shrink-0 mt-1 sm:mt-0">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
@@ -243,7 +243,7 @@ const Home: React.FC = () => {
             {/* Map Card */}
             <div className="relative">
               <div className="relative bg-white rounded-3xl shadow-[0_8px_40px_rgb(0,0,0,0.08)] border border-slate-100 overflow-hidden">
-                <div className="relative h-[360px] md:h-[460px]">
+                <div className="relative h-[280px] sm:h-[340px] md:h-[380px] lg:h-[440px]">
                   <iframe
                     src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3150.982869339574!2d145.11869731531985!3d-37.81564207974633!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad6404f2b6c09f9%3A0x5045675218ce6e0!2s138%20Woodhouse%20Grove%2C%20Box%20Hill%20North%20VIC%203129!5e0!3m2!1sen!2sau!4v1734134400000!5m2!1sen!2sau"
                     title="St Francis Xavier's Catholic Church Location"

@@ -12,6 +12,7 @@ interface BilingualFormProps {
   rows?: number;
   autoTranslate?: boolean;
   onAutoTranslate?: (from: 'vi' | 'en', to: 'vi' | 'en', text: string) => Promise<string>;
+  required?: boolean;
 }
 
 export default function BilingualForm({
@@ -22,7 +23,8 @@ export default function BilingualForm({
   type = 'input',
   rows = 4,
   autoTranslate = false,
-  onAutoTranslate
+  onAutoTranslate,
+  required = false
 }: BilingualFormProps) {
   const { language } = useLanguage();
   const [activeTab, setActiveTab] = useState<'vi' | 'en'>('vi');
@@ -72,7 +74,10 @@ export default function BilingualForm({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-slate-900">{title}</h3>
+        <h3 className="text-lg font-semibold text-slate-900">
+          {title}
+          {required && <span className="text-red-500">&nbsp;*</span>}
+        </h3>
         {autoTranslate && (
           <button
             type="button"

@@ -338,7 +338,8 @@ export default function AdminReflections() {
         
         <div className="grid gap-6">
             <BilingualForm
-              title={`${language === 'vi' ? 'Tiêu đề' : 'Title'} *`}
+              title={language === 'vi' ? 'Tiêu đề' : 'Title'}
+              required
               type="input"
               value={{ vi: formData.titleVi, en: formData.titleEn }}
               onChange={(v) => setFormData({ ...formData, titleVi: v.vi, titleEn: v.en })}
@@ -349,7 +350,8 @@ export default function AdminReflections() {
             />
 
             <BilingualForm
-              title={`${language === 'vi' ? 'Nội dung' : 'Content'} *`}
+              title={language === 'vi' ? 'Nội dung' : 'Content'}
+              required
               type="editor"
               value={{ vi: formData.contentVi, en: formData.contentEn }}
               onChange={(v) => setFormData({ ...formData, contentVi: v.vi, contentEn: v.en })}

@@ -383,7 +383,8 @@ export default function AdminEvents() {
         
         <div className="grid gap-6">
           <BilingualForm
-            title={`${language === 'vi' ? 'Tên sự kiện' : 'Event Name'} *`}
+            title={language === 'vi' ? 'Tên sự kiện' : 'Event Name'}
+            required
             type="input"
             value={{ vi: formData.nameVi, en: formData.nameEn }}
             onChange={(v) => setFormData({ ...formData, nameVi: v.vi, nameEn: v.en })}

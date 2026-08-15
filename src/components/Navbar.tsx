@@ -35,19 +35,14 @@ export default function Navbar() {
   }, []);
 
   const navItem = (to: string, key: string) => {
-    // Special styling for 'Give' button to make it prominent but not overwhelming
+    // 'Give' stays a filled pill in the secondary accent — everything else
+    // is plain text with no chrome, so the one colored button reads clearly.
     if (key === 'nav.give') {
       return (
         <NavLink
           key={to}
           to={to}
-          className={({ isActive }) =>
-            `rounded-full px-5 py-2.5 text-sm font-bold transition-all duration-200 border-2 ${
-              isActive
-                ? "bg-accent-600 border-accent-600 text-white shadow-md"
-                : "bg-white border-accent-600 text-accent-600 hover:bg-accent-50"
-            }`
-          }
+          className="rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-accent-600"
           onClick={() => setOpen(false)}
         >
           {t(key)}
@@ -60,10 +55,10 @@ export default function Navbar() {
         key={to}
         to={to}
         className={({ isActive }) =>
-          `rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
+          `rounded-full px-3.5 py-2 text-[15px] font-medium transition-colors duration-200 ${
             isActive
-              ? "bg-brand-600 text-white shadow-md shadow-brand-600/30"
-              : "text-slate-700 hover:bg-slate-100 hover:text-brand-600"
+              ? "text-slate-900 font-semibold"
+              : "text-slate-500 hover:text-slate-900"
           }`
         }
         onClick={() => setOpen(false)}
@@ -74,13 +69,13 @@ export default function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 backdrop-blur-md shadow-sm transition-all duration-300">
-      <div className="container-xl flex h-20 items-center justify-between">
+    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
+      <div className="container-xl flex h-16 items-center justify-between">
         <Link to="/" className="flex items-center gap-3 h-full group">
-          <img src={logo} alt="Logo" className="bg-white border-2 border-brand-200 shadow-lg max-h-16 max-w-[80px] p-1.5 rounded-full transition-transform duration-300 group-hover:scale-105 group-hover:shadow-xl" />
+          <img src={logo} alt="Logo" className="h-9 w-9 rounded-full object-cover" />
         </Link>
 
-        <nav className="hidden items-center gap-1 xl:flex">
+        <nav className="hidden items-center gap-0.5 xl:flex">
           {links.map((link) => navItem(link.to, link.key))}
 
           {/* Admin link (only shown when user is signed in) */}
@@ -88,22 +83,20 @@ export default function Navbar() {
             <NavLink
               to="/admin"
               className={({ isActive }) =>
-                `rounded-xl px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
-                  isActive
-                    ? "bg-brand-600 text-white shadow-md shadow-brand-600/30"
-                    : "text-slate-700 hover:bg-slate-100 hover:text-brand-600"
+                `rounded-full px-3.5 py-2 text-[15px] font-medium transition-colors duration-200 ${
+                  isActive ? "text-slate-900 font-semibold" : "text-slate-500 hover:text-slate-900"
                 }`
               }
             >
               Admin
             </NavLink>
           )}
-          
+
           {/* Language Toggle */}
-          <div className="ml-4">
+          <div className="ml-3 pl-3 border-l border-slate-200">
             <button
               onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-              className="px-3 py-2.5 rounded-xl border-2 border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:bg-slate-50 hover:border-brand-300 hover:shadow-md font-medium"
+              className="rounded-full px-3 py-2 text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-slate-900"
               aria-label="Toggle language"
             >
               {language === 'vi' ? '🇺🇸 EN' : '🇻🇳 VI'}
@@ -112,19 +105,17 @@ export default function Navbar() {
 
           {/* Sign out button (only shown when user is signed in) */}
           {IS_FIREBASE_CONFIGURED && user && (
-            <div className="ml-2 flex items-center gap-2">
-              <button
-                onClick={() => void logout()}
-                className="px-3 py-2.5 rounded-xl border-2 border-slate-200 bg-white text-slate-700 shadow-sm transition-all duration-200 hover:bg-red-50 hover:border-red-300 hover:text-red-600 hover:shadow-md font-medium"
-              >
-                Sign out
-              </button>
-            </div>
+            <button
+              onClick={() => void logout()}
+              className="rounded-full px-3 py-2 text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-red-600"
+            >
+              Sign out
+            </button>
           )}
         </nav>
 
         <button
-          className="xl:hidden rounded-xl border-2 border-slate-200 p-3 min-w-[44px] min-h-[44px] hover:bg-slate-100 transition-colors duration-200"
+          className="xl:hidden rounded-full p-2.5 min-w-[44px] min-h-[44px] hover:bg-slate-100 transition-colors duration-200"
           onClick={() => setOpen((v) => !v)}
           aria-label="Toggle Menu"
           aria-expanded={open}
@@ -158,22 +149,33 @@ export default function Navbar() {
         </button>
       </div>
       {open && (
-        <div 
-          id="mobile-menu" 
-          className="xl:hidden border-t border-slate-200 bg-white/95 backdrop-blur-md shadow-lg animate-fadeIn"
+        <div
+          id="mobile-menu"
+          className="xl:hidden border-t border-slate-200 bg-white animate-fadeIn"
         >
-          <div className="container-xl flex flex-col gap-2 py-4">
-            {links.map((l) => navItem(l.to, l.key))}
-            
+          <div className="container-xl flex flex-col gap-1 py-4">
+            {links.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                className={({ isActive }) =>
+                  `rounded-xl px-3 py-2.5 text-[15px] font-medium ${
+                    isActive ? "bg-slate-100 text-slate-900 font-semibold" : "text-slate-600 hover:bg-slate-50"
+                  } ${l.key === 'nav.give' ? '!text-accent-600 font-semibold' : ''}`
+                }
+                onClick={() => setOpen(false)}
+              >
+                {t(l.key)}
+              </NavLink>
+            ))}
+
             {/* Admin link for mobile (only shown when user is signed in) */}
             {IS_FIREBASE_CONFIGURED && user && (
               <NavLink
                 to="/admin"
                 className={({ isActive }) =>
-                  `rounded-xl px-3 py-2 text-sm font-medium ${
-                    isActive
-                      ? "bg-brand-600 text-white"
-                      : "text-slate-700 hover:bg-slate-100"
+                  `rounded-xl px-3 py-2.5 text-[15px] font-medium ${
+                    isActive ? "bg-slate-100 text-slate-900 font-semibold" : "text-slate-600 hover:bg-slate-50"
                   }`
                 }
                 onClick={() => setOpen(false)}
@@ -181,11 +183,11 @@ export default function Navbar() {
                 Admin
               </NavLink>
             )}
-            
-            <div className="mt-2 space-y-2">
+
+            <div className="mt-2 pt-2 border-t border-slate-100 space-y-1">
               <button
                 onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-                className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
+                className="w-full text-left px-3 py-2.5 rounded-xl text-[15px] font-medium text-slate-600 hover:bg-slate-50 transition-colors"
                 aria-label="Toggle language"
               >
                 {language === 'vi' ? '🇺🇸 EN' : '🇻🇳 VI'}
@@ -193,7 +195,7 @@ export default function Navbar() {
               {IS_FIREBASE_CONFIGURED && user && (
                 <button
                   onClick={() => void logout()}
-                  className="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white text-slate-700 shadow-sm transition hover:bg-slate-50"
+                  className="w-full text-left px-3 py-2.5 rounded-xl text-[15px] font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors"
                 >
                   Sign out
                 </button>

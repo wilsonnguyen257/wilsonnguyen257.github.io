@@ -75,7 +75,7 @@ export default function Events() {
   }, [events, now]);
 
   return (
-    <div className="bg-slate-50">
+    <div className="bg-white">
       <SEO 
         title={t('events.title')} 
         description={t('events.subtitle')} 
@@ -97,7 +97,7 @@ export default function Events() {
           <div className="container-xl">
             <Link 
               to={`/events/${upcomingEvents[0].id}`}
-              className="block max-w-5xl mx-auto bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden group border border-slate-100 hover:-translate-y-1"
+              className="block max-w-5xl mx-auto bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.1)] transition-shadow duration-300 overflow-hidden group border border-slate-100"
             >
               <div className="grid md:grid-cols-2 gap-0">
                 <div className="relative h-64 md:h-full min-h-[350px] overflow-hidden group">
@@ -107,20 +107,14 @@ export default function Events() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
-                  <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md text-brand-700 px-4 py-3 rounded-2xl shadow-xl font-bold border border-white/50 flex flex-col items-center min-w-[80px]">
+                  <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md text-brand-700 px-4 py-3 rounded-2xl shadow-sm font-semibold flex flex-col items-center min-w-[76px]">
                     <span className="text-sm uppercase tracking-wider font-bold text-slate-500">{parseEventDate(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</span>
                     <span className="text-3xl leading-none text-slate-900">{parseEventDate(upcomingEvents[0].date).getDate()}</span>
                   </div>
                 </div>
                 <div className="p-8 md:p-12 flex flex-col justify-center bg-white relative">
-                  <div className="inline-flex items-center gap-2 text-brand-600 font-bold mb-6 bg-brand-50 w-fit px-4 py-1.5 rounded-full text-xs uppercase tracking-wider border border-brand-100">
-                    <span className="relative flex h-2 w-2">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
-                    </span>
-                    {t('events.next_event')}
-                  </div>
-                  <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6 leading-tight font-serif group-hover:text-brand-700 transition-colors">
+                  <p className="eyebrow mb-6">{t('events.next_event')}</p>
+                  <h2 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-6 leading-tight tracking-tight group-hover:text-brand-700 transition-colors">
                     {upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
                   </h2>
                   <div className="space-y-4 mb-8 text-slate-600">
@@ -149,7 +143,7 @@ export default function Events() {
                     </div>
                   </div>
                   <span 
-                    className="inline-flex items-center justify-center gap-2 w-full md:w-auto bg-brand-600 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-brand-700 transition-all shadow-lg hover:shadow-brand-500/30 hover:-translate-y-0.5"
+                    className="btn btn-primary w-full md:w-auto"
                   >
                     {t('events.view_details')}
                     <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -165,11 +159,11 @@ export default function Events() {
 
       {/* Upcoming Events List */}
       {upcomingEvents.length > 1 && (
-        <section className="py-20 bg-slate-50">
+        <section className="py-20 bg-surface">
           <div className="container-xl">
             <div className="flex items-center gap-3 mb-12">
               <div className="h-px bg-slate-200 flex-1"></div>
-              <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-widest font-serif">{t('events.upcoming')}</h2>
+              <h2 className="text-lg font-semibold text-slate-900 uppercase tracking-widest">{t('events.upcoming')}</h2>
               <div className="h-px bg-slate-200 flex-1"></div>
             </div>
             
@@ -178,7 +172,7 @@ export default function Events() {
                 <Link 
                   key={event.id}
                   to={`/events/${event.id}`}
-                  className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-100 hover:border-brand-200 hover:-translate-y-1 flex flex-col overflow-hidden"
+                  className="group card !p-0 overflow-hidden flex flex-col"
                 >
                   <div className="relative h-56 overflow-hidden">
                     <img 
@@ -193,7 +187,7 @@ export default function Events() {
                   </div>
                   
                   <div className="p-6 flex-1 flex flex-col">
-                    <h3 className="text-xl font-bold text-slate-900 mb-3 group-hover:text-brand-600 transition-colors line-clamp-2 font-serif">
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3 group-hover:text-brand-600 transition-colors line-clamp-2">
                       {event.name[language] || event.name.vi}
                     </h3>
                     
@@ -221,11 +215,11 @@ export default function Events() {
       )}
 
       {/* Past Events List */}
-      <section className="py-20 bg-slate-100">
+      <section className="py-20 bg-surface">
         <div className="container-xl">
           <div className="flex items-center gap-3 mb-12">
             <div className="h-px bg-slate-300 flex-1"></div>
-            <h2 className="text-2xl font-bold text-slate-900 uppercase tracking-widest font-serif">{t('events.past_events')}</h2>
+            <h2 className="text-lg font-semibold text-slate-900 uppercase tracking-widest">{t('events.past_events')}</h2>
             <div className="h-px bg-slate-300 flex-1"></div>
           </div>
           
@@ -234,7 +228,7 @@ export default function Events() {
               <Link 
                 key={event.id}
                 to={`/events/${event.id}`}
-                className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 border border-slate-200 hover:border-brand-200 flex flex-col overflow-hidden opacity-80 hover:opacity-100"
+                className="group card !p-0 overflow-hidden flex flex-col opacity-80 hover:opacity-100"
               >
                 <div className="relative h-48 overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
                   <img 
@@ -249,7 +243,7 @@ export default function Events() {
                 </div>
                 
                 <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-lg font-bold text-slate-700 mb-3 group-hover:text-brand-600 transition-colors line-clamp-2 font-serif">
+                  <h3 className="text-lg font-semibold text-slate-700 mb-3 group-hover:text-brand-600 transition-colors line-clamp-2">
                     {event.name[language] || event.name.vi}
                   </h3>
                   

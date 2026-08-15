@@ -106,10 +106,10 @@ export default function Login() {
 
   if (!IS_FIREBASE_CONFIGURED) {
     return (
-      <div className="container-xl py-12">
-        <div className="mx-auto max-w-md rounded-lg border border-red-200 bg-red-50 p-8 text-center">
-          <h1 className="mb-4 text-2xl font-bold text-red-800">Firebase Not Configured</h1>
-          <p className="text-red-700">
+      <div className="min-h-screen bg-surface flex items-center justify-center px-4">
+        <div className="mx-auto max-w-md rounded-2xl border border-red-100 bg-red-50 p-8 text-center">
+          <h1 className="mb-2 text-xl font-semibold text-red-800">Firebase Not Configured</h1>
+          <p className="text-red-700 text-sm">
             Firebase authentication is not configured. Please set up your environment variables.
           </p>
         </div>
@@ -119,7 +119,7 @@ export default function Login() {
 
   if (checkingAuth) {
     return (
-      <div className="container-xl py-12 text-center text-slate-500">
+      <div className="min-h-screen bg-surface flex items-center justify-center text-slate-400 text-sm">
         Checking authentication...
       </div>
     );
@@ -128,33 +128,26 @@ export default function Login() {
   // If already logged in, show logged in state
   if (currentUser) {
     return (
-      <div className="container-xl py-12">
-        <div className="mx-auto max-w-md">
-          <div className="rounded-lg border border-slate-200 bg-white p-8 shadow-sm text-center">
+      <div className="min-h-screen bg-surface flex items-center justify-center px-4">
+        <div className="mx-auto max-w-md w-full">
+          <div className="card text-center">
             <div className="mb-6">
-              <div className="mx-auto w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="mx-auto w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center mb-4">
+                <svg className="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold text-slate-800 mb-2">Already Logged In</h1>
-              <p className="text-slate-600">
-                You're signed in as <strong>{currentUser.email}</strong>
+              <h1 className="text-xl font-semibold text-slate-900 mb-2">Already Logged In</h1>
+              <p className="text-slate-500 text-sm">
+                You're signed in as <strong className="text-slate-900">{currentUser.email}</strong>
               </p>
             </div>
 
-            <div className="space-y-3">
-              <button
-                onClick={() => navigate('/admin')}
-                className="w-full rounded-md bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-              >
+            <div className="space-y-2">
+              <button onClick={() => navigate('/admin')} className="btn btn-primary w-full">
                 Go to Admin Dashboard
               </button>
-              
-              <button
-                onClick={handleLogout}
-                className="w-full rounded-md bg-slate-100 px-4 py-2 font-semibold text-slate-700 hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-colors"
-              >
+              <button onClick={handleLogout} className="btn btn-outline w-full">
                 Sign Out
               </button>
             </div>
@@ -165,18 +158,18 @@ export default function Login() {
   }
 
   return (
-    <div className="container-xl py-12">
-      <div className="mx-auto max-w-md">
-        <div className="rounded-lg border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="mb-6 text-center text-2xl font-bold text-slate-800">Admin Login</h1>
-          
+    <div className="min-h-screen bg-surface flex items-center justify-center px-4">
+      <div className="mx-auto max-w-md w-full">
+        <div className="card">
+          <h1 className="mb-6 text-center text-xl font-semibold text-slate-900">Admin Login</h1>
+
           {error && (
-            <div className="mb-6 rounded-md border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+            <div className="mb-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-800">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
                 Email Address
@@ -188,7 +181,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="w-full rounded-md border border-slate-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="admin@example.com"
                 disabled={loading}
               />
@@ -205,22 +198,18 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full rounded-md border border-slate-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
                 placeholder="••••••••"
                 disabled={loading}
               />
             </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-md bg-blue-600 px-4 py-2 font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
-            >
+            <button type="submit" disabled={loading} className="btn btn-primary w-full">
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-slate-600">
+          <div className="mt-6 text-center text-sm text-slate-400">
             <p>Authorized personnel only</p>
           </div>
         </div>

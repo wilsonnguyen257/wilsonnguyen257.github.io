@@ -215,7 +215,7 @@ export default function Calendar({ events, onDateClick, onEventClick, selectedDa
       <div className="p-4 border-t border-slate-200">
         <div className="flex flex-wrap gap-4 text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded bg-blue-500"></div>
+            <div className="w-3 h-3 rounded bg-brand-500"></div>
             <span className="text-slate-600">{t('Mass', 'Thánh lễ')}</span>
           </div>
           <div className="flex items-center gap-2">

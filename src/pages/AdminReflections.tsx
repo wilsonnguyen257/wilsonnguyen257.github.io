@@ -5,7 +5,7 @@ import { subscribeJson, saveItem, deleteItem } from '../lib/storage';
 import { logAuditAction } from '../lib/audit';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import VisualEditor from '../components/VisualEditor';
+import BilingualForm from '../components/forms/BilingualForm';
 import type { Reflection } from '../types/content';
 import toast from 'react-hot-toast';
 import { compressImage } from '../lib/image';
@@ -20,6 +20,7 @@ export default function AdminReflections() {
   const retentionDays = 90;
   const [restoringId, setRestoringId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     titleVi: '',
     titleEn: '',
@@ -38,38 +39,6 @@ export default function AdminReflections() {
   const [sortConfig, setSortConfig] = useState<{ key: 'date' | 'title', direction: 'asc' | 'desc' }>({ key: 'date', direction: 'desc' });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
-
-  // Clean pasted content from various platforms
-  const cleanPastedContent = (text: string): string => {
-    return text
-      // Remove inline styles and font tags
-      .replace(/<font[^>]*>/gi, '')
-      .replace(/<\/font>/gi, '')
-      .replace(/style="[^"]*"/gi, '')
-      .replace(/class="[^"]*"/gi, '')
-      // Remove span tags but keep content
-      .replace(/<span[^>]*>/gi, '')
-      .replace(/<\/span>/gi, '')
-      // Remove weird characters from email/web (zero-width, etc)
-      .replace(/[\u200B-\u200D\uFEFF]/g, '')
-      // Normalize line breaks (keep structure)
-      .replace(/\r\n/g, '\n')
-      // Remove excessive blank lines (3+ becomes 2)
-      .replace(/\n{3,}/g, '\n\n')
-      // Clean up spaces but preserve line structure
-      .replace(/[ \t]+/g, ' ')
-      // Trim each line but keep the line breaks
-      .split('\n').map(line => line.trim()).join('\n')
-      .trim();
-  };
-
-  // Auto-clean on paste
-  const handleContentPaste = (e: React.ClipboardEvent, field: 'contentVi' | 'contentEn') => {
-    e.preventDefault();
-    const pastedText = e.clipboardData.getData('text');
-    const cleaned = cleanPastedContent(pastedText);
-    setFormData({ ...formData, [field]: cleaned });
-  };
 
   // Load reflections
   useEffect(() => {
@@ -142,55 +111,69 @@ export default function AdminReflections() {
 
   // Save (create or update)
   const handleSave = async () => {
+    // Validate required fields to prevent blank reflections
+    if (!formData.titleVi.trim() || !formData.contentVi.trim() || !formData.author.trim()) {
+      toast.error(language === 'vi' ? 'Vui lòng điền Tiêu đề, Nội dung và Tác giả.' : 'Please fill in Title, Content, and Author.');
+      return;
+    }
+
+    // English is optional at entry time, but the public site reads title.en /
+    // content.en directly — fall back to the Vietnamese text so a reflection
+    // never renders blank when the English tab is left empty.
+    const titleEn = formData.titleEn.trim() || formData.titleVi;
+    const contentEnRaw = formData.contentEn.trim() || formData.contentVi;
+
+    const sanitizedContentVi = sanitizeRichHtml(formData.contentVi);
+    const sanitizedContentEn = sanitizeRichHtml(contentEnRaw);
+    const facebook = validateOptionalExternalUrl(formData.facebookLink, 'facebook');
+    const youtube = validateOptionalExternalUrl(formData.youtubeLink, 'youtube');
+    const drive = validateOptionalExternalUrl(formData.driveLink, 'drive');
+
+    const linkError = facebook.error || youtube.error || drive.error;
+    if (linkError) {
+      toast.error(linkError);
+      return;
+    }
+
+    const reflection: Reflection = editingId
+      ? {
+          ...reflections.find(r => r.id === editingId)!,
+          title: { vi: formData.titleVi, en: titleEn },
+          content: { vi: sanitizedContentVi, en: sanitizedContentEn },
+          author: formData.author,
+          thumbnail: formData.thumbnail,
+          facebookLink: facebook.normalized,
+          youtubeLink: youtube.normalized,
+          driveLink: drive.normalized,
+          date: formData.date,
+          updatedAt: new Date().toISOString(),
+        }
+      : {
+          id: uuidv4(),
+          title: { vi: formData.titleVi, en: titleEn },
+          content: { vi: sanitizedContentVi, en: sanitizedContentEn },
+          author: formData.author,
+          thumbnail: formData.thumbnail,
+          facebookLink: facebook.normalized,
+          youtubeLink: youtube.normalized,
+          driveLink: drive.normalized,
+          date: formData.date,
+          status: 'published',
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+    const updated = editingId
+      ? reflections.map(r => r.id === editingId ? reflection : r)
+      : [...reflections, reflection];
+
+    setIsSubmitting(true);
     try {
-      const sanitizedContent = sanitizeRichHtml(formData.contentVi);
-      const facebook = validateOptionalExternalUrl(formData.facebookLink, 'facebook');
-      const youtube = validateOptionalExternalUrl(formData.youtubeLink, 'youtube');
-      const drive = validateOptionalExternalUrl(formData.driveLink, 'drive');
-
-      const linkError = facebook.error || youtube.error || drive.error;
-      if (linkError) {
-        toast.error(linkError);
-        return;
-      }
-
-      const reflection: Reflection = editingId
-        ? {
-            ...reflections.find(r => r.id === editingId)!,
-            title: { vi: formData.titleVi, en: formData.titleVi },
-            content: { vi: sanitizedContent, en: sanitizedContent },
-            author: formData.author,
-            thumbnail: formData.thumbnail,
-            facebookLink: facebook.normalized,
-            youtubeLink: youtube.normalized,
-            driveLink: drive.normalized,
-            date: formData.date,
-            updatedAt: new Date().toISOString(),
-          }
-        : {
-            id: uuidv4(),
-            title: { vi: formData.titleVi, en: formData.titleVi },
-            content: { vi: sanitizedContent, en: sanitizedContent },
-            author: formData.author,
-            thumbnail: formData.thumbnail,
-            facebookLink: facebook.normalized,
-            youtubeLink: youtube.normalized,
-            driveLink: drive.normalized,
-            date: formData.date,
-            status: 'published',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          };
-
-      const updated = editingId
-        ? reflections.map(r => r.id === editingId ? reflection : r)
-        : [...reflections, reflection];
-
       await Promise.all([
         saveItem('reflections', reflection),
         logAuditAction(editingId ? 'reflection.update' : 'reflection.create', { id: reflection.id })
       ]);
-      
+
       setReflections(updated);
       resetForm();
       toast.success(language === 'vi' ? 'Đã lưu thành công!' : 'Saved successfully!');
@@ -198,6 +181,8 @@ export default function AdminReflections() {
       console.error('Save error:', error);
       toast.error(language === 'vi' ? 'Lỗi khi lưu.' : 'Error saving.');
       // Revert/Reload would happen via subscription or next fetch
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -307,26 +292,26 @@ export default function AdminReflections() {
   return (
     <div className="container-xl py-8">
       {/* Header Section */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-slate-100">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-semibold text-slate-900">
               {language === 'vi' ? 'Quản Lý Suy Niệm' : 'Manage Reflections'}
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-slate-500 mt-1">
               {language === 'vi' ? 'Tổng số:' : 'Total posts:'} <span className="font-semibold text-brand-600">{reflections.length}</span>
             </p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => { setActiveTab('active'); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-lg border ${activeTab === 'active' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-700 border-gray-300'}`}
+              className={`px-4 py-2 rounded-lg border ${activeTab === 'active' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-700 border-slate-300'}`}
             >
               {language === 'vi' ? 'Hoạt động' : 'Active'}
             </button>
             <button
               onClick={() => { setActiveTab('archive'); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-lg border ${activeTab === 'archive' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-gray-700 border-gray-300'}`}
+              className={`px-4 py-2 rounded-lg border ${activeTab === 'archive' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-slate-700 border-slate-300'}`}
             >
               {language === 'vi' ? 'Lưu trữ' : 'Archive'}
             </button>
@@ -335,8 +320,8 @@ export default function AdminReflections() {
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-slate-100">
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
           <div className={`p-2 rounded-lg ${editingId ? 'bg-amber-100 text-amber-600' : 'bg-brand-100 text-brand-600'}`}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {editingId ? (
@@ -346,43 +331,37 @@ export default function AdminReflections() {
               )}
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-semibold text-slate-900">
             {editingId ? (language === 'vi' ? 'Chỉnh Sửa Bài Viết' : 'Edit Reflection') : (language === 'vi' ? 'Thêm Bài Viết Mới' : 'Add New Reflection')}
           </h2>
         </div>
         
         <div className="grid gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Tiêu đề' : 'Title'}
-              </label>
-              <input
-                placeholder={language === 'vi' ? 'Nhập tiêu đề...' : 'Enter title...'}
-                value={formData.titleVi}
-                onChange={e => setFormData({ ...formData, titleVi: e.target.value })}
-                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
-              />
-            </div>
+            <BilingualForm
+              title={language === 'vi' ? 'Tiêu đề' : 'Title'}
+              type="input"
+              value={{ vi: formData.titleVi, en: formData.titleEn }}
+              onChange={(v) => setFormData({ ...formData, titleVi: v.vi, titleEn: v.en })}
+              placeholder={{
+                vi: 'Nhập tiêu đề...',
+                en: 'Enter title...',
+              }}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Nội dung' : 'Content'}
-                <span className="text-xs font-normal text-gray-500 ml-2">
-                  ({language === 'vi' ? 'Tự động làm sạch văn bản' : 'Auto-cleaned on paste'})
-                </span>
-              </label>
-              <div className="border rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500" onPaste={(e) => handleContentPaste(e, 'contentVi')}>
-                <VisualEditor
-                  value={formData.contentVi}
-                  onChange={(value) => setFormData({ ...formData, contentVi: value })}
-                  placeholder={language === 'vi' ? 'Nhập nội dung...' : 'Enter content...'}
-                />
-              </div>
-            </div>
+            <BilingualForm
+              title={language === 'vi' ? 'Nội dung' : 'Content'}
+              type="editor"
+              value={{ vi: formData.contentVi, en: formData.contentEn }}
+              onChange={(v) => setFormData({ ...formData, contentVi: v.vi, contentEn: v.en })}
+              placeholder={{
+                vi: 'Nhập nội dung...',
+                en: 'Enter content...',
+              }}
+            />
 
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 {language === 'vi' ? 'Ngày' : 'Date'}
               </label>
               <input
@@ -393,7 +372,7 @@ export default function AdminReflections() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 {language === 'vi' ? 'Tác giả' : 'Author'}
               </label>
               <input
@@ -406,17 +385,17 @@ export default function AdminReflections() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               {language === 'vi' ? 'Hình ảnh' : 'Image'}
             </label>
             <div className="flex items-start gap-6">
               <div className="flex-1">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-all">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <svg className="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-8 h-8 mb-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
-                    <p className="mb-2 text-sm text-gray-500">
+                    <p className="mb-2 text-sm text-slate-500">
                       <span className="font-semibold">{language === 'vi' ? 'Nhấn để tải lên' : 'Click to upload'}</span>
                     </p>
                   </div>
@@ -453,7 +432,7 @@ export default function AdminReflections() {
 
           <div className="grid md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 Facebook Link
               </label>
               <input
@@ -464,7 +443,7 @@ export default function AdminReflections() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 YouTube Link
               </label>
               <input
@@ -475,7 +454,7 @@ export default function AdminReflections() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 Google Drive Link
               </label>
               <input
@@ -487,27 +466,27 @@ export default function AdminReflections() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             {editingId && (
               <button
                 onClick={resetForm}
-                className="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors"
               >
                 {language === 'vi' ? 'Hủy Bỏ' : 'Cancel'}
               </button>
             )}
             <button
               onClick={handleSave}
-              disabled={uploading}
+              disabled={uploading || isSubmitting}
               className="flex items-center gap-2 px-6 py-2.5 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow transition-all"
             >
-              {uploading ? (
+              {(uploading || isSubmitting) ? (
                 <>
                   <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  {language === 'vi' ? 'Đang tải...' : 'Uploading...'}
+                  {uploading ? (language === 'vi' ? 'Đang tải...' : 'Uploading...') : (language === 'vi' ? 'Đang lưu...' : 'Saving...')}
                 </>
               ) : (
                 <>
@@ -525,7 +504,7 @@ export default function AdminReflections() {
       {/* List */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {/* Toolbar */}
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-50/50">
+        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-slate-50/50">
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto ml-auto">
               {/* Search */}
               <div className="relative w-full sm:w-auto">
@@ -535,7 +514,7 @@ export default function AdminReflections() {
                     onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                     className="pl-10 pr-4 py-2 border rounded-lg w-full sm:w-64 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all bg-white"
                 />
-                <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -556,31 +535,31 @@ export default function AdminReflections() {
           </div>
         </div>
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-100">
+          <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{language === 'vi' ? 'Tiêu đề' : 'Title'}</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{language === 'vi' ? 'Liên kết' : 'Links'}</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{language === 'vi' ? 'Tác giả' : 'Author'}</th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">{language === 'vi' ? 'Ngày' : 'Date'}</th>
-              <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">{language === 'vi' ? 'Hành động' : 'Actions'}</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{language === 'vi' ? 'Tiêu đề' : 'Title'}</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{language === 'vi' ? 'Liên kết' : 'Links'}</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{language === 'vi' ? 'Tác giả' : 'Author'}</th>
+              <th className="px-6 py-4 text-left text-xs font-semibold text-slate-500 uppercase tracking-wider">{language === 'vi' ? 'Ngày' : 'Date'}</th>
+              <th className="px-6 py-4 text-right text-xs font-semibold text-slate-500 uppercase tracking-wider">{language === 'vi' ? 'Hành động' : 'Actions'}</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className="divide-y divide-slate-100">
             {paginatedReflections.map(r => (
-              <tr key={r.id} className="hover:bg-gray-50 transition-colors">
+              <tr key={r.id} className="hover:bg-slate-50 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     {r.thumbnail && (
                       <img src={r.thumbnail} alt="" className="w-12 h-12 rounded object-cover flex-shrink-0" />
                     )}
                     <div>
-                      <div className="font-medium text-gray-900">{r.title.vi || r.title.en}</div>
-                      {r.title.en && r.title.vi && r.title.en !== r.title.vi && <div className="text-sm text-gray-500">{r.title.en}</div>}
+                      <div className="font-medium text-slate-900">{r.title.vi || r.title.en}</div>
+                      {r.title.en && r.title.vi && r.title.en !== r.title.vi && <div className="text-sm text-slate-500">{r.title.en}</div>}
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 text-gray-600">{r.author}</td>
-                <td className="px-6 py-4 text-gray-600 whitespace-nowrap">{r.date}</td>
+                <td className="px-6 py-4 text-slate-600">{r.author}</td>
+                <td className="px-6 py-4 text-slate-600 whitespace-nowrap">{r.date}</td>
                 <td className="px-6 py-4 text-right whitespace-nowrap">
                   <div className="flex justify-end gap-3">
                     {activeTab === 'active' ? (
@@ -600,7 +579,7 @@ export default function AdminReflections() {
                       </>
                     ) : (
                       <>
-                        <div className="text-sm text-gray-500 inline-block mr-4">
+                        <div className="text-sm text-slate-500 inline-block mr-4">
                           {language === 'vi' ? 'Đã xóa lúc:' : 'Deleted at:'} {r.deletedAt ? new Date(r.deletedAt).toLocaleString() : ''}
                           {' · '}
                           {language === 'vi' ? 'Còn lại' : 'Days left'}: {r.deletedAt ? Math.max(0, retentionDays - Math.floor((Date.now() - new Date(r.deletedAt).getTime()) / (1000 * 60 * 60 * 24))) : retentionDays}
@@ -636,7 +615,7 @@ export default function AdminReflections() {
             ))}
             {paginatedReflections.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
                   {language === 'vi' ? 'Không tìm thấy bài viết nào' : 'No reflections found'}
                 </td>
               </tr>
@@ -646,8 +625,8 @@ export default function AdminReflections() {
         
         {/* Pagination Controls */}
         {totalPages > 1 && (
-            <div className="flex justify-between items-center px-6 py-4 border-t bg-gray-50">
-                <div className="text-sm text-gray-500">
+            <div className="flex justify-between items-center px-6 py-4 border-t bg-slate-50">
+                <div className="text-sm text-slate-500">
                     {language === 'vi' 
                         ? `Hiển thị ${(currentPage - 1) * itemsPerPage + 1} đến ${Math.min(currentPage * itemsPerPage, filteredReflections.length)} trong số ${filteredReflections.length}`
                         : `Showing ${(currentPage - 1) * itemsPerPage + 1} to ${Math.min(currentPage * itemsPerPage, filteredReflections.length)} of ${filteredReflections.length}`}
@@ -656,17 +635,17 @@ export default function AdminReflections() {
                     <button
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-1 border rounded bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                        className="px-3 py-1 border rounded bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors"
                     >
                         {language === 'vi' ? 'Trước' : 'Previous'}
                     </button>
-                    <span className="px-3 py-1 bg-white border rounded text-gray-700 font-medium">
+                    <span className="px-3 py-1 bg-white border rounded text-slate-700 font-medium">
                         {currentPage} / {totalPages}
                     </span>
                     <button
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
-                        className="px-3 py-1 border rounded bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition-colors"
+                        className="px-3 py-1 border rounded bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100 transition-colors"
                     >
                         {language === 'vi' ? 'Sau' : 'Next'}
                     </button>

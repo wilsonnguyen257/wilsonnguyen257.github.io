@@ -6,7 +6,7 @@ import { getJson, saveItem, deleteItem } from '../lib/storage';
 import { logAuditAction } from '../lib/audit';
 import { IS_FIREBASE_CONFIGURED, storage as fbStorage } from '../lib/firebase';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-import VisualEditor from '../components/VisualEditor';
+import BilingualForm from '../components/forms/BilingualForm';
 import type { Event } from '../types/content';
 import { compressImage } from '../lib/image';
 import { sanitizeRichHtml } from '../lib/sanitizeHtml';
@@ -124,7 +124,14 @@ export default function AdminEvents() {
       return;
     }
 
-    const sanitizedContent = sanitizeRichHtml(formData.contentVi);
+    // English is optional at entry time, but the public site reads name.en /
+    // content.en directly — fall back to the Vietnamese text so an event
+    // never renders blank when the English tab is left empty.
+    const nameEn = formData.nameEn.trim() || formData.nameVi;
+    const contentEnRaw = formData.contentEn.trim() || formData.contentVi;
+
+    const sanitizedContentVi = sanitizeRichHtml(formData.contentVi);
+    const sanitizedContentEn = sanitizeRichHtml(contentEnRaw);
     const facebook = validateOptionalExternalUrl(formData.facebookLink, 'facebook');
     const youtube = validateOptionalExternalUrl(formData.youtubeLink, 'youtube');
     const drive = validateOptionalExternalUrl(formData.driveLink, 'drive');
@@ -138,11 +145,11 @@ export default function AdminEvents() {
     const event: Event = editingId
       ? {
           ...events.find(e => e.id === editingId)!,
-          name: { vi: formData.nameVi, en: formData.nameVi },
+          name: { vi: formData.nameVi, en: nameEn },
           date: formData.date,
           time: formData.time,
           location: formData.location,
-          content: { vi: sanitizedContent, en: sanitizedContent },
+          content: { vi: sanitizedContentVi, en: sanitizedContentEn },
           thumbnail: formData.thumbnail,
           facebookLink: facebook.normalized,
           youtubeLink: youtube.normalized,
@@ -150,11 +157,11 @@ export default function AdminEvents() {
         }
       : {
           id: uuidv4(),
-          name: { vi: formData.nameVi, en: formData.nameVi },
+          name: { vi: formData.nameVi, en: nameEn },
           date: formData.date,
           time: formData.time,
           location: formData.location,
-          content: { vi: sanitizedContent, en: sanitizedContent },
+          content: { vi: sanitizedContentVi, en: sanitizedContentEn },
           thumbnail: formData.thumbnail,
           facebookLink: facebook.normalized,
           youtubeLink: youtube.normalized,
@@ -330,26 +337,26 @@ export default function AdminEvents() {
   return (
     <div className="container-xl py-8">
       {/* Header Section */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-slate-100">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">
+            <h1 className="text-3xl font-semibold text-slate-900">
               {language === 'vi' ? 'Quản Lý Sự Kiện' : 'Manage Events'}
             </h1>
-            <p className="text-gray-500 mt-1">
+            <p className="text-slate-500 mt-1">
               {language === 'vi' ? 'Tổng số:' : 'Total events:'} <span className="font-semibold text-brand-600">{events.length}</span>
             </p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={() => { setActiveTab('active'); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-lg border ${activeTab === 'active' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-gray-700 border-gray-300'}`}
+              className={`px-4 py-2 rounded-lg border ${activeTab === 'active' ? 'bg-brand-600 text-white border-brand-600' : 'bg-white text-slate-700 border-slate-300'}`}
             >
               {language === 'vi' ? 'Hoạt động' : 'Active'}
             </button>
             <button
               onClick={() => { setActiveTab('archive'); setCurrentPage(1); }}
-              className={`px-4 py-2 rounded-lg border ${activeTab === 'archive' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-gray-700 border-gray-300'}`}
+              className={`px-4 py-2 rounded-lg border ${activeTab === 'archive' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-slate-700 border-slate-300'}`}
             >
               {language === 'vi' ? 'Lưu trữ' : 'Archive'}
             </button>
@@ -358,8 +365,8 @@ export default function AdminEvents() {
       </div>
 
       {/* Form */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-gray-100">
-        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 border border-slate-100">
+        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
           <div className={`p-2 rounded-lg ${editingId ? 'bg-amber-100 text-amber-600' : 'bg-brand-100 text-brand-600'}`}>
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {editingId ? (
@@ -369,27 +376,27 @@ export default function AdminEvents() {
               )}
             </svg>
           </div>
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-semibold text-slate-900">
             {editingId ? (language === 'vi' ? 'Chỉnh Sửa Sự Kiện' : 'Edit Event') : (language === 'vi' ? 'Thêm Sự Kiện Mới' : 'Add New Event')}
           </h2>
         </div>
         
         <div className="grid gap-6">
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-3 gap-6 items-start">
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Tên sự kiện' : 'Event Name'} <span className="text-red-500">*</span>
-              </label>
-              <input
-                placeholder={language === 'vi' ? 'Nhập tên sự kiện...' : 'Enter event name...'}
-                value={formData.nameVi}
-                onChange={e => setFormData({ ...formData, nameVi: e.target.value })}
-                className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
-                required
+              <BilingualForm
+                title={`${language === 'vi' ? 'Tên sự kiện' : 'Event Name'} *`}
+                type="input"
+                value={{ vi: formData.nameVi, en: formData.nameEn }}
+                onChange={(v) => setFormData({ ...formData, nameVi: v.vi, nameEn: v.en })}
+                placeholder={{
+                  vi: 'Nhập tên sự kiện...',
+                  en: 'Enter event name...',
+                }}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 {language === 'vi' ? 'Ngày' : 'Date'} <span className="text-red-500">*</span>
               </label>
               <input
@@ -404,7 +411,7 @@ export default function AdminEvents() {
 
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 {language === 'vi' ? 'Giờ' : 'Time'} <span className="text-red-500">*</span>
               </label>
               <input
@@ -416,7 +423,7 @@ export default function AdminEvents() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 {language === 'vi' ? 'Địa điểm' : 'Location'} <span className="text-red-500">*</span>
               </label>
               <div className="relative">
@@ -427,7 +434,7 @@ export default function AdminEvents() {
                   className="w-full border rounded-lg pl-10 pr-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
                   required
                 />
-                <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
@@ -437,7 +444,7 @@ export default function AdminEvents() {
 
           <div className="grid md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 Facebook Link
               </label>
               <input
@@ -448,7 +455,7 @@ export default function AdminEvents() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 YouTube Link
               </label>
               <input
@@ -459,7 +466,7 @@ export default function AdminEvents() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-slate-700 mb-2">
                 Google Drive Link
               </label>
               <input
@@ -472,32 +479,30 @@ export default function AdminEvents() {
           </div>
 
           <div className="grid md:grid-cols-1 gap-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'vi' ? 'Mô tả' : 'Description'}
-              </label>
-              <div className="border rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-brand-500">
-                <VisualEditor
-                  value={formData.contentVi}
-                  onChange={(value) => setFormData({ ...formData, contentVi: value })}
-                  placeholder={language === 'vi' ? 'Nhập mô tả chi tiết...' : 'Enter detailed description...'}
-                />
-              </div>
-            </div>
+            <BilingualForm
+              title={language === 'vi' ? 'Mô tả' : 'Description'}
+              type="editor"
+              value={{ vi: formData.contentVi, en: formData.contentEn }}
+              onChange={(v) => setFormData({ ...formData, contentVi: v.vi, contentEn: v.en })}
+              placeholder={{
+                vi: 'Nhập mô tả chi tiết...',
+                en: 'Enter detailed description...',
+              }}
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
               {language === 'vi' ? 'Hình ảnh' : 'Image'}
             </label>
             <div className="flex items-start gap-6">
               <div className="flex-1">
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-all">
+                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-all">
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <svg className="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-8 h-8 mb-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
-                    <p className="mb-2 text-sm text-gray-500">
+                    <p className="mb-2 text-sm text-slate-500">
                       <span className="font-semibold">{language === 'vi' ? 'Nhấn để tải lên' : 'Click to upload'}</span>
                     </p>
                   </div>
@@ -532,11 +537,11 @@ export default function AdminEvents() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             {editingId && (
               <button
                 onClick={resetForm}
-                className="px-6 py-2.5 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
+                className="px-6 py-2.5 border border-slate-300 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors"
               >
                 {language === 'vi' ? 'Hủy Bỏ' : 'Cancel'}
               </button>
@@ -572,7 +577,7 @@ export default function AdminEvents() {
       {/* List */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {/* Toolbar */}
-        <div className="p-4 border-b border-gray-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-gray-50/50">
+        <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row gap-4 justify-between items-center bg-slate-50/50">
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto ml-auto">
               {/* Search */}
               <div className="relative w-full sm:w-auto">
@@ -582,7 +587,7 @@ export default function AdminEvents() {
                     onChange={e => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                     className="pl-10 pr-4 py-2 border rounded-lg w-full sm:w-64 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all bg-white"
                 />
-                <svg className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
@@ -605,7 +610,7 @@ export default function AdminEvents() {
 
         <div className="overflow-x-auto">
             <table className="w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-slate-50">
                 <tr>
                 <th className="px-4 py-3 text-left">{language === 'vi' ? 'Sự kiện' : 'Event'}</th>
                 <th className="px-4 py-3 text-left">{language === 'vi' ? 'Liên kết' : 'Links'}</th>
@@ -617,20 +622,20 @@ export default function AdminEvents() {
             </thead>
             <tbody>
                 {paginatedEvents.map(e => (
-                <tr key={e.id} className="border-t hover:bg-gray-50">
+                <tr key={e.id} className="border-t hover:bg-slate-50">
                     <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                         {e.thumbnail && (
                         <img src={e.thumbnail} alt="" className="w-12 h-12 rounded object-cover" />
                         )}
-                        <span className="font-medium text-gray-900">{e.name?.vi || e.name?.en || 'Unnamed Event'}</span>
+                        <span className="font-medium text-slate-900">{e.name?.vi || e.name?.en || 'Unnamed Event'}</span>
                     </div>
-                    {e.name?.en && e.name?.vi && e.name.en !== e.name.vi && <div className="text-sm text-gray-500 mt-1">{e.name.en}</div>}
+                    {e.name?.en && e.name?.vi && e.name.en !== e.name.vi && <div className="text-sm text-slate-500 mt-1">{e.name.en}</div>}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         {e.facebookLink && (
-                          <a href={e.facebookLink} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800" title="Facebook">
+                          <a href={e.facebookLink} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:text-brand-800" title="Facebook">
                             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
                           </a>
                         )}
@@ -648,13 +653,13 @@ export default function AdminEvents() {
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">{e.date}</td>
                     <td className="px-4 py-3 whitespace-nowrap">{e.time}</td>
-                    <td className="px-4 py-3 text-gray-500">{e.location}</td>
+                    <td className="px-4 py-3 text-slate-500">{e.location}</td>
                     <td className="px-4 py-3 text-right whitespace-nowrap">
                     {activeTab === 'active' ? (
                       <>
                         <button
                           onClick={() => handleEdit(e)}
-                          className="text-blue-600 hover:text-blue-800 font-medium mr-4"
+                          className="text-brand-600 hover:text-brand-800 font-medium mr-4"
                         >
                           {language === 'vi' ? 'Sửa' : 'Edit'}
                         </button>
@@ -678,7 +683,7 @@ export default function AdminEvents() {
                       </>
                     ) : (
                       <>
-                        <div className="text-sm text-gray-500 inline-block mr-4">
+                        <div className="text-sm text-slate-500 inline-block mr-4">
                           {language === 'vi' ? 'Đã xóa lúc:' : 'Deleted at:'} {e.deletedAt ? new Date(e.deletedAt).toLocaleString() : ''}
                           {' · '}
                           {language === 'vi' ? 'Còn lại' : 'Days left'}: {e.deletedAt ? Math.max(0, retentionDays - Math.floor((Date.now() - new Date(e.deletedAt).getTime()) / (1000 * 60 * 60 * 24))) : retentionDays}
@@ -724,7 +729,7 @@ export default function AdminEvents() {
                 ))}
                 {paginatedEvents.length === 0 && (
                     <tr>
-                        <td colSpan={6} className="px-4 py-8 text-center text-gray-500">
+                        <td colSpan={6} className="px-4 py-8 text-center text-slate-500">
                             {language === 'vi' ? 'Không tìm thấy sự kiện nào' : 'No events found'}
                         </td>
                     </tr>
@@ -735,8 +740,8 @@ export default function AdminEvents() {
 
         {/* Pagination Controls */}
         {totalPages > 1 && (
-            <div className="flex justify-between items-center px-4 py-3 border-t bg-gray-50">
-                <div className="text-sm text-gray-500">
+            <div className="flex justify-between items-center px-4 py-3 border-t bg-slate-50">
+                <div className="text-sm text-slate-500">
                     {language === 'vi' 
                         ? `Hiển thị ${(currentPage - 1) * itemsPerPage + 1} đến ${Math.min(currentPage * itemsPerPage, filteredEvents.length)} trong số ${filteredEvents.length}`
                         : `Showing ${(currentPage - 1) * itemsPerPage + 1} to ${Math.min(currentPage * itemsPerPage, filteredEvents.length)} of ${filteredEvents.length}`}
@@ -745,7 +750,7 @@ export default function AdminEvents() {
                     <button
                         onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-1 border rounded bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                        className="px-3 py-1 border rounded bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
                     >
                         {language === 'vi' ? 'Trước' : 'Previous'}
                     </button>
@@ -755,7 +760,7 @@ export default function AdminEvents() {
                     <button
                         onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                         disabled={currentPage === totalPages}
-                        className="px-3 py-1 border rounded bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100"
+                        className="px-3 py-1 border rounded bg-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-100"
                     >
                         {language === 'vi' ? 'Sau' : 'Next'}
                     </button>

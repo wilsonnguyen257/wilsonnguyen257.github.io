@@ -90,7 +90,7 @@ export default function BilingualForm({
         <button
           type="button"
           onClick={() => setActiveTab('vi')}
-          className={`flex-1 px-4 py-2 rounded-md font-medium transition-all ${
+          className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${
             activeTab === 'vi'
               ? 'bg-white text-brand-700 shadow-sm'
               : 'text-slate-600 hover:text-slate-900'
@@ -101,7 +101,7 @@ export default function BilingualForm({
         <button
           type="button"
           onClick={() => setActiveTab('en')}
-          className={`flex-1 px-4 py-2 rounded-md font-medium transition-all ${
+          className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${
             activeTab === 'en'
               ? 'bg-white text-brand-700 shadow-sm'
               : 'text-slate-600 hover:text-slate-900'

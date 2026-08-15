@@ -227,7 +227,7 @@ const Home: React.FC = () => {
               </div>
 
               {/* Quick Info Bar */}
-              <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-center lg:justify-start gap-6 md:gap-10 pt-8 border-t border-slate-200 w-full">
+              <div className="flex justify-center lg:justify-start pt-8 border-t border-slate-200 w-full">
                 <div className="flex items-start sm:items-center gap-3 max-w-full">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-brand-600 shrink-0 mt-1 sm:mt-0">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
@@ -235,16 +235,6 @@ const Home: React.FC = () => {
                   <div className="text-left flex-1 min-w-0">
                     <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">{t('home.mass')}</p>
                     <p className="font-semibold text-slate-900 text-sm md:text-base leading-snug break-words whitespace-normal">{t('home.mass_time')}</p>
-                  </div>
-                </div>
-                <div className="flex items-start sm:items-center gap-3 max-w-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-brand-600 shrink-0 mt-1 sm:mt-0">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                  </svg>
-                  <div className="text-left flex-1 min-w-0">
-                    <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">{t('home.location')}</p>
-                    <p className="font-semibold text-slate-900 text-sm md:text-base leading-snug break-words whitespace-normal">{t('home.location_short')}</p>
                   </div>
                 </div>
               </div>

@@ -338,7 +338,7 @@ export default function AdminReflections() {
         
         <div className="grid gap-6">
             <BilingualForm
-              title={language === 'vi' ? 'Tiêu đề' : 'Title'}
+              title={`${language === 'vi' ? 'Tiêu đề' : 'Title'} *`}
               type="input"
               value={{ vi: formData.titleVi, en: formData.titleEn }}
               onChange={(v) => setFormData({ ...formData, titleVi: v.vi, titleEn: v.en })}
@@ -349,7 +349,7 @@ export default function AdminReflections() {
             />
 
             <BilingualForm
-              title={language === 'vi' ? 'Nội dung' : 'Content'}
+              title={`${language === 'vi' ? 'Nội dung' : 'Content'} *`}
               type="editor"
               value={{ vi: formData.contentVi, en: formData.contentEn }}
               onChange={(v) => setFormData({ ...formData, contentVi: v.vi, contentEn: v.en })}
@@ -373,13 +373,14 @@ export default function AdminReflections() {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-2">
-                {language === 'vi' ? 'Tác giả' : 'Author'}
+                {language === 'vi' ? 'Tác giả' : 'Author'} <span className="text-red-500">*</span>
               </label>
               <input
                 placeholder={language === 'vi' ? 'Nhập tên tác giả...' : 'Enter author name...'}
                 value={formData.author}
                 onChange={e => setFormData({ ...formData, author: e.target.value })}
                 className="w-full border rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+                required
               />
             </div>
           </div>

@@ -193,7 +193,7 @@ const Home: React.FC = () => {
           </div>
         )}
 
-        <div className="container-xl relative z-10 py-12 sm:py-16 md:py-24 lg:py-28">
+        <div className="container-xl relative z-10 py-10 sm:py-12 md:py-16 lg:py-20">
           <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-20">
             {/* Content */}
             <div className="text-center lg:text-left">

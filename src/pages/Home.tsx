@@ -111,24 +111,29 @@ const Home: React.FC = () => {
 
   useEffect(() => {
     // Live reflections
-    type RawReflection = Reflection & { id?: string };
+    type RawReflection = Reflection & { id?: string; status?: 'draft' | 'published' | 'deleted' };
     const unsubRefl = subscribeJson<RawReflection[]>(
       'reflections',
       (items) => {
-        const mapped: Reflection[] = (items || []).map((it) => {
-          // Ensure both languages have content
-          const titleVi = it.title?.vi || it.title?.en || '';
-          const titleEn = it.title?.en || it.title?.vi || '';
-          const contentVi = it.content?.vi || it.content?.en || '';
-          const contentEn = it.content?.en || it.content?.vi || '';
-          
-          return {
-            title: { vi: titleVi, en: titleEn },
-            content: { vi: contentVi, en: contentEn },
-            date: it.date,
-            author: it.author,
-          };
-        });
+        const mapped: Reflection[] = (items || [])
+          .filter((it) => (it.status || 'published') === 'published')
+          .map((it) => {
+            // Ensure both languages have content
+            const titleVi = it.title?.vi || it.title?.en || '';
+            const titleEn = it.title?.en || it.title?.vi || '';
+            const contentVi = it.content?.vi || it.content?.en || '';
+            const contentEn = it.content?.en || it.content?.vi || '';
+
+            return {
+              id: it.id,
+              title: { vi: titleVi, en: titleEn },
+              content: { vi: contentVi, en: contentEn },
+              date: it.date,
+              author: it.author,
+            };
+          })
+          // Show the most recently dated gospel reflections first
+          .sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
         setLatestReflections(mapped.slice(0, 2));
       },
       () => setLatestReflections([])

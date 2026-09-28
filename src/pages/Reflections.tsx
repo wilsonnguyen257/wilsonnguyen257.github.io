@@ -3,6 +3,7 @@ import SEO from "../components/SEO";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { subscribeJson } from "../lib/storage";
+import ReflectionCover from "../components/ReflectionCover";
 
 type Reflection = {
   title: {
@@ -110,7 +111,7 @@ export default function Reflections() {
                     to={`/reflections/${reflection.id}`}
                     className="card !p-0 overflow-hidden flex flex-col group"
                   >
-                    <div className="h-40 overflow-hidden bg-slate-200 shrink-0">
+                    <div className="h-44 overflow-hidden bg-slate-200 shrink-0">
                       {reflection.thumbnail ? (
                         <img
                           src={reflection.thumbnail}
@@ -119,20 +120,32 @@ export default function Reflections() {
                           loading="lazy"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-slate-400">
-                          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
+                        <ReflectionCover content={reflection.content.vi} date={reflection.date} className="h-full" />
                       )}
                     </div>
                     <div className="p-6 flex flex-col gap-3 flex-1">
-                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
-                        {reflection.date || t('reflections.recently')}
+                      <p className="text-xs font-semibold uppercase tracking-[0.1em] text-slate-600 nums-lining">
+                        {reflection.date && /^\d{4}-\d{2}-\d{2}$/.test(reflection.date) ? (
+                          <time dateTime={reflection.date}>
+                            {new Date(`${reflection.date}T00:00`).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-AU', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </time>
+                        ) : (reflection.date || t('reflections.recently'))}
                       </p>
-                      <h3 className="font-serif text-xl font-bold text-slate-900 leading-snug group-hover:text-brand-600 transition-colors">
-                        {reflection.title[language] || reflection.title.vi}
-                      </h3>
+                      <div>
+                        <h3 className="font-serif text-xl font-bold text-slate-900 leading-snug group-hover:text-brand-600 transition-colors">
+                          {reflection.title[language] || reflection.title.vi}
+                        </h3>
+                        {/* The same Gospel is often shared by more than one
+                            author — the byline is how readers tell them apart. */}
+                        {reflection.author && (
+                          <p className="mt-1.5 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
+                            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-4 h-4 shrink-0 text-slate-600">
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                            </svg>
+                            <span className="truncate">{reflection.author}</span>
+                          </p>
+                        )}
+                      </div>
                       <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
                         {stripHtml(reflection.content[language] || reflection.content.vi)}
                       </p>

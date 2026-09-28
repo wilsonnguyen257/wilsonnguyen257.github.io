@@ -3,6 +3,7 @@ import SEO from "../components/SEO";
 import { useEffect, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
 import { subscribeJson } from "../lib/storage";
+import ReflectionCover from "../components/ReflectionCover";
 import { sanitizeRichHtml } from "../lib/sanitizeHtml";
 import { getFacebookPluginUrl, getGoogleDriveEmbedUrl, getYouTubeEmbedUrl, validateOptionalExternalUrl } from "../lib/validation";
 
@@ -146,6 +147,14 @@ export default function ReflectionDetail() {
       {/* Content */}
       <section className="py-12">
         <div className="container-xl">
+          {!(reflection.thumbnailFull || reflection.thumbnail) && (
+            <ReflectionCover
+              content={typeof reflection.content === 'string' ? reflection.content : reflection.content.vi}
+              date={reflection.date}
+              size="banner"
+              className="measure-prose mx-auto mb-8 h-[200px] sm:h-[240px] rounded-2xl"
+            />
+          )}
           {(reflection.thumbnailFull || reflection.thumbnail) && (
             <div className="measure-prose mx-auto relative mb-8 h-[240px] sm:h-[320px] rounded-2xl overflow-hidden bg-slate-800">
               <div

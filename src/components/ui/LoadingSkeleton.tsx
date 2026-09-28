@@ -249,7 +249,7 @@ export function StatsCard({
           <p className="text-sm text-slate-600 mb-1">{title}</p>
           <p className="text-3xl font-bold text-slate-900">{value.toLocaleString()}</p>
           {change !== undefined && (
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-600 mt-1">
               {change} {changeLabel}
             </p>
           )}

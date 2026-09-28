@@ -1,10 +1,8 @@
 import { useEffect, useState } from "react";
 import SEO from "../components/SEO";
-import PageHero from "../components/PageHero";
 import { Link } from "react-router-dom";
 import { useLanguage } from "../contexts/LanguageContext";
 import { subscribeJson } from "../lib/storage";
-import { CardSkeleton } from "../components/Skeleton";
 
 type Reflection = {
   title: {
@@ -22,8 +20,6 @@ type Reflection = {
 };
 type ReflectionItem = Reflection & { id: string };
 
-// Data now comes from Firebase Storage JSON
-
 // Helper function to strip HTML tags for preview text
 const stripHtml = (html: string): string => {
   const tmp = document.createElement('div');
@@ -35,10 +31,8 @@ export default function Reflections() {
   const { t, language } = useLanguage();
   const [reflections, setReflections] = useState<ReflectionItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedAuthor, setSelectedAuthor] = useState("");
-  const [sortBy, setSortBy] = useState<"newest" | "oldest" | "title">("newest");
-  
+  const [visibleCount, setVisibleCount] = useState(9);
+
   useEffect(() => {
     const unsub = subscribeJson<ReflectionItem[]>(
       'reflections',
@@ -49,7 +43,7 @@ export default function Reflections() {
           const titleEn = it.title?.en || it.title?.vi || '';
           const contentVi = it.content?.vi || it.content?.en || '';
           const contentEn = it.content?.en || it.content?.vi || '';
-          
+
           return {
             id: it.id,
             title: { vi: titleVi, en: titleEn },
@@ -59,7 +53,8 @@ export default function Reflections() {
             thumbnail: it.thumbnail,
             status: it.status || 'published',
           };
-        }).filter(r => r.status === 'published');
+        }).filter(r => r.status === 'published')
+          .sort((a, b) => new Date(b.date || "").getTime() - new Date(a.date || "").getTime());
         setReflections(mapped);
         setLoading(false);
       },
@@ -71,322 +66,90 @@ export default function Reflections() {
     return () => { unsub(); };
   }, []);
 
-  // Get unique authors for filter
-  const authors = Array.from(new Set(reflections.map(r => r.author).filter(Boolean)));
-
-  // Filter and sort reflections
-  const filteredReflections = reflections.filter(reflection => {
-    const title = reflection.title[language] || reflection.title.vi;
-    const content = reflection.content[language] || reflection.content.vi;
-    const matchesSearch = title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         content.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesAuthor = !selectedAuthor || reflection.author === selectedAuthor;
-    return matchesSearch && matchesAuthor;
-  })
-    .sort((a, b) => {
-      switch (sortBy) {
-        case "newest":
-          return new Date(b.date || "").getTime() - new Date(a.date || "").getTime();
-        case "oldest":
-          return new Date(a.date || "").getTime() - new Date(b.date || "").getTime();
-        case "title": {
-          const aTitle = a.title[language] || a.title.vi;
-          const bTitle = b.title[language] || b.title.vi;
-          return aTitle.localeCompare(bTitle);
-        }
-        default:
-          return 0;
-      }
-    });
-
-  // Get featured reflection (most recent)
-  const featuredReflection = filteredReflections.length > 0 ? filteredReflections[0] : null;
-  const otherReflections = filteredReflections.slice(1);
-
   return (
-    <div className="bg-white">
-      <SEO 
-        title={t('reflections.title')} 
-        description={t('reflections.subtitle')} 
-      />
-      <PageHero
+    <div className="bg-surface min-h-screen">
+      <SEO
         title={t('reflections.title')}
-        subtitle={t('reflections.subtitle')}
-        badgeLabel={t('reflections.gospel')}
-        badgeIcon={
-          <svg className="w-5 h-5 text-brand-100" fill="currentColor" viewBox="0 0 20 20">
-            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
-          </svg>
-        }
+        description={t('reflections.subtitle')}
       />
 
-      {/* Featured Reflection */}
-      {featuredReflection && (
-        <section className="relative -mt-16 z-20 pb-12">
-          <div className="container-xl">
-            <div className="max-w-5xl mx-auto">
-              <Link
-                to={`/reflections/${featuredReflection.id}`}
-                className="group block bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.1)] transition-shadow duration-300 overflow-hidden border border-slate-100 relative"
-              >
-                <div className={featuredReflection.thumbnail ? 'grid md:grid-cols-2 gap-0' : ''}>
-                {featuredReflection.thumbnail && (
-                  <div className="relative h-64 md:h-full min-h-[350px] overflow-hidden">
-                    <img
-                      src={featuredReflection.thumbnail}
-                      alt={featuredReflection.title[language] || featuredReflection.title.vi}
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+      <section className="pt-16 pb-2 text-center">
+        <div className="container-xl">
+          <h1 className="h1 !text-4xl md:!text-5xl">{t('reflections.title')}</h1>
+          <p className="mt-4 text-slate-600 max-w-lg mx-auto">{t('reflections.subtitle')}</p>
+        </div>
+      </section>
+
+      {/* A plain 3-up grid of hoverable cards, per the prototype — no
+          featured/archive split, no search: date, title, body preview,
+          "Đọc thêm" — plus a thumbnail on top when the post has one. */}
+      <section className="pt-10 pb-20">
+        <div className="container-xl">
+          {loading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="card !p-0 overflow-hidden animate-pulse">
+                  <div className="h-40 bg-slate-200" />
+                  <div className="p-6 space-y-3">
+                    <div className="h-3 w-1/3 bg-slate-200 rounded" />
+                    <div className="h-5 w-3/4 bg-slate-200 rounded" />
+                    <div className="h-3 w-full bg-slate-200 rounded" />
+                    <div className="h-3 w-2/3 bg-slate-200 rounded" />
                   </div>
-                )}
-                <div className="p-8 md:p-12 relative">
-                  <div className="flex flex-wrap items-center gap-4 mb-8">
-                    <span className="inline-flex items-center gap-2 bg-brand-100 text-brand-700 rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-wider">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
-                      </svg>
-                      {t('reflections.featured')}
-                    </span>
-                    {featuredReflection.author && (
-                      <span className="inline-flex items-center gap-2 text-slate-500 text-sm font-medium">
-                        <div className="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </div>
+              ))}
+            </div>
+          ) : reflections.length === 0 ? (
+            <p className="text-slate-600 text-center py-16">{t('reflections.no_reflections')}</p>
+          ) : (
+            <>
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 max-w-5xl mx-auto">
+                {reflections.slice(0, visibleCount).map((reflection) => (
+                  <Link
+                    key={reflection.id}
+                    to={`/reflections/${reflection.id}`}
+                    className="card !p-0 overflow-hidden flex flex-col group"
+                  >
+                    <div className="h-40 overflow-hidden bg-slate-200 shrink-0">
+                      {reflection.thumbnail ? (
+                        <img
+                          src={reflection.thumbnail}
+                          alt={reflection.title[language] || reflection.title.vi}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-slate-400">
+                          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
                         </div>
-                        {featuredReflection.author}
-                      </span>
-                    )}
-                    <span className="text-slate-400 text-sm">•</span>
-                    <span className="text-slate-500 text-sm font-medium">{featuredReflection.date || t('reflections.recently')}</span>
-                  </div>
-                  
-                  <h3 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-6 group-hover:text-brand-700 transition-colors leading-tight tracking-tight">
-                    {featuredReflection.title[language] || featuredReflection.title.vi}
-                  </h3>
-                  
-                  <p className="text-lg text-slate-600 leading-relaxed mb-8 line-clamp-3">
-                    {(() => {
-                      const content = featuredReflection.content[language] || featuredReflection.content.vi;
-                      const plainText = stripHtml(content);
-                      return plainText.slice(0, 250) + (plainText.length > 250 ? '...' : '');
-                    })()}
-                  </p>
-                  
-                  <div className="flex items-center justify-between">
-                    <span className="inline-flex items-center gap-2 text-brand-600 font-bold group-hover:gap-3 transition-all">
-                      {t('reflections.read_more')}
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                      </svg>
-                    </span>
-                  </div>
-                </div>
-                </div>
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Filter Section - Moved below featured */}
-      <section className="py-12 bg-surface">
-        <div className="container-xl">
-          <div className="max-w-5xl mx-auto">
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-12">
-              <div className="grid gap-4 md:grid-cols-3">
-                {/* Search */}
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">
-                    {t('reflections.search')}
-                  </label>
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder={t('reflections.search_placeholder')}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all hover:bg-white focus:bg-white"
-                    />
-                  </div>
-                </div>
-
-                {/* Author Filter */}
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">
-                    {t('reflections.author')}
-                  </label>
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                    </svg>
-                    <select
-                      value={selectedAuthor}
-                      onChange={(e) => setSelectedAuthor(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-brand-500 focus:border-transparent appearance-none transition-all hover:bg-white focus:bg-white cursor-pointer"
-                    >
-                      <option value="">{t('reflections.all_authors')}</option>
-                      {authors.map(author => (
-                        <option key={author} value={author}>{author}</option>
-                      ))}
-                    </select>
-                    <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-
-                {/* Sort */}
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">
-                    {t('reflections.sort')}
-                  </label>
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                    </svg>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as "newest" | "oldest" | "title")}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-brand-500 focus:border-transparent appearance-none transition-all hover:bg-white focus:bg-white cursor-pointer"
-                    >
-                      <option value="newest">{t('reflections.newest')}</option>
-                      <option value="oldest">{t('reflections.oldest')}</option>
-                      <option value="title">{t('reflections.by_title')}</option>
-                    </select>
-                    <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
+                      )}
+                    </div>
+                    <div className="p-6 flex flex-col gap-3 flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-slate-600">
+                        {reflection.date || t('reflections.recently')}
+                      </p>
+                      <h3 className="font-serif text-xl font-bold text-slate-900 leading-snug group-hover:text-brand-600 transition-colors">
+                        {reflection.title[language] || reflection.title.vi}
+                      </h3>
+                      <p className="text-sm text-slate-600 leading-relaxed line-clamp-3">
+                        {stripHtml(reflection.content[language] || reflection.content.vi)}
+                      </p>
+                      <span className="text-brand-600 font-semibold text-sm mt-1">{t('reflections.read_more')}</span>
+                    </div>
+                  </Link>
+                ))}
               </div>
-
-              {/* Results count and clear filters */}
-              <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-100">
-                <div className="text-sm text-slate-500 font-medium">
-                  {t('reflections.showing')} <span className="font-bold text-slate-900">{filteredReflections.length}</span> {t('reflections.of')} <span className="font-bold text-slate-900">{reflections.length}</span> {t('reflections.reflections')}
-                </div>
-                {(searchTerm || selectedAuthor || sortBy !== "newest") && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm("");
-                      setSelectedAuthor("");
-                      setSortBy("newest");
-                    }}
-                    className="text-sm text-brand-600 hover:text-brand-700 font-bold transition-colors flex items-center gap-1"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    {t('reflections.clear_filters')}
+              {reflections.length > visibleCount && (
+                <div className="text-center mt-10">
+                  <button onClick={() => setVisibleCount((v) => v + 9)} className="btn btn-outline">
+                    {t('reflections.load_more')}
                   </button>
-                )}
-              </div>
-            </div>
-
-            {loading ? (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                 {[1, 2, 3].map(i => <CardSkeleton key={i} />)}
-              </div>
-            ) : filteredReflections.length === 0 && reflections.length > 0 ? (
-              <div className="text-center py-16 max-w-md mx-auto">
-                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
                 </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-3">{t('reflections.no_results')}</h3>
-                <p className="text-slate-600 mb-6">{t('reflections.no_results_desc')}</p>
-                <button 
-                  onClick={() => {
-                    setSearchTerm("");
-                    setSelectedAuthor("");
-                    setSortBy("newest");
-                  }}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
-                >
-                  {t('reflections.clear_filters')}
-                </button>
-              </div>
-            ) : reflections.length === 0 ? (
-              <div className="text-center py-16 max-w-md mx-auto">
-                <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                  </svg>
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-3">{t('reflections.no_reflections')}</h3>
-                <p className="text-slate-600">{t('reflections.no_reflections_desc')}</p>
-              </div>
-            ) : otherReflections.length > 0 ? (
-              <>
-                <h2 className="text-2xl font-semibold text-slate-900 mb-8 border-l-2 border-brand-500 pl-4">{t('reflections.all_reflections')}</h2>
-                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                  {otherReflections.map((reflection) => {
-                    return (
-                      <Link
-                        key={reflection.id}
-                        to={`/reflections/${reflection.id}`}
-                        className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-100 hover:border-brand-200 hover:-translate-y-1 flex flex-col h-full"
-                      >
-                        {reflection.thumbnail && (
-                          <div className="relative aspect-[16/9] overflow-hidden">
-                            <img
-                              src={reflection.thumbnail}
-                              alt={reflection.title[language] || reflection.title.vi}
-                              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                            />
-                          </div>
-                        )}
-                        <div className="p-8 flex flex-col flex-1">
-                          <div className="flex items-center gap-2 mb-4">
-                            <span className="inline-flex items-center gap-1.5 bg-brand-50 text-brand-700 rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider">
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/>
-                              </svg>
-                              {t('reflections.gospel')}
-                            </span>
-                          </div>
-                          
-                          <h3 className="text-lg font-semibold text-slate-900 mb-4 group-hover:text-brand-600 transition-colors line-clamp-2">
-                            {reflection.title[language] || reflection.title.vi}
-                          </h3>
-                          
-                          <p className="text-slate-600 mb-6 line-clamp-3 leading-relaxed flex-1">
-                            {(() => {
-                              const content = reflection.content[language] || reflection.content.vi;
-                              const plainText = stripHtml(content);
-                              return plainText.slice(0, 120) + (plainText.length > 120 ? '...' : '');
-                            })()}
-                          </p>
-                          
-                          <div className="flex items-center justify-between pt-6 border-t border-slate-50 mt-auto">
-                            <div className="flex items-center gap-2 text-sm text-slate-500 font-medium">
-                              <svg className="w-4 h-4 text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              <span>{reflection.date || t('reflections.recently')}</span>
-                            </div>
-                            <span className="inline-flex items-center gap-1 text-brand-600 font-bold text-sm group-hover:gap-2 transition-all">
-                              {t('reflections.read_more')}
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                              </svg>
-                            </span>
-                          </div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              </>
-            ) : null}
-          </div>
+              )}
+            </>
+          )}
         </div>
       </section>
     </div>

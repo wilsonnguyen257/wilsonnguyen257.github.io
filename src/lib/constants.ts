@@ -13,6 +13,23 @@ export const CHURCH_INFO = {
     en: 'Sunday 5:00pm - 6:00pm'
   },
   MASS_SCHEDULE_SHORT: 'Sunday 5pm',
+  // The start time as people say it aloud, and the hour Mass ends (Melbourne
+  // time) — after which the homepage rolls "this Sunday" on to next week.
+  MASS_START: {
+    vi: '5 giờ chiều',
+    en: '5:00 pm'
+  },
+  MASS_START_HOUR: 17,
+  MASS_END_HOUR: 18,
+  // The whole Mass window, for places that list the schedule (footer, Events).
+  MASS_RANGE: {
+    vi: '5 – 6 giờ chiều',
+    en: '5:00 – 6:00 pm'
+  },
+  // Most Sunday Masses are in Vietnamese; the third Sunday of each month is
+  // the youth Mass, celebrated in English.
+  ENGLISH_MASS_WEEK_OF_MONTH: 3,
+  PHONE_DISPLAY: '0422 400 116',
   CONFESSION_TIME: {
     vi: 'Trước Thánh Lễ 30 phút',
     en: '30 minutes before Mass'

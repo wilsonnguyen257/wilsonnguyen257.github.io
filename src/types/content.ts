@@ -24,7 +24,8 @@ export interface ReflectionFormData {
   content: Translation;
   date: string;     // ISO yyyy-mm-dd
   author: string;
-  thumbnail?: string; // URL to reflection thumbnail image
+  thumbnail?: string; // URL to reflection thumbnail image — cropped to the card aspect ratio
+  thumbnailFull?: string; // URL to the original, uncropped photo — used on the detail-page hero
   facebookLink?: string;
   youtubeLink?: string;
   driveLink?: string;
@@ -47,8 +48,9 @@ export interface Event {
   time: string; // e.g., '5:00 PM'
   location: string;
   content?: Translation; // Changed from description to content
-  thumbnail?: string; // URL to event thumbnail image
+  thumbnail?: string; // URL to event thumbnail image — cropped to the card aspect ratio
   thumbnailPath?: string; // Firebase Storage path
+  thumbnailFull?: string; // URL to the original, uncropped photo — used on the detail-page hero
   facebookLink?: string;
   youtubeLink?: string;
   driveLink?: string;

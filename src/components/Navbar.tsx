@@ -4,14 +4,18 @@ import { useLanguage } from "../contexts/LanguageContext";
 import { IS_FIREBASE_CONFIGURED, onAuthStateChanged, logout, type User } from "../lib/firebase";
 import logo from "../assets/logo.png";
 
+// Primary nav, per the Ba cửa (1d) direction: Giờ lễ is answered by the
+// homepage hero (this Sunday's date, time and place), not a separate nav
+// item, and "Sự kiện" (Events) leads with that same answer on its own page.
+// About and Gallery are back in the primary bar (previously footer-only) —
+// Giới thiệu leads as the newcomer's orientation link, Thư viện ảnh sits near
+// the end since photos are supplementary to the core parish-business items.
 const links = [
-  { to: "/", key: "nav.home" },
   { to: "/about", key: "nav.about" },
-  { to: "/ministries", key: "nav.ministries" },
   { to: "/events", key: "nav.events" },
-  { to: "/gallery", key: "nav.gallery" },
   { to: "/reflections", key: "nav.reflections" },
-  { to: "/give", key: "nav.give" },
+  { to: "/ministries", key: "nav.ministries" },
+  { to: "/gallery", key: "nav.gallery" },
   { to: "/contact", key: "nav.contact" },
 ];
 
@@ -34,45 +38,64 @@ export default function Navbar() {
     };
   }, []);
 
-  const navItem = (to: string, key: string) => {
-    // 'Give' stays a filled pill in the secondary accent — everything else
-    // is plain text with no chrome, so the one colored button reads clearly.
-    if (key === 'nav.give') {
-      return (
-        <NavLink
-          key={to}
-          to={to}
-          className="rounded-full bg-accent-500 px-5 py-2 text-sm font-semibold text-white transition-colors duration-200 hover:bg-accent-600"
-          onClick={() => setOpen(false)}
-        >
-          {t(key)}
-        </NavLink>
-      );
-    }
+  // nav-link-active is a paper pill against the neutral header — per
+  // DESIGN.md it's allowed to be rounded-full because it functions as a
+  // status indicator (which link is current), not a button reverting to
+  // the old pill-everything treatment.
+  const navItem = (to: string, key: string) => (
+    <NavLink
+      key={to}
+      to={to}
+      className={({ isActive }) =>
+        `rounded-full px-3.5 py-2 text-[15px] font-sans font-semibold transition-colors duration-200 ${
+          isActive
+            ? "bg-surface text-brand-600"
+            : "text-slate-700 hover:text-slate-900"
+        }`
+      }
+      onClick={() => setOpen(false)}
+    >
+      {t(key)}
+    </NavLink>
+  );
 
-    return (
-      <NavLink
-        key={to}
-        to={to}
-        className={({ isActive }) =>
-          `rounded-full px-3.5 py-2 text-[15px] font-medium transition-colors duration-200 ${
-            isActive
-              ? "text-slate-900 font-semibold"
-              : "text-slate-500 hover:text-slate-900"
-          }`
-        }
-        onClick={() => setOpen(false)}
-      >
-        {t(key)}
-      </NavLink>
-    );
-  };
+  // Two labelled segments, the current one marked — readable at a glance
+  // without knowing what "VI | EN" means.
+  const languageToggle = (className: string) => (
+    <div role="group" aria-label={t('nav.language')} className={`inline-flex rounded-lg border border-slate-300 p-0.5 ${className}`}>
+      {(['vi', 'en'] as const).map((lang) => (
+        <button
+          key={lang}
+          type="button"
+          lang={lang}
+          aria-pressed={language === lang}
+          onClick={() => setLanguage(lang)}
+          className={`rounded-md px-2.5 py-1.5 text-sm font-semibold transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 ${
+            language === lang ? "bg-brand-600 text-surface" : "text-slate-700 hover:text-brand-600"
+          }`}
+        >
+          {lang === 'vi' ? 'Tiếng Việt' : 'English'}
+        </button>
+      ))}
+    </div>
+  );
 
   return (
-    <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-xl">
+    // Nothing is sticky — the header scrolls away with the page — and it's
+    // a flat --color-neutral fill: no transparency or backdrop blur
+    // anywhere in this system except the lightbox scrim.
+    <header className="border-b border-slate-200 bg-slate-100">
+      <a
+        href="#main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-surface focus:px-4 focus:py-2 focus:font-semibold focus:text-brand-600 focus:ring-2 focus:ring-brand-600"
+      >
+        {t('common.skip_to_content')}
+      </a>
       <div className="container-xl flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-3 h-full group">
-          <img src={logo} alt="Logo" className="h-9 w-9 rounded-full object-cover" />
+        <Link to="/" className="flex items-center gap-2.5 h-full group">
+          <img src={logo} alt="" className="h-9 w-9 rounded-full object-cover" />
+          <span className="font-serif font-bold text-slate-900 text-[19px]">Anê Thành</span>
+          <span className="sr-only">{t('nav.logo_alt')}</span>
         </Link>
 
         <nav className="hidden items-center gap-0.5 xl:flex">
@@ -83,8 +106,8 @@ export default function Navbar() {
             <NavLink
               to="/admin"
               className={({ isActive }) =>
-                `rounded-full px-3.5 py-2 text-[15px] font-medium transition-colors duration-200 ${
-                  isActive ? "text-slate-900 font-semibold" : "text-slate-500 hover:text-slate-900"
+                `rounded-full px-3.5 py-2 text-[15px] font-semibold transition-colors duration-200 ${
+                  isActive ? "bg-surface text-brand-600" : "text-slate-700 hover:text-slate-900"
                 }`
               }
             >
@@ -92,32 +115,41 @@ export default function Navbar() {
             </NavLink>
           )}
 
-          {/* Language Toggle */}
           <div className="ml-3 pl-3 border-l border-slate-200">
-            <button
-              onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-              className="rounded-full px-3 py-2 text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-slate-900"
-              aria-label="Toggle language"
-            >
-              {language === 'vi' ? '🇺🇸 EN' : '🇻🇳 VI'}
-            </button>
+            {languageToggle('')}
           </div>
 
           {/* Sign out button (only shown when user is signed in) */}
           {IS_FIREBASE_CONFIGURED && user && (
             <button
               onClick={() => void logout()}
-              className="rounded-full px-3 py-2 text-sm font-medium text-slate-500 transition-colors duration-200 hover:text-red-600"
+              className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 transition-colors duration-200 hover:text-red-600"
             >
-              Sign out
+              {t('nav.sign_out')}
             </button>
           )}
+
+          {/* Give — the one accent (Dusty Lavender) button on the site, and only ever this one. */}
+          <NavLink
+            to="/give"
+            className="btn-give ml-3 rounded-xl px-5 py-2 text-sm font-semibold"
+            onClick={() => setOpen(false)}
+          >
+            {t('nav.give')}
+          </NavLink>
         </nav>
 
+        {/* Below xl, Give stays visible beside the menu button rather than
+            hiding inside the menu. */}
+        <div className="xl:hidden ml-auto mr-2">
+          <NavLink to="/give" className="btn-give inline-flex items-center rounded-xl px-4 min-h-11 text-sm font-semibold">
+            {t('nav.give')}
+          </NavLink>
+        </div>
         <button
-          className="xl:hidden rounded-full p-2.5 min-w-[44px] min-h-[44px] hover:bg-slate-100 transition-colors duration-200"
+          className="xl:hidden rounded-xl p-2.5 min-w-[44px] min-h-[44px] hover:bg-slate-100 transition-colors duration-200"
           onClick={() => setOpen((v) => !v)}
-          aria-label="Toggle Menu"
+          aria-label={open ? t('nav.close_menu') : t('nav.open_menu')}
           aria-expanded={open}
           aria-controls="mobile-menu"
         >
@@ -151,17 +183,19 @@ export default function Navbar() {
       {open && (
         <div
           id="mobile-menu"
-          className="xl:hidden border-t border-slate-200 bg-white animate-fadeIn"
+          className="xl:hidden border-t border-slate-200 bg-surface animate-fade"
         >
           <div className="container-xl flex flex-col gap-1 py-4">
+            {/* Language first: someone who can't read the current one needs it before anything else. */}
+            <div className="px-3 pb-2 mb-1 border-b border-slate-100">{languageToggle('')}</div>
             {links.map((l) => (
               <NavLink
                 key={l.to}
                 to={l.to}
                 className={({ isActive }) =>
-                  `rounded-xl px-3 py-2.5 text-[15px] font-medium ${
-                    isActive ? "bg-slate-100 text-slate-900 font-semibold" : "text-slate-600 hover:bg-slate-50"
-                  } ${l.key === 'nav.give' ? '!text-accent-600 font-semibold' : ''}`
+                  `rounded-xl px-3 py-2.5 text-[15px] font-semibold ${
+                    isActive ? "bg-slate-100 text-brand-600" : "text-slate-600 hover:bg-slate-100"
+                  }`
                 }
                 onClick={() => setOpen(false)}
               >
@@ -169,13 +203,21 @@ export default function Navbar() {
               </NavLink>
             ))}
 
+            <NavLink
+              to="/give"
+              className="btn-give rounded-xl px-3 py-2.5 text-[15px] font-semibold text-center mt-1"
+              onClick={() => setOpen(false)}
+            >
+              {t('nav.give')}
+            </NavLink>
+
             {/* Admin link for mobile (only shown when user is signed in) */}
             {IS_FIREBASE_CONFIGURED && user && (
               <NavLink
                 to="/admin"
                 className={({ isActive }) =>
-                  `rounded-xl px-3 py-2.5 text-[15px] font-medium ${
-                    isActive ? "bg-slate-100 text-slate-900 font-semibold" : "text-slate-600 hover:bg-slate-50"
+                  `rounded-xl px-3 py-2.5 text-[15px] font-semibold ${
+                    isActive ? "bg-slate-100 text-slate-900 font-semibold" : "text-slate-600 hover:bg-slate-100"
                   }`
                 }
                 onClick={() => setOpen(false)}
@@ -185,19 +227,12 @@ export default function Navbar() {
             )}
 
             <div className="mt-2 pt-2 border-t border-slate-100 space-y-1">
-              <button
-                onClick={() => setLanguage(language === 'vi' ? 'en' : 'vi')}
-                className="w-full text-left px-3 py-2.5 rounded-xl text-[15px] font-medium text-slate-600 hover:bg-slate-50 transition-colors"
-                aria-label="Toggle language"
-              >
-                {language === 'vi' ? '🇺🇸 EN' : '🇻🇳 VI'}
-              </button>
               {IS_FIREBASE_CONFIGURED && user && (
                 <button
                   onClick={() => void logout()}
-                  className="w-full text-left px-3 py-2.5 rounded-xl text-[15px] font-medium text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+                  className="w-full text-left px-3 py-2.5 rounded-xl text-[15px] font-semibold text-slate-700 hover:bg-red-50 hover:text-red-700 transition-colors"
                 >
-                  Sign out
+                  {t('nav.sign_out')}
                 </button>
               )}
             </div>

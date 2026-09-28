@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "./contexts/LanguageContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -27,12 +27,15 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Lazy load admin pages
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const AdminOverview = lazy(() => import('./pages/AdminOverview'));
 const AdminReflections = lazy(() => import('./pages/AdminReflections'));
 const AdminEvents = lazy(() => import('./pages/AdminEvents'));
 const AdminGallery = lazy(() => import('./pages/AdminGallery'));
+const AdminMinistries = lazy(() => import('./pages/AdminMinistries'));
+const AdminMessages = lazy(() => import('./pages/AdminMessages'));
 
 const LoadingFallback = () => (
-  <div className="container-xl py-12 text-center text-slate-500">
+  <div className="container-xl py-12 text-center text-slate-600">
     Loading...
   </div>
 );
@@ -46,7 +49,7 @@ export default function App() {
             <ScrollToTop />
             <Toaster position="top-center" />
             <Navbar />
-          <main className="flex-1">
+          <main id="main" tabIndex={-1} className="flex-1 focus:outline-none">
             <Suspense fallback={<LoadingFallback />}>
               <Routes>
                 <Route path="/" element={<Home />} />
@@ -72,9 +75,11 @@ export default function App() {
                     </ProtectedRoute>
                   }
                 >
-                  <Route index element={<Navigate to="reflections" replace />} />
+                  <Route index element={<AdminOverview />} />
                   <Route path="reflections" element={<AdminReflections />} />
                   <Route path="events" element={<AdminEvents />} />
+                  <Route path="ministries" element={<AdminMinistries />} />
+                  <Route path="messages" element={<AdminMessages />} />
                   <Route path="gallery" element={<AdminGallery />} />
                 </Route>
                 

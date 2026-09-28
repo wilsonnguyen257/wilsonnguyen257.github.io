@@ -149,7 +149,7 @@ export default function BatchImageUpload({
             <p className="text-lg font-medium text-slate-900">
               {t('Drop images here', 'Thả ảnh vào đây')}
             </p>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-slate-600">
               {t('or click to select', 'hoặc nhấp để chọn')}
             </p>
           </div>
@@ -171,7 +171,7 @@ export default function BatchImageUpload({
             </h3>
             <button
               onClick={clearFiles}
-              className="text-sm text-slate-500 hover:text-slate-700"
+              className="text-sm text-slate-600 hover:text-slate-700"
             >
               {t('Clear All', 'Xóa tất cả')}
             </button>
@@ -192,7 +192,7 @@ export default function BatchImageUpload({
                   <p className="text-sm font-medium text-slate-900 truncate">
                     {file.name}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-xs text-slate-600">
                     {formatFileSize(file.size)}
                   </p>
                 </div>
@@ -257,7 +257,7 @@ export default function BatchImageUpload({
                     <p className="text-sm font-medium text-slate-900 truncate">
                       {upload.filename}
                     </p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-600">
                       {upload.status === 'completed' && t('Completed', 'Hoàn thành')}
                       {upload.status === 'error' && upload.error}
                       {upload.status === 'uploading' && `${upload.progress}%`}

@@ -22,6 +22,9 @@ export type AuditAction =
   | 'reflection.bulk_delete'
   | 'gallery.upload'
   | 'gallery.delete'
+  | 'roster.create'
+  | 'roster.update'
+  | 'roster.delete'
   | 'settings.update'
   | 'auth.login'
   | 'auth.logout';

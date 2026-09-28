@@ -1,13 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import SEO from '../components/SEO';
-import PageHero from '../components/PageHero';
 import { useLanguage } from '../contexts/LanguageContext';
 import { subscribeJson } from '../lib/storage';
 import { GallerySkeleton } from '../components/Skeleton';
-import LightboxViewer from '../components/gallery/LightboxViewer';
-import type { ImageMetadata } from '../types/gallery';
 
-type GalleryItem = { id: string; url: string; name: string; created: number; thumbnailUrl?: string };
+type GalleryCategory = 'mass' | 'events' | 'youth';
+type GalleryItem = { id: string; url: string; name: string; created: number; thumbnailUrl?: string; category?: GalleryCategory };
 type GalleryGroup = { key: string; label: string; items: GalleryItem[] };
 
 // Groups items into month buckets, in the order they appear (caller controls sort order).
@@ -34,9 +32,15 @@ export default function Gallery() {
   const { t, language } = useLanguage();
   const [images, setImages] = useState<GalleryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
-  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<GalleryCategory | 'all'>('all');
+  const [lightboxImg, setLightboxImg] = useState<GalleryItem | null>(null);
+
+  const filters: { value: GalleryCategory | 'all'; label: string }[] = [
+    { value: 'all', label: t('gallery.filter_all') },
+    { value: 'mass', label: t('gallery.filter_mass') },
+    { value: 'events', label: t('gallery.filter_events') },
+    { value: 'youth', label: t('gallery.filter_youth') },
+  ];
 
   // Load gallery items from Firebase Storage JSON
   useEffect(() => {
@@ -52,160 +56,80 @@ export default function Gallery() {
   }, []);
 
   const filteredSorted = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
-    const filtered = term
-      ? images.filter((img) => img.name.toLowerCase().includes(term))
-      : images;
-    return [...filtered].sort((a, b) =>
-      sortBy === 'newest' ? b.created - a.created : a.created - b.created
-    );
-  }, [images, searchTerm, sortBy]);
+    const filtered = categoryFilter === 'all'
+      ? images
+      : images.filter((img) => img.category === categoryFilter);
+    return [...filtered].sort((a, b) => b.created - a.created);
+  }, [images, categoryFilter]);
 
   const groups = useMemo(
     () => groupByMonth(filteredSorted, language === 'vi' ? 'vi-VN' : 'en-US'),
     [filteredSorted, language]
   );
 
-  // Adapt our simple GalleryItem into the richer shape LightboxViewer expects
-  const lightboxImages: ImageMetadata[] = useMemo(
-    () =>
-      filteredSorted.map((img) => ({
-        id: img.id,
-        url: img.url,
-        name: img.name,
-        originalName: img.name,
-        tags: [],
-        uploadedAt: new Date(img.created).toISOString(),
-        size: 0,
-      })),
-    [filteredSorted]
-  );
-
-  const openLightbox = (img: GalleryItem) => {
-    const idx = filteredSorted.findIndex((i) => i.id === img.id);
-    if (idx !== -1) setLightboxIndex(idx);
-  };
-
-  const hasFilters = searchTerm !== '' || sortBy !== 'newest';
-  const clearFilters = () => {
-    setSearchTerm('');
-    setSortBy('newest');
-  };
+  const clearFilters = () => setCategoryFilter('all');
 
   return (
-    <div className="bg-white">
+    <div className="bg-surface">
       <SEO
         title={t('gallery.title')}
         description={t('gallery.subtitle')}
       />
-      <PageHero
-        title={t('gallery.title')}
-        subtitle={t('gallery.subtitle')}
-        badgeLabel={t('gallery.title')}
-        badgeIcon={
-          <svg className="w-5 h-5 text-brand-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-          </svg>
-        }
-      />
+
+      <section className="pt-16 pb-2 text-center">
+        <div className="container-xl">
+          <h1 className="h1 !text-4xl md:!text-5xl">{t('gallery.title')}</h1>
+          <p className="mt-4 text-slate-600 max-w-xl mx-auto leading-relaxed">{t('gallery.subtitle')}</p>
+        </div>
+      </section>
+
+      {/* Category filter row — centered, selected = primary, per the
+          prototype. Categories are admin-assigned per photo on upload. */}
+      {!loading && images.length > 0 && (
+        <section className="pt-10">
+          <div className="container-xl flex gap-2 justify-center flex-wrap">
+            {filters.map((f) => (
+              <button
+                key={f.value}
+                onClick={() => setCategoryFilter(f.value)}
+                className={`btn !py-2 !px-4 text-sm ${categoryFilter === f.value ? 'btn-primary' : 'btn-outline'}`}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Gallery Grid Section */}
-      <section className="py-20">
+      <section className="pt-6 pb-20">
         <div className="container-xl">
-          {!loading && images.length > 0 && (
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 mb-12 max-w-5xl mx-auto">
-              <div className="grid gap-4 md:grid-cols-3">
-                {/* Search */}
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">
-                    {t('gallery.search')}
-                  </label>
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    <input
-                      type="text"
-                      placeholder={t('gallery.search_placeholder')}
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 placeholder-slate-400 focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all hover:bg-white focus:bg-white"
-                    />
-                  </div>
-                </div>
-
-                {/* Sort */}
-                <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2 uppercase tracking-wider">
-                    {t('gallery.sort')}
-                  </label>
-                  <div className="relative">
-                    <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                    </svg>
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as 'newest' | 'oldest')}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50 text-slate-900 focus:ring-2 focus:ring-brand-500 focus:border-transparent appearance-none transition-all hover:bg-white focus:bg-white cursor-pointer"
-                    >
-                      <option value="newest">{t('gallery.newest')}</option>
-                      <option value="oldest">{t('gallery.oldest')}</option>
-                    </select>
-                    <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-100">
-                <div className="text-sm text-slate-500 font-medium">
-                  {t('gallery.showing')} <span className="font-bold text-slate-900">{filteredSorted.length}</span> {t('gallery.of')} <span className="font-bold text-slate-900">{images.length}</span> {t('gallery.photos')}
-                </div>
-                {hasFilters && (
-                  <button
-                    onClick={clearFilters}
-                    className="text-sm text-brand-600 hover:text-brand-700 font-bold transition-colors flex items-center gap-1"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                    {t('gallery.clear_filters')}
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-
           {loading ? (
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {[1, 2, 3, 4, 5, 6].map(i => (
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+              {[1, 2, 3, 4].map(i => (
                 <GallerySkeleton key={i} />
               ))}
             </div>
           ) : images.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border-2 border-dashed border-slate-300">
-              <div className="w-20 h-20 bg-slate-100 rounded-2xl flex items-center justify-center mb-6">
-                <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            <div className="card flex flex-col items-center justify-center py-20 !border-2 !border-dashed">
+              <div className="w-16 h-16 rounded-full bg-surface border border-slate-200 flex items-center justify-center mb-6 text-slate-400">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-2">{t('gallery.empty')}</h3>
-              <p className="text-slate-600">Hình ảnh sẽ được cập nhật sớm.</p>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">{t('gallery.empty')}</h3>
+              <p className="text-slate-600 text-sm">{language === 'vi' ? 'Hình ảnh sẽ được cập nhật sớm.' : 'Photos will be added soon.'}</p>
             </div>
           ) : filteredSorted.length === 0 ? (
             <div className="text-center py-16 max-w-md mx-auto">
-              <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                <svg className="w-10 h-10 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              <div className="w-16 h-16 rounded-full bg-surface border border-slate-200 flex items-center justify-center mx-auto mb-6 text-slate-400">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
               </div>
-              <h3 className="text-xl font-semibold text-slate-900 mb-3">{t('gallery.no_results')}</h3>
+              <h3 className="text-lg font-semibold text-slate-900 mb-3">{t('gallery.no_results')}</h3>
               <p className="text-slate-600 mb-6">{t('gallery.no_results_desc')}</p>
-              <button
-                onClick={clearFilters}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-0.5"
-              >
+              <button onClick={clearFilters} className="btn btn-primary">
                 {t('gallery.clear_filters')}
               </button>
             </div>
@@ -213,44 +137,33 @@ export default function Gallery() {
             <div className="space-y-14">
               {groups.map((group) => (
                 <div key={group.key}>
-                  <h2 className="text-2xl font-semibold text-slate-900 mb-8 border-l-2 border-brand-500 pl-4 capitalize">
-                    {group.label}
-                  </h2>
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <p className="eyebrow mb-6 capitalize">{group.label}</p>
+                  {/* 4-up grid (→2 →1), 16px gap, 200px tiles — per the
+                      prototype. Captions sit below the image, centered,
+                      never over it (DESIGN.md § Backgrounds). */}
+                  <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
                     {group.items.map((img) => (
                       <div
                         key={img.id}
-                        className="group bg-white rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden cursor-pointer border border-slate-100 hover:border-brand-200 hover:-translate-y-1"
-                        onClick={() => openLightbox(img)}
+                        className="group card !p-0 overflow-hidden cursor-pointer"
+                        onClick={() => setLightboxImg(img)}
                       >
-                        <div className="aspect-[4/3] bg-slate-100 overflow-hidden relative">
+                        <div className="h-[200px] bg-slate-200 overflow-hidden relative">
                           <img
                             src={img.thumbnailUrl || img.url}
                             alt={img.name}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                            className="w-full h-full object-cover"
                             loading="lazy"
                           />
-
-                          {/* Hover overlay (desktop) */}
-                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300"></div>
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transform scale-50 group-hover:scale-100 transition-all duration-300 border border-white/30">
-                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                            </svg>
-                          </div>
                         </div>
 
-                        {/* Always-visible caption strip — readable on mobile, not just on hover */}
-                        <div className="px-4 py-3 border-t border-slate-50">
+                        <div className="px-4 py-3 border-t border-slate-200 text-center">
                           <p className="text-sm font-semibold text-slate-800 line-clamp-1" title={img.name}>
                             {img.name}
                           </p>
-                          <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span>{new Date(img.created).toLocaleDateString()}</span>
-                          </div>
+                          <p className="nums-lining text-xs text-slate-600 mt-0.5">
+                            {new Date(img.created).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US')}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -262,13 +175,39 @@ export default function Gallery() {
         </div>
       </section>
 
-      <LightboxViewer
-        images={lightboxImages}
-        initialIndex={lightboxIndex ?? 0}
-        isOpen={lightboxIndex !== null}
-        onClose={() => setLightboxIndex(null)}
-        allowDownloads
-      />
+      {/* Lightbox — a simple centered card on an ink-tinted scrim, per the
+          prototype: one image, a caption row, a "Đóng" button. Overlay
+          click closes; no zoom/download/prev-next — those aren't in the
+          prototype's lightbox, which opens exactly the tile that was
+          clicked and nothing else. */}
+      {lightboxImg && (
+        <div
+          onClick={() => setLightboxImg(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 px-6 py-12"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-[900px] bg-slate-100 rounded-2xl p-6 flex flex-col gap-4 shadow-[0_2px_6px_rgba(2,2,2,0.14),0_12px_32px_rgba(2,2,2,0.10)]"
+          >
+            <div className="h-[420px] rounded-lg bg-surface border border-slate-200 flex items-center justify-center overflow-hidden">
+              <img
+                src={lightboxImg.url}
+                alt={lightboxImg.name}
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
+            <div className="flex items-center gap-4">
+              <p className="text-sm text-slate-600 truncate">{lightboxImg.name}</p>
+              <button
+                onClick={() => setLightboxImg(null)}
+                className="btn btn-outline !py-2 !px-4 text-sm ml-auto shrink-0"
+              >
+                {t('gallery.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -59,7 +59,7 @@ export default class ErrorBoundary extends Component<Props, State> {
             </p>
 
             {this.state.error && (
-              <details className="mb-4 rounded border border-red-300 bg-white p-3">
+              <details className="mb-4 rounded border border-red-300 bg-surface p-3">
                 <summary className="cursor-pointer text-sm font-medium text-red-800">
                   Error details
                 </summary>

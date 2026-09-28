@@ -1,25 +1,33 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext';
 import { CHURCH_INFO } from '../lib/constants';
+import logo from '../assets/logo.png';
 
 export default function Footer() {
   const { t, language } = useLanguage();
 
+  // Back-to-top only appears once there's somewhere to go back to.
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 600);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
-    <footer className="bg-surface border-t border-slate-200">
+    <footer className="bg-slate-100 border-t border-slate-200">
+      <h2 className="sr-only">{t('footer.heading')}</h2>
       <div className="container-xl py-16">
         <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4 mb-12">
           {/* About Section */}
           <div>
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-brand-600">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
-                </svg>
-              </div>
-              <h3 className="font-semibold text-lg text-slate-900">Anê Thành</h3>
+              <img src={logo} alt="" className="w-10 h-10 rounded-full object-cover" />
+              <p className="font-serif font-bold text-lg text-slate-900">Anê Thành</p>
             </div>
-            <p className="text-sm text-slate-500 leading-relaxed mb-6">
+            <p className="text-sm text-slate-600 leading-relaxed mb-6">
               {t('footer.description')}
             </p>
             <div className="flex gap-2">
@@ -27,7 +35,7 @@ export default function Footer() {
                 href="https://www.facebook.com/anethanhvn"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-600 hover:border-brand-200 transition-colors"
+                className="w-9 h-9 rounded-full bg-surface border border-slate-200 flex items-center justify-center text-slate-600 hover:text-brand-600 hover:border-brand-200 transition-colors"
                 aria-label="Facebook"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24" className="w-4 h-4">
@@ -36,7 +44,7 @@ export default function Footer() {
               </a>
               <a
                 href="mailto:anethanhvn@gmail.com"
-                className="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-brand-600 hover:border-brand-200 transition-colors"
+                className="w-9 h-9 rounded-full bg-surface border border-slate-200 flex items-center justify-center text-slate-600 hover:text-brand-600 hover:border-brand-200 transition-colors"
                 aria-label="Email"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
@@ -52,11 +60,11 @@ export default function Footer() {
               {t('footer.quick_links')}
             </h3>
             <ul className="space-y-3">
-              <li><Link to="/about" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">{t('footer.about')}</Link></li>
-              <li><Link to="/events" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">{t('nav.events')}</Link></li>
-              <li><Link to="/ministries" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">{t('nav.ministries')}</Link></li>
-              <li><Link to="/reflections" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">{t('nav.reflections')}</Link></li>
-              <li><Link to="/gallery" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">{t('nav.gallery')}</Link></li>
+              <li><Link to="/about" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">{t('footer.about')}</Link></li>
+              <li><Link to="/events" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">{t('nav.events')}</Link></li>
+              <li><Link to="/ministries" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">{t('nav.ministries')}</Link></li>
+              <li><Link to="/reflections" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">{t('nav.reflections')}</Link></li>
+              <li><Link to="/gallery" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">{t('nav.gallery')}</Link></li>
             </ul>
           </div>
 
@@ -66,14 +74,18 @@ export default function Footer() {
               {t('footer.contact_us')}
             </h3>
             <ul className="space-y-3">
-              <li className="text-sm text-slate-500 leading-relaxed">{CHURCH_INFO.ADDRESS}</li>
-              <li>
-                <a href={`tel:${CHURCH_INFO.PHONE}`} className="text-sm text-slate-500 hover:text-slate-900 transition-colors">
-                  {CHURCH_INFO.PHONE}
+              <li className="text-sm leading-relaxed">
+                <a href={CHURCH_INFO.MAPS_LINK} target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-slate-900 transition-colors">
+                  {CHURCH_INFO.ADDRESS}
                 </a>
               </li>
               <li>
-                <a href={`mailto:${CHURCH_INFO.EMAIL}`} className="text-sm text-slate-500 hover:text-slate-900 transition-colors break-all">
+                <a href={`tel:${CHURCH_INFO.PHONE}`} className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
+                  {CHURCH_INFO.PHONE_DISPLAY}
+                </a>
+              </li>
+              <li>
+                <a href={`mailto:${CHURCH_INFO.EMAIL}`} className="text-sm text-slate-600 hover:text-slate-900 transition-colors break-all">
                   {CHURCH_INFO.EMAIL}
                 </a>
               </li>
@@ -87,12 +99,12 @@ export default function Footer() {
             </h3>
             <ul className="space-y-4">
               <li className="text-sm">
-                <p className="font-medium text-slate-900">{t('home.sunday')}</p>
-                <p className="text-slate-500">{CHURCH_INFO.MASS_TIME[language]}</p>
+                <p className="font-semibold text-slate-900">{t('home.sunday')}</p>
+                <p className="text-slate-600 nums-lining">{CHURCH_INFO.MASS_RANGE[language]}</p>
               </li>
               <li className="text-sm">
-                <p className="font-medium text-slate-900">{t('home.confession')}</p>
-                <p className="text-slate-500">{CHURCH_INFO.CONFESSION_TIME[language]}</p>
+                <p className="font-semibold text-slate-900">{t('home.confession')}</p>
+                <p className="text-slate-600">{CHURCH_INFO.CONFESSION_TIME[language]}</p>
               </li>
             </ul>
           </div>
@@ -101,14 +113,14 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-slate-200">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-sm text-slate-500 text-center md:text-left">
+            <p className="text-sm text-slate-600 text-center md:text-left">
               © {new Date().getFullYear()} {t('footer.copyright')}
             </p>
             <div className="flex gap-6 text-sm">
-              <Link to="/contact" className="text-slate-500 hover:text-slate-900 transition-colors">
+              <Link to="/contact" className="text-slate-600 hover:text-slate-900 transition-colors">
                 {t('footer.contact')}
               </Link>
-              <Link to="/give" className="text-slate-500 hover:text-slate-900 transition-colors">
+              <Link to="/give" className="text-slate-600 hover:text-slate-900 transition-colors">
                 {t('nav.give')}
               </Link>
             </div>
@@ -119,10 +131,12 @@ export default function Footer() {
       {/* Back to Top Button */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className="fixed bottom-8 right-8 w-11 h-11 bg-white border border-slate-200 text-slate-500 rounded-full shadow-sm hover:shadow-md hover:text-slate-900 transition-all duration-200 flex items-center justify-center z-40"
-        aria-label="Back to top"
+        className={`fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40 w-11 h-11 bg-slate-100 border border-slate-200 text-slate-600 rounded-full shadow-[0_2px_6px_rgba(2,2,2,0.14),0_12px_32px_rgba(2,2,2,0.10)] hover:text-brand-600 flex items-center justify-center transition-[opacity,color] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 ${scrolled ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+        tabIndex={scrolled ? 0 : -1}
+        aria-hidden={!scrolled}
+        aria-label={t('footer.back_to_top')}
       >
-        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
+        <svg aria-hidden="true" className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 10l7-7m0 0l7 7m-7-7v18" />
         </svg>
       </button>

@@ -41,7 +41,7 @@ export const ListSkeleton: React.FC = () => {
 
 export const GallerySkeleton: React.FC = () => {
   return (
-    <div className="aspect-[4/3] rounded-xl overflow-hidden border border-slate-100">
+    <div className="h-[200px] rounded-2xl overflow-hidden border border-slate-200">
       <Skeleton className="w-full h-full rounded-none" />
     </div>
   );

@@ -1,16 +1,24 @@
 import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import SEO from "../components/SEO";
-import PageHero from "../components/PageHero";
 import type { Event } from "../types/content";
 import { subscribeJson } from "../lib/storage";
 import { useLanguage } from "../contexts/LanguageContext";
 import { hasEventPassed, parseEventDate } from "../lib/timezone";
+import { CHURCH_INFO } from "../lib/constants";
+
+// Strip HTML for the two-line body preview inside each event card.
+const stripHtml = (html: string): string => {
+  const tmp = document.createElement('div');
+  tmp.innerHTML = html;
+  return tmp.textContent || tmp.innerText || '';
+};
 
 export default function Events() {
   const { t, language } = useLanguage();
   const [events, setEvents] = useState<Event[]>([]);
-  
+  const [eventTab, setEventTab] = useState<'upcoming' | 'past'>('upcoming');
+
   useEffect(() => {
     const unsub = subscribeJson<Event[]>(
       'events',
@@ -21,7 +29,7 @@ export default function Events() {
           const nameEn = d.name?.en || d.name?.vi || '';
           const contentVi = d.content?.vi || d.content?.en || '';
           const contentEn = d.content?.en || d.content?.vi || '';
-          
+
           return {
             id: d.id,
             name: { vi: nameVi, en: nameEn },
@@ -36,10 +44,7 @@ export default function Events() {
             driveLink: d.driveLink,
             status: d.status || 'published',
           };
-        }).filter(e => e.status === 'published').sort((a, b) => {
-          // Sort descending: newest events first (highest date to lowest date)
-          return parseEventDate(b.date).getTime() - parseEventDate(a.date).getTime();
-        });
+        }).filter(e => e.status === 'published');
         setEvents(mapped);
       }
     );
@@ -47,7 +52,7 @@ export default function Events() {
   }, []);
 
   const now = useMemo(() => new Date(), []);
-  
+
   const upcomingEvents = useMemo(() => {
     return events.filter(e => {
       try {
@@ -55,10 +60,7 @@ export default function Events() {
       } catch {
         return parseEventDate(e.date) >= now;
       }
-    }).sort((a, b) => {
-      // Sort upcoming events ascending: nearest event first
-      return parseEventDate(a.date).getTime() - parseEventDate(b.date).getTime();
-    });
+    }).sort((a, b) => parseEventDate(a.date).getTime() - parseEventDate(b.date).getTime());
   }, [events, now]);
 
   const pastEvents = useMemo(() => {
@@ -68,213 +70,113 @@ export default function Events() {
       } catch {
         return parseEventDate(e.date) < now;
       }
-    }).sort((a, b) => {
-      // Sort past events descending: most recent past event first
-      return parseEventDate(b.date).getTime() - parseEventDate(a.date).getTime();
-    });
+    }).sort((a, b) => parseEventDate(b.date).getTime() - parseEventDate(a.date).getTime());
   }, [events, now]);
 
+  const filteredEvents = eventTab === 'upcoming' ? upcomingEvents : pastEvents;
+
   return (
-    <div className="bg-white">
-      <SEO 
-        title={t('events.title')} 
-        description={t('events.subtitle')} 
-      />
-      <PageHero
+    <div className="bg-surface">
+      <SEO
         title={t('events.title')}
-        subtitle={t('events.subtitle')}
-        badgeLabel={t('events.upcoming')}
-        badgeIcon={
-          <svg className="w-4 h-4 text-brand-100" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
-          </svg>
-        }
+        description={t('events.subtitle')}
       />
 
-      {/* Next Event Section */}
-      {upcomingEvents.length > 0 && (
-        <section className="relative -mt-16 z-20 pb-12">
-          <div className="container-xl">
-            <Link 
-              to={`/events/${upcomingEvents[0].id}`}
-              className="block max-w-5xl mx-auto bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.1)] transition-shadow duration-300 overflow-hidden group border border-slate-100"
-            >
-              <div className="grid md:grid-cols-2 gap-0">
-                <div className="relative h-64 md:h-full min-h-[350px] overflow-hidden group">
-                  <img 
-                    src={upcomingEvents[0].thumbnail || upcomingEvents[0].thumbnailPath} 
-                    alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
-                  <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md text-brand-700 px-4 py-3 rounded-2xl shadow-sm font-semibold flex flex-col items-center min-w-[76px]">
-                    <span className="text-sm uppercase tracking-wider font-bold text-slate-500">{parseEventDate(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</span>
-                    <span className="text-3xl leading-none text-slate-900">{parseEventDate(upcomingEvents[0].date).getDate()}</span>
-                  </div>
-                </div>
-                <div className="p-8 md:p-12 flex flex-col justify-center bg-white relative">
-                  <p className="eyebrow mb-6">{t('events.next_event')}</p>
-                  <h2 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-6 leading-tight tracking-tight group-hover:text-brand-700 transition-colors">
-                    {upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
-                  </h2>
-                  <div className="space-y-4 mb-8 text-slate-600">
-                    <div className="flex items-center gap-4 group/item">
-                      <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600 flex-shrink-0 group-hover/item:bg-brand-100 transition-colors">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t('events.time')}</p>
-                        <p className="text-lg font-medium text-slate-900">{upcomingEvents[0].time}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 group/item">
-                      <div className="w-12 h-12 rounded-xl bg-brand-50 flex items-center justify-center text-brand-600 flex-shrink-0 group-hover/item:bg-brand-100 transition-colors">
-                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{t('events.location')}</p>
-                        <p className="text-lg font-medium text-slate-900">{upcomingEvents[0].location}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <span 
-                    className="btn btn-primary w-full md:w-auto"
-                  >
-                    {t('events.view_details')}
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
-                  </span>
-                </div>
-              </div>
-            </Link>
-          </div>
-        </section>
-      )}
-
-      {/* Upcoming Events List */}
-      {upcomingEvents.length > 1 && (
-        <section className="py-20 bg-surface">
-          <div className="container-xl">
-            <div className="flex items-center gap-3 mb-12">
-              <div className="h-px bg-slate-200 flex-1"></div>
-              <h2 className="text-lg font-semibold text-slate-900 uppercase tracking-widest">{t('events.upcoming')}</h2>
-              <div className="h-px bg-slate-200 flex-1"></div>
-            </div>
-            
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {upcomingEvents.slice(1).map((event) => (
-                <Link 
-                  key={event.id}
-                  to={`/events/${event.id}`}
-                  className="group card !p-0 overflow-hidden flex flex-col"
-                >
-                  <div className="relative h-56 overflow-hidden">
-                    <img 
-                      src={event.thumbnail || event.thumbnailPath} 
-                      alt={event.name[language] || event.name.vi} 
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm text-center min-w-[60px] border border-slate-100">
-                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{parseEventDate(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</p>
-                      <p className="text-xl font-bold text-brand-600 leading-none">{parseEventDate(event.date).getDate()}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6 flex-1 flex flex-col">
-                    <h3 className="text-lg font-semibold text-slate-900 mb-3 group-hover:text-brand-600 transition-colors line-clamp-2">
-                      {event.name[language] || event.name.vi}
-                    </h3>
-                    
-                    <div className="space-y-3 mt-auto">
-                      <div className="flex items-center gap-3 text-slate-600 text-sm">
-                        <svg className="w-5 h-5 text-brand-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="font-medium">{event.time}</span>
-                      </div>
-                      <div className="flex items-center gap-3 text-slate-600 text-sm">
-                        <svg className="w-5 h-5 text-brand-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        <span className="font-medium line-clamp-1">{event.location}</span>
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Past Events List */}
-      <section className="py-20 bg-surface">
+      <section className="pt-16 pb-10 text-center">
         <div className="container-xl">
-          <div className="flex items-center gap-3 mb-12">
-            <div className="h-px bg-slate-300 flex-1"></div>
-            <h2 className="text-lg font-semibold text-slate-900 uppercase tracking-widest">{t('events.past_events')}</h2>
-            <div className="h-px bg-slate-300 flex-1"></div>
-          </div>
-          
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {pastEvents.map((event) => (
-              <Link 
-                key={event.id}
-                to={`/events/${event.id}`}
-                className="group card !p-0 overflow-hidden flex flex-col opacity-80 hover:opacity-100"
-              >
-                <div className="relative h-48 overflow-hidden grayscale group-hover:grayscale-0 transition-all duration-500">
-                  <img 
-                    src={event.thumbnail || event.thumbnailPath} 
-                    alt={event.name[language] || event.name.vi} 
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                  <div className="absolute top-4 right-4 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-sm text-center min-w-[60px] border border-slate-700">
-                    <p className="text-xs font-bold text-slate-300 uppercase tracking-wider">{parseEventDate(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</p>
-                    <p className="text-xl font-bold text-white leading-none">{parseEventDate(event.date).getDate()}</p>
-                  </div>
-                </div>
-                
-                <div className="p-6 flex-1 flex flex-col">
-                  <h3 className="text-lg font-semibold text-slate-700 mb-3 group-hover:text-brand-600 transition-colors line-clamp-2">
-                    {event.name[language] || event.name.vi}
-                  </h3>
-                  
-                  <div className="space-y-3 mt-auto">
-                    <div className="flex items-center gap-3 text-slate-500 text-sm">
-                      <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="font-medium">{event.time}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-slate-500 text-sm">
-                      <svg className="w-5 h-5 text-slate-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                      </svg>
-                      <span className="font-medium line-clamp-1">{event.location}</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-
-          {pastEvents.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-slate-500">{t('events.no_events')}</p>
-            </div>
-          )}
+          <h1 className="h1 !text-4xl md:!text-5xl">{t('events.title')}</h1>
+          <p className="mt-4 text-slate-600 max-w-lg mx-auto leading-relaxed">{t('events.subtitle')}</p>
         </div>
       </section>
 
+      {/* Two columns per the prototype: a Mass-info card on the left,
+          the filterable event calendar on the right. */}
+      <section className="pb-20">
+        <div className="container-xl flex flex-col md:flex-row gap-8 items-start">
+          {/* Giờ lễ */}
+          <div className="card flex-[1_1_340px] flex flex-col gap-4">
+            <p className="eyebrow">{t('home.mass_schedule_subtitle')}</p>
+            <div className="flex items-baseline justify-between pb-3.5 border-b border-slate-200">
+              <span className="font-serif text-xl font-bold text-slate-900">{t('home.sunday')}</span>
+              <span className="font-serif text-xl font-bold text-slate-900 nums-lining">{CHURCH_INFO.MASS_RANGE[language]}</span>
+            </div>
+            <p className="text-sm text-slate-600 leading-relaxed">{CHURCH_INFO.ADDRESS}</p>
+            <div className="rounded-xl overflow-hidden border border-slate-200 h-40">
+              <iframe
+                src={CHURCH_INFO.MAPS_EMBED_URL}
+                title="Church location"
+                className="w-full h-full"
+                style={{ border: 0 }}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+            <a href={CHURCH_INFO.MAPS_LINK} target="_blank" rel="noopener noreferrer" className="text-brand-600 font-semibold text-sm hover:underline self-start">
+              {t('home.directions')}
+            </a>
+          </div>
+
+          {/* Sự kiện */}
+          <div className="flex-[2_1_520px] min-w-0 flex flex-col gap-5">
+            <div className="flex items-center gap-3 flex-wrap">
+              <p className="eyebrow">{t('nav.events')}</p>
+              <div className="ml-auto flex gap-2">
+                <button
+                  onClick={() => setEventTab('upcoming')}
+                  className={`btn !py-2 !px-4 text-sm ${eventTab === 'upcoming' ? 'btn-primary' : 'btn-outline'}`}
+                >
+                  {t('events.upcoming')}
+                </button>
+                <button
+                  onClick={() => setEventTab('past')}
+                  className={`btn !py-2 !px-4 text-sm ${eventTab === 'past' ? 'btn-primary' : 'btn-outline'}`}
+                >
+                  {t('events.past')}
+                </button>
+              </div>
+            </div>
+
+            {filteredEvents.length === 0 ? (
+              <div className="border-2 border-dashed border-slate-200 rounded-2xl p-12 text-center text-slate-600 text-sm">
+                {t('events.no_upcoming')}
+              </div>
+            ) : (
+              <div className="grid gap-5 sm:grid-cols-2">
+                {filteredEvents.map((event) => (
+                  <Link
+                    key={event.id}
+                    to={`/events/${event.id}`}
+                    className="card !p-0 overflow-hidden group flex flex-col"
+                  >
+                    {event.thumbnail && (
+                      <div className="h-40 overflow-hidden bg-slate-200 shrink-0">
+                        <img
+                          src={event.thumbnail || event.thumbnailPath}
+                          alt={event.name[language] || event.name.vi}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="p-5 flex flex-col gap-2 flex-1">
+                      <h3 className="font-serif text-lg font-bold text-slate-900 group-hover:text-brand-600 transition-colors leading-snug">
+                        {event.name[language] || event.name.vi}
+                      </h3>
+                      <p className="nums-lining text-xs text-slate-600">
+                        {parseEventDate(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { weekday: 'short', day: '2-digit', month: 'short' })} · {event.time} · {event.location}
+                      </p>
+                      {event.content && (
+                        <p className="text-sm text-slate-600 leading-relaxed line-clamp-2">
+                          {stripHtml(event.content[language] || event.content.vi)}
+                        </p>
+                      )}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }

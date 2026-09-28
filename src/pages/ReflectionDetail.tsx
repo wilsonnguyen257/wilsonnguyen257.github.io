@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import SEO from "../components/SEO";
 import { useEffect, useState } from "react";
 import { useLanguage } from "../contexts/LanguageContext";
@@ -18,6 +18,7 @@ type Reflection = {
   date?: string;
   author?: string;
   thumbnail?: string;
+  thumbnailFull?: string;
   facebookLink?: string;
   youtubeLink?: string;
   driveLink?: string;
@@ -28,14 +29,22 @@ export default function ReflectionDetail() {
   const navigate = useNavigate();
   const { t, language } = useLanguage();
   const [reflection, setReflection] = useState<Reflection | null>(null);
+  // Neighbours in the published, date-sorted list — for the "← Bài trước /
+  // Bài sau →" footer row the prototype calls for.
+  const [prevId, setPrevId] = useState<string | null>(null);
+  const [nextId, setNextId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    type Item = Reflection & { id: string };
+    type Item = Reflection & { id: string; status?: 'draft' | 'published' };
     const unsub = subscribeJson<Item[]>(
       'reflections',
       (items) => {
-        const found = (items || []).find((r) => r.id === id);
+        const published = (items || [])
+          .filter((it) => (it.status || 'published') === 'published')
+          .sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
+        const index = published.findIndex((r) => r.id === id);
+        const found = index !== -1 ? published[index] : undefined;
         if (!found) {
           navigate("/reflections");
           return;
@@ -53,11 +62,16 @@ export default function ReflectionDetail() {
           date: found.date,
           author: found.author,
           thumbnail: found.thumbnail,
+          thumbnailFull: found.thumbnailFull,
           facebookLink: found.facebookLink,
           youtubeLink: found.youtubeLink,
           driveLink: found.driveLink,
         };
         setReflection(mapped);
+        // Newest-first order: "previous" (older) is the next index, "next"
+        // (newer) is the prior index.
+        setPrevId(index < published.length - 1 ? published[index + 1].id : null);
+        setNextId(index > 0 ? published[index - 1].id : null);
       },
       (e) => {
         console.error('Failed to load reflection detail:', e);
@@ -78,7 +92,7 @@ export default function ReflectionDetail() {
   const facebookPluginUrl = getFacebookPluginUrl(facebookLink);
   const youtubeEmbedUrl = getYouTubeEmbedUrl(youtubeLink);
   const driveEmbedUrl = getGoogleDriveEmbedUrl(driveLink);
-  
+
   const stripHtml = (html: string) => {
     const tmp = document.createElement('div');
     tmp.innerHTML = html;
@@ -86,99 +100,79 @@ export default function ReflectionDetail() {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-surface min-h-screen">
       <SEO
         title={title}
         description={stripHtml(safeContent).slice(0, 160) + '...'}
       />
-      {/* Header */}
-      <section className="border-b border-slate-100 py-16">
-        <div className="container-xl max-w-4xl mx-auto">
-          <div className="mb-8">
-            <button
-              onClick={() => navigate("/reflections")}
-              className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-slate-900 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              {t('reflections.back_to_list')}
-            </button>
-          </div>
+      {/* Header — centered, measure-capped: nothing in the margins to pull
+          the eye out of the text (see DESIGN.md § Layout). */}
+      <section className="pt-10 pb-2 text-center">
+        <div className="container-xl">
+          <button
+            onClick={() => navigate("/reflections")}
+            className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors mb-8"
+          >
+            ‹ {t('reflections.back_to_list')}
+          </button>
 
-          <p className="eyebrow mb-4">{t('reflections.gospel')}</p>
+          <div className="measure-prose mx-auto flex flex-col items-center gap-3">
+            <p className="eyebrow justify-center">
+              {reflection.date || t('reflections.recently')}
+            </p>
+            <h1 className="text-2xl md:text-3xl font-serif font-bold leading-snug">
+              {title}
+            </h1>
+            {reflection.author && <p className="text-sm text-slate-600">{reflection.author}</p>}
 
-          <h1 className="text-3xl md:text-4xl font-semibold text-slate-900 mb-6 tracking-tight">
-            {typeof reflection.title === 'string' ? reflection.title : (reflection.title[language] || reflection.title.vi)}
-          </h1>
-
-          <div className="flex flex-wrap items-center gap-x-6 gap-y-3 text-sm text-slate-500">
-            <span>{reflection.date || t('reflections.recently')}</span>
-            {reflection.author && <span>{reflection.author}</span>}
-
-            {/* Social Links */}
-            {facebookLink && (
-              <a
-                href={facebookLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-white bg-[#1877F2] hover:opacity-90 rounded-full px-3 py-1.5 text-sm font-medium transition-opacity"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                </svg>
-                <span>Facebook</span>
-              </a>
-            )}
-            {driveLink && (
-              <a
-                href={driveLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-2 text-white bg-[#1FA463] hover:opacity-90 rounded-full px-3 py-1.5 text-sm font-medium transition-opacity"
-              >
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8.333 3.667h7.334l5.5 9.166-3.667 6.334H6.5L2.833 12.833l5.5-9.166zm0 0l-3.666 6.333 5.5 9.167h7.333M12 8.667L8.667 14.5h6.666L12 8.667z" />
-                </svg>
-                <span>Drive</span>
-              </a>
+            {(facebookLink || driveLink) && (
+              <div className="flex flex-wrap gap-3 justify-center mt-1">
+                {facebookLink && (
+                  <a href={facebookLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white bg-[#1877F2] hover:opacity-90 rounded-xl px-3 py-1.5 text-sm font-semibold transition-opacity">
+                    Facebook
+                  </a>
+                )}
+                {driveLink && (
+                  <a href={driveLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-white bg-[#1FA463] hover:opacity-90 rounded-xl px-3 py-1.5 text-sm font-semibold transition-opacity">
+                    Drive
+                  </a>
+                )}
+              </div>
             )}
           </div>
         </div>
       </section>
 
       {/* Content */}
-      <section className="py-16">
-        <div className="container-xl max-w-4xl mx-auto">
-          {reflection.thumbnail && (
-            <div className="relative mb-10 h-[320px] sm:h-[420px] md:h-[480px] rounded-2xl overflow-hidden bg-slate-900">
-              {/* Blurred, color-matched backdrop fills the frame regardless of the photo's aspect ratio */}
+      <section className="py-12">
+        <div className="container-xl">
+          {(reflection.thumbnailFull || reflection.thumbnail) && (
+            <div className="measure-prose mx-auto relative mb-8 h-[240px] sm:h-[320px] rounded-2xl overflow-hidden bg-slate-800">
               <div
                 className="absolute inset-0 bg-cover bg-center scale-110 blur-2xl opacity-50"
-                style={{ backgroundImage: `url(${reflection.thumbnail})` }}
+                style={{ backgroundImage: `url(${reflection.thumbnailFull || reflection.thumbnail})` }}
                 aria-hidden="true"
               />
-              {/* Full photo, never cropped, capped so it can't overwhelm the page */}
               <img
-                src={reflection.thumbnail}
+                src={reflection.thumbnailFull || reflection.thumbnail}
                 alt={title}
                 loading="lazy"
                 className="relative mx-auto h-full w-auto max-w-full object-contain"
               />
             </div>
           )}
-          <div className="card !p-8 md:!p-12">
+
+          <div className="measure-prose mx-auto">
             <div
-              className="prose prose-lg max-w-none prose-headings:text-slate-900 prose-p:text-slate-700 prose-p:leading-relaxed"
+              className="prose prose-headings:font-sans prose-headings:text-slate-900 prose-p:text-slate-700 prose-p:leading-relaxed"
               dangerouslySetInnerHTML={{
                 __html: safeContent
               }}
             />
 
-            {/* YouTube Video Embed */}
             {youtubeEmbedUrl && (
               <div className="mt-8">
-                <div className="relative pt-[56.25%] rounded-xl overflow-hidden bg-black">
+                <div className="relative pt-[56.25%] rounded-xl overflow-hidden bg-slate-900">
                    <iframe
                      className="absolute inset-0 w-full h-full"
                      src={youtubeEmbedUrl}
@@ -190,7 +184,6 @@ export default function ReflectionDetail() {
               </div>
             )}
 
-            {/* Facebook Embed */}
             {facebookPluginUrl && (
               <div className="mt-8 flex justify-center">
                 <iframe
@@ -202,15 +195,14 @@ export default function ReflectionDetail() {
                   frameBorder="0"
                   allowFullScreen={true}
                   allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                  className="rounded-xl max-w-full bg-white"
+                  className="rounded-xl max-w-full bg-surface"
                 ></iframe>
               </div>
             )}
 
-            {/* Google Drive Video Embed */}
             {driveEmbedUrl && (
               <div className="mt-8">
-                <div className="relative pt-[56.25%] rounded-xl overflow-hidden bg-black">
+                <div className="relative pt-[56.25%] rounded-xl overflow-hidden bg-slate-900">
                   <iframe
                     src={driveEmbedUrl}
                     className="absolute inset-0 w-full h-full"
@@ -220,16 +212,56 @@ export default function ReflectionDetail() {
                 </div>
               </div>
             )}
-          </div>
 
-          {/* Navigation */}
-          <div className="mt-8">
-            <button 
-              onClick={() => navigate("/reflections")}
-              className="btn btn-outline"
-            >
-              ← {t('reflections.back_to_list')}
-            </button>
+            {/* Footer row — two icon roundels (print, share) beside the
+                prev/next post links, above a hairline, per the prototype. */}
+            <div className="flex items-center gap-3 flex-wrap mt-10 pt-6 border-t border-slate-200">
+              <button
+                onClick={() => window.print()}
+                aria-label={t('reflections.print')}
+                title={t('reflections.print')}
+                className="w-9 h-9 rounded-full bg-surface border border-slate-200 flex items-center justify-center text-slate-600 hover:text-brand-600 hover:border-brand-200 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
+                </svg>
+              </button>
+              <button
+                onClick={() => {
+                  if (navigator.share) {
+                    void navigator.share({ title, url: window.location.href });
+                  } else {
+                    void navigator.clipboard.writeText(window.location.href);
+                  }
+                }}
+                aria-label={t('reflections.share')}
+                title={t('reflections.share')}
+                className="w-9 h-9 rounded-full bg-surface border border-slate-200 flex items-center justify-center text-slate-600 hover:text-brand-600 hover:border-brand-200 transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.75} d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+                </svg>
+              </button>
+
+              <div className="ml-auto flex gap-5 text-sm font-semibold">
+                {prevId ? (
+                  <Link to={`/reflections/${prevId}`} className="text-slate-700 hover:text-brand-600 transition-colors">
+                    {t('reflections.prev_post')}
+                  </Link>
+                ) : <span />}
+                {nextId && (
+                  <Link to={`/reflections/${nextId}`} className="text-slate-700 hover:text-brand-600 transition-colors">
+                    {t('reflections.next_post')}
+                  </Link>
+                )}
+              </div>
+            </div>
+
+            <div className="text-center mt-8">
+              <button onClick={() => navigate("/reflections")} className="text-sm font-semibold text-slate-600 hover:text-slate-900 transition-colors">
+                ‹ {t('reflections.back_to_list')}
+              </button>
+            </div>
           </div>
         </div>
       </section>

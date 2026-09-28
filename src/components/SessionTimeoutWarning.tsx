@@ -36,12 +36,12 @@ export default function SessionTimeoutWarning({ onDismiss }: SessionTimeoutWarni
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50">
+      <div className="bg-surface rounded-2xl shadow-[0_2px_6px_rgba(2,2,2,0.14),0_12px_32px_rgba(2,2,2,0.10)] p-6 max-w-md w-full mx-4">
         <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 w-12 h-12 bg-yellow-100 rounded-full flex items-center justify-center">
-            <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <div className="flex-shrink-0 w-12 h-12 rounded-full bg-surface border border-slate-200 flex items-center justify-center text-brand-600">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <div className="flex-1">
@@ -49,7 +49,7 @@ export default function SessionTimeoutWarning({ onDismiss }: SessionTimeoutWarni
               {language === 'vi' ? 'Phiên làm việc sắp hết hạn' : 'Session Expiring Soon'}
             </h3>
             <p className="text-slate-600 mb-4">
-              {language === 'vi' 
+              {language === 'vi'
                 ? `Bạn sẽ tự động đăng xuất sau ${formatTime(timeLeft)} do không hoạt động.`
                 : `You will be automatically logged out in ${formatTime(timeLeft)} due to inactivity.`
               }
@@ -57,13 +57,13 @@ export default function SessionTimeoutWarning({ onDismiss }: SessionTimeoutWarni
             <div className="flex gap-3">
               <button
                 onClick={handleStayLoggedIn}
-                className="flex-1 px-4 py-2 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors"
+                className="btn btn-primary flex-1"
               >
                 {language === 'vi' ? 'Tiếp tục đăng nhập' : 'Stay Logged In'}
               </button>
               <button
                 onClick={onDismiss}
-                className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg font-medium hover:bg-slate-200 transition-colors"
+                className="btn btn-outline"
               >
                 {language === 'vi' ? 'Đóng' : 'Dismiss'}
               </button>

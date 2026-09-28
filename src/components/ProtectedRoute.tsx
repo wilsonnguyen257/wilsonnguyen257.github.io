@@ -34,7 +34,7 @@ export default function ProtectedRoute({ children, redirectPath = '/login' }: Pr
   }
 
   if (user === undefined) {
-    return <div className="container-xl py-12 text-center text-slate-500">Checking access…</div>;
+    return <div className="container-xl py-12 text-center text-slate-600">Checking access…</div>;
   }
   if (!user) {
     return <Navigate to={redirectPath} replace state={{ from: location.pathname }} />;

@@ -189,7 +189,7 @@ export default function EventRegistrationForm({
           className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
         />
         {capacity && (
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs text-slate-600 mt-1">
             {t('Maximum', 'Tối đa')}: {availableSpots} {t('people', 'người')}
           </p>
         )}
@@ -229,7 +229,7 @@ export default function EventRegistrationForm({
       </button>
 
       {/* Privacy Note */}
-      <p className="text-xs text-slate-500 text-center">
+      <p className="text-xs text-slate-600 text-center">
         {t(
           'By registering, you agree to receive event updates via email',
           'Bằng cách đăng ký, bạn đồng ý nhận thông tin cập nhật về sự kiện qua email'

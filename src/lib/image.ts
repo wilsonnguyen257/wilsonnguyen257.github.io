@@ -50,18 +50,24 @@ async function resizeToWebp(file: File, maxWidthOrHeight: number, maxSizeMB: num
  * through a canvas would flatten the animation to a single frame); only a
  * static thumbnail is generated for them, since grid tiles don't need to
  * animate.
+ *
+ * `croppedFileForThumbnail` is optional: when the admin has cropped the photo
+ * to the grid tile's aspect ratio (via ImageCropModal), the thumbnail is
+ * derived from that cropped file instead of the original — while `display`
+ * (the lightbox's full photo) always comes from the original, uncropped file.
  */
-export async function processImageForUpload(file: File): Promise<ProcessedImage> {
+export async function processImageForUpload(file: File, croppedFileForThumbnail?: File): Promise<ProcessedImage> {
   if (!file.type.startsWith('image/')) {
     return { display: file, thumbnail: file };
   }
 
   const isGif = file.type === 'image/gif';
   const name = baseName(file.name);
+  const thumbnailSource = croppedFileForThumbnail ?? file;
 
   try {
     const thumbnail = renameFile(
-      await resizeToWebp(file, THUMBNAIL_MAX_DIMENSION, THUMBNAIL_MAX_SIZE_MB, THUMBNAIL_QUALITY),
+      await resizeToWebp(thumbnailSource, THUMBNAIL_MAX_DIMENSION, THUMBNAIL_MAX_SIZE_MB, THUMBNAIL_QUALITY),
       `${name}-thumb.webp`,
       WEBP_TYPE
     );

@@ -1,45 +1,32 @@
 import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 import type { Event } from '../types/content';
-import { useEffect, useState, memo } from 'react';
-import EventCountdown from '../components/EventCountdown';
+import { useEffect, useMemo, useState, memo } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { subscribeJson } from '../lib/storage';
-import { hasEventPassed, parseEventDate } from '../lib/timezone';
+import { getMelbourneNow, hasEventPassed, parseEventDate } from '../lib/timezone';
 import { db } from '../lib/firebase';
 import { doc, onSnapshot } from 'firebase/firestore';
-import { CHURCH_INFO, UI_CONSTANTS } from '../lib/constants';
-import LazyLoadSection from '../components/LazyLoadSection';
+import { CHURCH_INFO } from '../lib/constants';
+import { nextMassSunday, SEASON_NAME } from '../lib/liturgical';
 
-// Debounce hook to prevent excessive re-renders
-function useDebounce<T>(value: T, delay: number): T {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-  return debouncedValue;
-}
+// The bundled hero photo: drop `hero.jpg` (or .jpeg/.webp/.png) into
+// src/assets and it's picked up at build time. An admin-set photo
+// (site-settings/homepage) overrides it; with neither, the hero is text-only.
+const bundledHero = Object.values(
+  import.meta.glob<string>('../assets/hero.{jpg,jpeg,webp,png}', { eager: true, import: 'default' })
+)[0] ?? '';
 
-type Reflection = { 
+type Reflection = {
   id?: string;
-  title: {
-    vi: string;
-    en: string;
-  };
-  content: {
-    vi: string;
-    en: string;
-  };
-  date?: string; 
+  title: { vi: string; en: string };
+  content: { vi: string; en: string };
+  // True when there is no real English version — the English fields are
+  // empty, a copy of the Vietnamese, or Vietnamese text pasted in.
+  enMissing: boolean;
+  date?: string;
   author?: string;
 };
-
-// Reflections now come from Firebase Storage JSON
 
 // Helper function to strip HTML tags for preview text
 const stripHtml = (html: string): string => {
@@ -48,718 +35,424 @@ const stripHtml = (html: string): string => {
   return tmp.textContent || tmp.innerText || '';
 };
 
+// Letters that only occur in Vietnamese (not in French/Spanish loanwords).
+const VIETNAMESE_ONLY = /[ăđơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]/i;
+const isRealEnglish = (en: string | undefined, vi: string | undefined) =>
+  !!en?.trim() && en.trim() !== vi?.trim() && !VIETNAMESE_ONLY.test(stripHtml(en));
+
+// Posts often open with the Sunday's readings ("Is 55,6-9; Pl 1,20c-24,27a;
+// Mt 20,1-16a"). Split them off so the teaser starts with prose and the
+// readings get their own line.
+const READINGS = /^((?:\d\s?)?[A-ZĐ][\p{L}]{0,3}\.?\s\d+[,:][\d\w,.:\-–]+;?\s*)+/u;
+
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const DAY = 86_400_000;
+const toIsoDate = (d: Date) =>
+  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const icsStamp = (d: Date, hour: number) => `${toIsoDate(d).replace(/-/g, '')}T${String(hour).padStart(2, '0')}0000`;
+
 const Home: React.FC = () => {
   const { t, language } = useLanguage();
+  const locale = language === 'vi' ? 'vi-VN' : 'en-AU';
 
   const [events, setEvents] = useState<Event[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(true);
+  const [eventsState, setEventsState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [reflection, setReflection] = useState<Reflection | null>(null);
+  const [reflectionState, setReflectionState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [attempt, setAttempt] = useState(0);
 
-  // Optional admin-set hero background image (site-settings/homepage in Firestore)
-  const [heroBackgroundImage, setHeroBackgroundImage] = useState<string>('');
-  const debouncedHeroImage = useDebounce(heroBackgroundImage, 300);
+  const [adminPhoto, setAdminPhoto] = useState<string>(() => localStorage.getItem('heroBackgroundImageUrl') || '');
+  const heroPhoto = adminPhoto || bundledHero;
 
-  // Load the saved image with real-time updates
   useEffect(() => {
-    if (!db) {
-      // Fallback to localStorage if Firebase not configured
-      const savedImageUrl = localStorage.getItem('heroBackgroundImageUrl');
-      if (savedImageUrl) setHeroBackgroundImage(savedImageUrl);
-      return;
-    }
-
-    // Subscribe to real-time updates from Firestore
+    if (!db) return;
     const settingsRef = doc(db, 'site-settings', 'homepage');
     const unsubscribe = onSnapshot(settingsRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const data = docSnap.data();
-        if (data.heroBackgroundImageUrl) {
-          const imageUrl = data.heroBackgroundImageUrl;
-          setHeroBackgroundImage(imageUrl);
-          localStorage.setItem('heroBackgroundImageUrl', imageUrl);
-
-          // Preload the LCP image
-          const link = document.createElement('link');
-          link.rel = 'preload';
-          link.as = 'image';
-          link.href = imageUrl;
-          document.head.appendChild(link);
-        } else {
-          setHeroBackgroundImage('');
-          localStorage.removeItem('heroBackgroundImageUrl');
-        }
-      } else {
-        // No settings in Firestore, try localStorage
-        const savedImageUrl = localStorage.getItem('heroBackgroundImageUrl');
-        if (savedImageUrl) setHeroBackgroundImage(savedImageUrl);
-      }
+      if (!docSnap.exists()) return;
+      const imageUrl: string = docSnap.data().heroBackgroundImageUrl || '';
+      setAdminPhoto(imageUrl);
+      if (imageUrl) localStorage.setItem('heroBackgroundImageUrl', imageUrl);
+      else localStorage.removeItem('heroBackgroundImageUrl');
     }, (error) => {
       console.error('Error loading settings:', error);
-      // Fallback to localStorage on error
-      const savedImageUrl = localStorage.getItem('heroBackgroundImageUrl');
-      if (savedImageUrl) setHeroBackgroundImage(savedImageUrl);
     });
-
     return () => unsubscribe();
   }, []);
 
-  // Find index of the current event: first event that hasn't passed yet (using Melbourne timezone)
-  const currentIndex = events.findIndex(ev => !hasEventPassed(ev.date, ev.time || '11:59 PM'));
-  const startIndex = currentIndex === -1 ? events.length : currentIndex;
-  const upcomingEvents = events.slice(startIndex, startIndex + 3);
-  const [latestReflections, setLatestReflections] = useState<Reflection[]>([]);
-  const [expandedReflectionId, setExpandedReflectionId] = useState<string | null>(null);
-
   useEffect(() => {
-    // Live reflections
-    type RawReflection = Reflection & { id?: string; status?: 'draft' | 'published' | 'deleted' };
+    type RawReflection = Omit<Reflection, 'enMissing'> & { status?: 'draft' | 'published' | 'deleted' };
     const unsubRefl = subscribeJson<RawReflection[]>(
       'reflections',
       (items) => {
-        const mapped: Reflection[] = (items || [])
+        const dated = (r: { date?: string }) => {
+          const time = r.date ? new Date(r.date).getTime() : NaN;
+          return Number.isNaN(time) ? 0 : time;
+        };
+        const latest = (items || [])
           .filter((it) => (it.status || 'published') === 'published')
-          .map((it) => {
-            // Ensure both languages have content
-            const titleVi = it.title?.vi || it.title?.en || '';
-            const titleEn = it.title?.en || it.title?.vi || '';
-            const contentVi = it.content?.vi || it.content?.en || '';
-            const contentEn = it.content?.en || it.content?.vi || '';
-
-            return {
-              id: it.id,
-              title: { vi: titleVi, en: titleEn },
-              content: { vi: contentVi, en: contentEn },
-              date: it.date,
-              author: it.author,
-            };
-          })
-          // Show the most recently dated gospel reflections first
-          .sort((a, b) => new Date(b.date || '').getTime() - new Date(a.date || '').getTime());
-        setLatestReflections(mapped.slice(0, 2));
+          .sort((a, b) => dated(b) - dated(a))[0];
+        setReflection(latest ? {
+          id: latest.id,
+          title: { vi: latest.title?.vi || latest.title?.en || '', en: latest.title?.en || latest.title?.vi || '' },
+          content: { vi: latest.content?.vi || latest.content?.en || '', en: latest.content?.en || latest.content?.vi || '' },
+          enMissing: !isRealEnglish(latest.content?.en, latest.content?.vi),
+          date: latest.date,
+          author: latest.author,
+        } : null);
+        setReflectionState('ready');
       },
-      () => setLatestReflections([])
+      () => setReflectionState('error')
     );
 
-    // Live events from cloud database
-    type RawEvent = Event;
-    const unsubEvents = subscribeJson<RawEvent[]>(
+    const unsubEvents = subscribeJson<Event[]>(
       'events',
       (eventsData) => {
-        const mapped: Event[] = (eventsData || []).map((d) => {
-          // Ensure both languages have content
-          const nameVi = d.name?.vi || d.name?.en || '';
-          const nameEn = d.name?.en || d.name?.vi || '';
-          const contentVi = d.content?.vi || d.content?.en || '';
-          const contentEn = d.content?.en || d.content?.vi || '';
-          
-          return {
-            id: d.id,
-            name: { vi: nameVi, en: nameEn },
-            date: d.date,
-            time: d.time,
-            location: d.location,
-            content: d.content ? { vi: contentVi, en: contentEn } : undefined,
-            thumbnail: d.thumbnail,
-            thumbnailPath: d.thumbnailPath,
-            facebookLink: d.facebookLink,
-            youtubeLink: d.youtubeLink,
-            driveLink: d.driveLink,
-            status: d.status || 'published',
-          };
-        }).filter(e => e.status === 'published').sort((a, b) => parseEventDate(a.date).getTime() - parseEventDate(b.date).getTime());
+        const mapped: Event[] = (eventsData || []).map((d) => ({
+          ...d,
+          name: { vi: d.name?.vi || d.name?.en || '', en: d.name?.en || d.name?.vi || '' },
+          content: d.content ? { vi: d.content.vi || d.content.en || '', en: d.content.en || d.content.vi || '' } : undefined,
+          status: d.status || 'published',
+        }))
+          .filter(e => e.status === 'published')
+          .sort((a, b) => parseEventDate(a.date).getTime() - parseEventDate(b.date).getTime());
         setEvents(mapped);
-        setEventsLoading(false);
+        setEventsState('ready');
       },
-      () => {
-        setEvents([]);
-        setEventsLoading(false);
-      }
+      () => setEventsState('error')
     );
 
     return () => { unsubRefl(); unsubEvents(); };
+  }, [attempt]);
+
+  const retry = () => {
+    setReflectionState('loading');
+    setEventsState('loading');
+    setAttempt((n) => n + 1);
+  };
+
+  // "Now" in Melbourne, refreshed when the tab comes back into view and every
+  // few minutes — so a tab left open over Sunday evening rolls on to next week.
+  const [now, setNow] = useState(getMelbourneNow);
+  useEffect(() => {
+    const refresh = () => { if (document.visibilityState === 'visible') setNow(getMelbourneNow()); };
+    const timer = window.setInterval(refresh, 5 * 60_000);
+    document.addEventListener('visibilitychange', refresh);
+    return () => { window.clearInterval(timer); document.removeEventListener('visibilitychange', refresh); };
   }, []);
+
+  // This Sunday, named from the liturgical calendar. If the admin has posted
+  // an event for that same day, the hero links to it and the events list
+  // skips it, so Sunday Mass isn't listed twice.
+  const sunday = useMemo(() => nextMassSunday(CHURCH_INFO.MASS_END_HOUR, now), [now]);
+  const sundayIso = toIsoDate(sunday.date);
+  const isToday = sundayIso === toIsoDate(now);
+  const isEnglishMass = Math.ceil(sunday.date.getDate() / 7) === CHURCH_INFO.ENGLISH_MASS_WEEK_OF_MONTH;
+  const sundayEvent = events.find(ev => ev.date === sundayIso);
+  const upcomingEvents = events
+    .filter(ev => ev.id !== sundayEvent?.id && !hasEventPassed(ev.date, ev.time || '11:59 PM'))
+    .slice(0, 3);
+
+  // The season chip drops the season name when the Sunday's own name already
+  // says it ("Chúa Nhật XXVI Thường Niên") so it isn't read twice.
+  const seasonName = SEASON_NAME[sunday.season][language];
+  const seasonInName = sunday.name[language].includes(seasonName.replace(/^Mùa /, ''));
+  const seasonChip = seasonInName
+    ? `${t('home.cycle')} ${sunday.cycle}`
+    : `${seasonName} · ${t('home.cycle')} ${sunday.cycle}`;
+
+  // A weekly calendar entry, so "Add to calendar" is a standing reminder.
+  const addToCalendar = () => {
+    const ics = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Ane Thanh//Sunday Mass//EN', 'BEGIN:VEVENT',
+      `UID:sunday-mass-${sundayIso}@anethanh`,
+      `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '')}`,
+      `DTSTART;TZID=Australia/Melbourne:${icsStamp(sunday.date, CHURCH_INFO.MASS_START_HOUR)}`,
+      `DTEND;TZID=Australia/Melbourne:${icsStamp(sunday.date, CHURCH_INFO.MASS_END_HOUR)}`,
+      'RRULE:FREQ=WEEKLY;BYDAY=SU',
+      `SUMMARY:${t('home.calendar_event_title')}`,
+      `LOCATION:${CHURCH_INFO.ADDRESS.replace(/,/g, '\\,')}`,
+      `DESCRIPTION:${t('home.mass_language_note').replace(/,/g, '\\,')}`,
+      'END:VEVENT', 'END:VCALENDAR',
+    ].join('\r\n');
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'thanh-le-chua-nhat.ics';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Is the latest reflection this week's? It counts if it's dated within
+  // the six days before this Sunday (or on it).
+  const reflectionAge = reflection?.date && ISO_DATE.test(reflection.date)
+    ? Math.round((sunday.date.getTime() - parseEventDate(reflection.date).getTime()) / DAY)
+    : null;
+  const reflectionCurrent = reflectionAge !== null && reflectionAge <= 6;
+  const reflectionHeading = !reflection || reflectionCurrent
+    ? t('home.reflection_this_week')
+    : reflectionAge !== null && reflectionAge <= 13
+      ? t('home.reflection_last_sunday')
+      : t('home.reflection_latest');
+
+  const reflectionFallsBack = language === 'en' && !!reflection?.enMissing;
+  const reflectionTitle = reflection ? reflection.title[language] : '';
+  const { readings, excerpt } = useMemo(() => {
+    if (!reflection) return { readings: '', excerpt: '' };
+    let text = stripHtml(reflection.content[language]).trim();
+    // Many posts open with a header line that repeats their own title
+    // ("Chia Sẻ Lời Chúa. Chúa Nhật XXV Thường Niên. …") — skip past it.
+    const bareTitle = reflectionTitle.replace(/\s+[ABC]$/, '');
+    const at = bareTitle ? text.indexOf(bareTitle) : -1;
+    if (at >= 0 && at < 120) text = text.slice(at + bareTitle.length).replace(/^[\s.:–-]+/, '');
+    const match = text.match(READINGS);
+    return match
+      ? { readings: match[0].trim().replace(/;$/, '').split(/;\s*/).join(' · '), excerpt: text.slice(match[0].length).trim() }
+      : { readings: '', excerpt: text };
+  }, [reflection, reflectionTitle, language]);
+
+  const loadError = (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-slate-900" role="alert">
+      <p>{t('home.load_error')}</p>
+      <button type="button" onClick={retry} className="btn btn-outline !py-2 !px-4 text-sm">
+        {t('home.retry')}
+      </button>
+    </div>
+  );
 
   return (
     <>
-      <SEO 
-        title={t('home.title')} 
-        description={t('home.description')} 
+      <SEO
+        title={t('home.title')}
+        description={t('home.description')}
       />
-      {/* Hero — plain, bright, and text-led. An admin-set background image
-          is still supported, shown quietly behind a light scrim. */}
-      <section className="relative bg-white overflow-hidden">
-        {debouncedHeroImage && (
-          <div className="absolute inset-0">
-            <img
-              src={debouncedHeroImage}
-              alt=""
-              className="w-full h-full object-cover opacity-15"
-            />
-            <div className="absolute inset-0 bg-gradient-to-b from-white via-white/95 to-white"></div>
-          </div>
-        )}
 
-        <div className="container-xl relative z-10 py-10 sm:py-12 md:py-16 lg:py-20">
-          <div className="grid items-center gap-10 md:grid-cols-2 md:gap-12 lg:gap-20">
-            {/* Content */}
-            <div className="text-center md:text-left">
-              <div className="eyebrow mb-5 justify-center md:justify-start">
-                <span className="relative flex h-1.5 w-1.5">
-                  <span className="inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+      {/* Hero — who we are, then the answer most visitors came for: when and
+          where this Sunday's Mass is, and in which language. Centered, per
+          DESIGN.md's devotional register, and closed by the page's one
+          signature rule. */}
+      <section className="bg-surface px-4 pt-8 sm:pt-16 pb-4">
+        <div className="max-w-[820px] mx-auto flex flex-col items-center text-center">
+          <h1 className="h1 text-balance">{t('home.hero_title')}</h1>
+          <p className="mt-2 sm:mt-4 text-[15px] sm:text-[19px] text-slate-900 max-w-[600px] leading-relaxed text-pretty">
+            {t('home.hero_subtitle')}
+          </p>
+
+          <section
+            aria-labelledby="next-mass-heading"
+            className="mt-5 sm:mt-10 w-full max-w-[640px] border-y border-slate-200 py-5 sm:py-8 flex flex-col items-center gap-2.5 sm:gap-3"
+          >
+            <h2 id="next-mass-heading" className="text-[15px] font-semibold text-slate-700">
+              {isToday ? t('home.next_mass_today') : t('home.next_mass')}
+            </h2>
+            <p className="font-serif font-bold text-slate-900 text-[38px] sm:text-5xl leading-[1.1] nums-lining text-balance">
+              {/* Date and time never split mid-phrase: stacked on phones,
+                  one line with a separator from sm up. */}
+              <time dateTime={`${sundayIso}T${String(CHURCH_INFO.MASS_START_HOUR).padStart(2, '0')}:00`}>
+                <span className="block sm:inline whitespace-nowrap">
+                  {sunday.date.toLocaleDateString(locale, { day: 'numeric', month: 'long' })}
                 </span>
-                <span>{t('home.welcome_badge') || 'Chào mừng đến với Cộng đoàn'}</span>
-              </div>
-
-              <h1 className="text-4xl md:text-5xl lg:text-7xl font-semibold leading-[1.05] mb-6 text-slate-900 tracking-tight">
-                {t('home.title')}
-              </h1>
-              <p className="text-xl md:text-2xl text-slate-600 mb-4 leading-relaxed max-w-2xl mx-auto md:mx-0">
-                {t('home.subtitle')}
-              </p>
-              <p className="text-base md:text-lg text-slate-500 mb-8 max-w-xl mx-auto md:mx-0 leading-relaxed">
-                {t('home.description')}
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-center gap-3 justify-center md:justify-start mb-10">
-                <Link to="/about" className="btn btn-primary w-full sm:w-auto">
-                  {t('home.learn_more')}
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                  </svg>
-                </Link>
-                <Link to="/contact" className="btn btn-outline w-full sm:w-auto">
-                  {t('home.contact_us')}
-                </Link>
-              </div>
-
-              {/* Quick Info Bar */}
-              <div className="flex justify-center md:justify-start pt-6 border-t border-slate-200 w-full">
-                <div className="flex items-start sm:items-center gap-3 max-w-full">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 text-brand-600 shrink-0 mt-1 sm:mt-0">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
-                  </svg>
-                  <div className="text-left flex-1 min-w-0">
-                    <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold">{t('home.mass')}</p>
-                    <p className="font-semibold text-slate-900 text-sm md:text-base leading-snug break-words whitespace-normal">{t('home.mass_time')}</p>
-                  </div>
-                </div>
-              </div>
+                <span className="hidden sm:inline text-slate-400 font-sans font-normal mx-3" aria-hidden="true">·</span>
+                <span className="block sm:inline whitespace-nowrap">{CHURCH_INFO.MASS_START[language]}</span>
+              </time>
+            </p>
+            <p className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-slate-900">
+              <span className="font-semibold">{sunday.name[language]}</span>
+              <span className="badge-season">{seasonChip}</span>
+            </p>
+            <p className="text-slate-900 text-balance">
+              {isEnglishMass ? t('home.mass_youth_english') : t('home.mass_in_vietnamese')}
+              {' · '}
+              {t('home.venue')}, {t('home.location_short')}
+            </p>
+            <div className="flex flex-wrap gap-3 justify-center mt-2">
+              <a href={CHURCH_INFO.MAPS_LINK} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                </svg>
+                {t('home.directions')}
+              </a>
+              <button type="button" onClick={addToCalendar} className="btn btn-outline">
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                </svg>
+                {t('home.add_to_calendar')}
+              </button>
+              <a href={`tel:${CHURCH_INFO.PHONE}`} className="btn btn-outline">
+                <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.75} stroke="currentColor" className="w-5 h-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 0 0 2.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 0 1-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 0 0-1.091-.852H4.5A2.25 2.25 0 0 0 2.25 4.5v2.25Z" />
+                </svg>
+                {t('home.call')}
+              </a>
             </div>
+            {sundayEvent && (
+              <Link to={`/events/${sundayEvent.id}`} className="link font-semibold inline-flex items-center min-h-11 px-2">
+                {t('home.mass_details')} <span aria-hidden="true" className="ml-1">→</span>
+              </Link>
+            )}
+          </section>
 
-            {/* Map Card */}
-            <div className="relative">
-              <div className="relative bg-white rounded-3xl shadow-[0_8px_40px_rgb(0,0,0,0.08)] border border-slate-100 overflow-hidden">
-                <div className="relative h-[280px] sm:h-[340px] md:h-[380px] lg:h-[440px]">
-                  <iframe
-                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3150.982869339574!2d145.11869731531985!3d-37.81564207974633!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x6ad6404f2b6c09f9%3A0x5045675218ce6e0!2s138%20Woodhouse%20Grove%2C%20Box%20Hill%20North%20VIC%203129!5e0!3m2!1sen!2sau!4v1734134400000!5m2!1sen!2sau"
-                    title="St Francis Xavier's Catholic Church Location"
-                    className="w-full h-full"
-                    style={{ border: 0 }}
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                  ></iframe>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Welcome Message */}
-      <LazyLoadSection placeholderHeight="700px">
-      <section className="py-24 bg-surface">
-        <div className="container-xl">
-          <div className="text-center mb-16">
-            <p className="eyebrow justify-center mb-4">Welcome</p>
-            <h2 className="h2">
-              {t('home.welcome_title')}
-            </h2>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-3">
-            {[
-              {
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                  </svg>
-                ),
-                title: t('home.faith_title'),
-                desc: t('home.faith_desc'),
-              },
-              {
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                  </svg>
-                ),
-                title: t('home.community_title'),
-                desc: t('home.community_desc'),
-              },
-              {
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z" />
-                  </svg>
-                ),
-                title: t('home.service_title'),
-                desc: t('home.service_desc'),
-              }
-            ].map((item, idx) => (
-              <div key={idx} className="card">
-                <div className="w-12 h-12 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center mb-6">
-                  {item.icon}
-                </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">{item.title}</h3>
-                <p className="text-slate-500 leading-relaxed">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      </LazyLoadSection>
-
-      {/* Mass Times & Location */}
-      <LazyLoadSection placeholderHeight="700px">
-      <section className="py-24 bg-white">
-        <div className="container-xl">
-          <div className="text-center mb-16">
-            <p className="eyebrow justify-center mb-4">Schedule</p>
-            <h2 className="h2">
-              {t('home.mass_schedule_title')}
-            </h2>
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2 max-w-6xl mx-auto">
-            {/* Mass Times */}
-            <div className="card !p-8 md:!p-10">
-              <div className="flex items-center gap-5 mb-8">
-                <div className="w-14 h-14 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0h18M5.25 12h13.5h-13.5zm1.5 6a2.25 2.25 0 100-4.5 2.25 2.25 0 000 4.5zm6.75-4.5a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5zm2.25-9a2.25 2.25 0 012.25-2.25h1.5A2.25 2.25 0 0121 7.5v11.25a2.25 2.25 0 01-2.25 2.25h-1.5a2.25 2.25 0 01-2.25-2.25V7.5z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-slate-900">{t('home.mass_schedule_subtitle')}</h3>
-                  <p className="text-slate-500 text-sm mt-0.5">Weekly Worship Services</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-4 py-4 border-t border-slate-100">
-                  <p className="font-medium text-slate-900">{t('home.sunday')}</p>
-                  <p className="text-brand-600 font-semibold">{t('home.sunday_time')}</p>
-                </div>
-                <div className="flex items-center justify-between gap-4 py-4 border-t border-slate-100">
-                  <p className="font-medium text-slate-900">{t('home.special_days')}</p>
-                  <p className="text-slate-500">{t('home.special_days_desc')}</p>
-                </div>
-                <div className="flex items-center justify-between gap-4 py-4 border-t border-b border-slate-100">
-                  <p className="font-medium text-slate-900">{t('home.confession')}</p>
-                  <p className="text-slate-500">{t('home.confession_time')}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Info */}
-            <div className="card !p-8 md:!p-10">
-              <div className="flex items-center gap-5 mb-8">
-                <div className="w-14 h-14 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-7 h-7">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-xl font-semibold text-slate-900">{t('home.info_title')}</h3>
-                  <p className="text-slate-500 text-sm mt-0.5">{t('home.visit_contact')}</p>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-4 py-4 border-t border-slate-100">
-                  <p className="font-medium text-slate-900">{t('home.address_label')}</p>
-                  <p className="text-slate-500 text-right">{t('home.address_value')}</p>
-                </div>
-                <div className="flex items-center justify-between gap-4 py-4 border-t border-slate-100">
-                  <p className="font-medium text-slate-900">{t('home.parking_label')}</p>
-                  <p className="text-slate-500 text-right">{t('home.parking_desc')}</p>
-                </div>
-                <div className="flex items-center justify-between gap-4 py-4 border-t border-b border-slate-100">
-                  <p className="font-medium text-slate-900">{t('home.contact_label')}</p>
-                  <a href="tel:0422-400-116" className="text-brand-600 hover:underline font-semibold">
-                    0422-400-116
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      </LazyLoadSection>
-
-      {/* Upcoming Events */}
-      <LazyLoadSection placeholderHeight="600px">
-      <section className="py-24 bg-surface">
-        <div className="container-xl">
-          <div className="text-center mb-16">
-            <p className="eyebrow justify-center mb-4">{t('home.upcoming_events')}</p>
-            <h2 className="h2">
-              {t('home.important_event')}
-            </h2>
-          </div>
-
-          {eventsLoading ? (
-            <div className="text-center py-12 px-6 bg-white rounded-xl border border-slate-200 min-h-[400px] flex flex-col justify-center items-center">
-              <div className="animate-pulse">
-                <div className="w-16 h-16 bg-slate-200 rounded-full mx-auto mb-4"></div>
-                <div className="h-6 w-48 bg-slate-200 rounded-md mx-auto mb-2"></div>
-                <div className="h-4 w-64 bg-slate-200 rounded-md mx-auto"></div>
-              </div>
-            </div>
-          ) : upcomingEvents.length > 0 ? (
-            <Link to={`/events/${upcomingEvents[0].id}`} className="block mb-16 group">
-              <div className="max-w-5xl mx-auto bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:shadow-[0_8px_40px_rgb(0,0,0,0.1)] transition-shadow duration-300 overflow-hidden border border-slate-100">
-                <div className="grid md:grid-cols-2 gap-0">
-                  <div className="relative h-64 md:h-full min-h-[350px] overflow-hidden bg-slate-100">
-                    {upcomingEvents[0].thumbnail && (
-                      <img
-                        src={upcomingEvents[0].thumbnail}
-                        alt={upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                    )}
-                    {/* Date Badge Overlay */}
-                    <div className="absolute top-6 left-6 bg-white/95 backdrop-blur-md text-slate-900 px-4 py-3 rounded-2xl shadow-sm font-semibold flex flex-col items-center min-w-[76px]">
-                      <span className="text-xs uppercase tracking-wider font-semibold text-slate-400">{parseEventDate(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', { month: 'short' })}</span>
-                      <span className="text-2xl leading-tight text-slate-900">{parseEventDate(upcomingEvents[0].date).getDate()}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-8 md:p-12 flex flex-col justify-center">
-                    <p className="eyebrow mb-5">{t('home.featured_event')}</p>
-
-                    <h3 className="text-2xl md:text-3xl font-semibold text-slate-900 mb-6 leading-tight">
-                      {upcomingEvents[0].name[language] || upcomingEvents[0].name.vi}
-                    </h3>
-
-                    <div className="space-y-4 mb-8 text-sm">
-                      <div>
-                        <p className="text-slate-400 font-medium mb-0.5">{t('events.date')}</p>
-                        <p className="font-medium text-slate-900">
-                          {parseEventDate(upcomingEvents[0].date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400 font-medium mb-0.5">{t('events.time')}</p>
-                        <p className="font-medium text-slate-900">{upcomingEvents[0].time}</p>
-                      </div>
-                      <div>
-                        <p className="text-slate-400 font-medium mb-0.5">{t('events.location')}</p>
-                        <p className="font-medium text-slate-900">{upcomingEvents[0].location}</p>
-                      </div>
-                    </div>
-
-                    <div className="mt-auto">
-                      <EventCountdown
-                        eventDate={upcomingEvents[0].date}
-                        eventTime={upcomingEvents[0].time}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-slate-500">{t('home.no_events')}</p>
-            </div>
+          {heroPhoto && (
+            <img
+              src={heroPhoto}
+              alt={t('home.hero_photo_alt')}
+              width={1600}
+              height={990}
+              // The group stands in the lower half of the frame: anchor the
+              // crop low so the wide desktop band keeps the front row.
+              className="mt-8 sm:mt-10 w-full aspect-[16/10] sm:aspect-[21/9] rounded-2xl object-cover object-[50%_75%] border border-slate-200"
+            />
           )}
 
-          {upcomingEvents.length > 1 && (
-            <>
-              <div className="mb-8">
-                <h3 className="text-2xl font-bold text-slate-900 text-center">{t('home.other_events')}</h3>
+          <div className="rule-signature mt-10" />
+        </div>
+      </section>
+
+      {/* Everything below shares one centered reading column. */}
+
+      {/* First visit — the practical answers a newcomer is too shy to ask. */}
+      <section aria-labelledby="first-visit-heading" className="px-4 pt-10 pb-16">
+        <div className="max-w-3xl mx-auto">
+          <h2 id="first-visit-heading" className="h2">{t('home.first_visit_title')}</h2>
+          <p className="mt-3 text-slate-900 leading-relaxed max-w-[60ch]">{t('home.first_visit_desc')}</p>
+          <dl className="mt-8 grid gap-x-8 gap-y-6 sm:grid-cols-2">
+            <div className="border-t border-slate-200 pt-4">
+              <dt className="font-semibold text-slate-900">{t('home.fact_language')}</dt>
+              <dd className="mt-1 text-slate-900 leading-relaxed">{t('home.mass_language_note')}</dd>
+            </div>
+            <div className="border-t border-slate-200 pt-4">
+              <dt className="font-semibold text-slate-900">{t('home.fact_confession')}</dt>
+              <dd className="mt-1 text-slate-900 leading-relaxed">{CHURCH_INFO.CONFESSION_TIME[language]}</dd>
+            </div>
+            <div className="border-t border-slate-200 pt-4">
+              <dt className="font-semibold text-slate-900">{t('home.fact_parking')}</dt>
+              <dd className="mt-1 text-slate-900 leading-relaxed">{t('home.parking_desc')}</dd>
+            </div>
+            <div className="border-t border-slate-200 pt-4">
+              <dt className="font-semibold text-slate-900">{t('home.fact_questions')}</dt>
+              <dd className="mt-1">
+                <a href={`tel:${CHURCH_INFO.PHONE}`} className="link inline-flex items-center min-h-11 text-lg font-semibold nums-lining">
+                  {CHURCH_INFO.PHONE_DISPLAY}
+                </a>
+              </dd>
+            </div>
+          </dl>
+          <Link to="/about" className="link inline-flex items-center min-h-11 mt-4 font-semibold">
+            {t('home.about_link')} <span aria-hidden="true" className="ml-1">→</span>
+          </Link>
+        </div>
+      </section>
+
+      {/* The latest gospel reflection — a neutral band, prose at measure.
+          Labelled honestly: "this week" only when it's for this Sunday. */}
+      <section aria-labelledby="reflection-heading" className="bg-slate-100 border-y border-slate-200 px-4 py-16">
+        <div className="max-w-3xl mx-auto">
+          <h2 id="reflection-heading" className="h2">{reflectionHeading}</h2>
+          <div className="mt-6 measure-prose" aria-busy={reflectionState === 'loading'}>
+            {reflectionState === 'loading' ? (
+              <div className="space-y-3 animate-pulse" aria-hidden="true">
+                <div className="h-7 w-2/3 bg-slate-200 rounded-lg" />
+                <div className="h-4 w-full bg-slate-200 rounded" />
+                <div className="h-4 w-5/6 bg-slate-200 rounded" />
               </div>
-              <div className="grid gap-6 md:grid-cols-2 max-w-5xl mx-auto">
-                {upcomingEvents.slice(1).map(event => (
-                  <Link
-                    key={event.id}
-                    to={`/events/${event.id}`}
-                    className="group card !p-0 overflow-hidden"
-                  >
-                    {event.thumbnail && (
-                      <div className="relative overflow-hidden bg-slate-100">
-                        <img
-                          src={event.thumbnail}
-                          alt={event.name[language] || event.name.vi}
-                          className="w-full aspect-video object-cover group-hover:scale-105 transition-transform duration-300"
-                          loading="lazy"
-                        />
-                      </div>
-                    )}
-                    <div className="p-6">
-                      <h4 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-brand-600 transition-colors">
-                        {event.name[language] || event.name.vi}
-                      </h4>
-
-                      <div className="space-y-1 mb-4 text-sm text-slate-500">
-                        <div>{parseEventDate(event.date).toLocaleDateString(language === 'vi' ? 'vi-VN' : 'en-US', {
-                          weekday: 'short',
-                          month: 'short',
-                          day: 'numeric'
-                        })} · {event.time}</div>
-                      </div>
-
-                      {event.content && (
-                        <p className="text-slate-500 text-sm line-clamp-2 mb-4">
-                          {stripHtml(event.content[language] || event.content.vi)}
-                        </p>
-                      )}
-
-                      <span className="inline-flex items-center gap-1.5 text-brand-600 font-semibold text-sm">
-                        {t('home.details')}
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </span>
-                    </div>
+            ) : reflectionState === 'error' ? (
+              loadError
+            ) : reflection ? (
+              <article lang={reflectionFallsBack ? 'vi' : language}>
+                <h3 className="font-serif text-2xl sm:text-[26px] font-bold text-slate-900 leading-snug text-balance">
+                  {reflectionTitle}
+                </h3>
+                <div className="mt-2 text-sm text-slate-600 space-y-1" lang={language}>
+                  {reflectionAge !== null && reflection.date && (
+                    <p>
+                      {t('home.posted_on')}{' '}
+                      <time dateTime={reflection.date} className="nums-lining">
+                        {parseEventDate(reflection.date).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </time>
+                    </p>
+                  )}
+                  {readings && (
+                    <p>{t('home.readings')}: <span lang="vi" className="nums-lining">{readings}</span></p>
+                  )}
+                  {reflectionFallsBack && <p className="italic">{t('home.reflection_vi_only')}</p>}
+                </div>
+                <p className="mt-4 text-slate-900 leading-relaxed line-clamp-4">{excerpt}</p>
+                <div className="mt-4 flex flex-wrap gap-x-6" lang={language}>
+                  <Link to={reflection.id ? `/reflections/${reflection.id}` : '/reflections'} className="link inline-flex items-center min-h-11 font-semibold">
+                    {t('home.read_more')} <span aria-hidden="true" className="ml-1">→</span>
                   </Link>
-                ))}
-              </div>
-              <div className="text-center mt-10">
-                <Link to="/events" className="btn btn-outline">
-                  {t('home.view_all_events')}
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </Link>
-              </div>
-            </>
-          )}
+                  <Link to="/reflections" className="link inline-flex items-center min-h-11 text-slate-900">
+                    {t('home.view_all_gospel')}
+                  </Link>
+                </div>
+                {!reflectionCurrent && (
+                  <p className="mt-4 border-t border-slate-200 pt-4 text-slate-900" lang={language}>{t('home.reflection_coming')}</p>
+                )}
+              </article>
+            ) : (
+              <p className="text-slate-900 leading-relaxed">{t('home.no_reflection')}</p>
+            )}
+          </div>
         </div>
       </section>
-      </LazyLoadSection>
 
-      {/* Ministries */}
-      <LazyLoadSection placeholderHeight="500px">
-      <section className="py-24 bg-surface">
-        <div className="container-xl">
-          <div className="text-center mb-16">
-            <p className="eyebrow justify-center mb-4">{t('home.ministries_title')}</p>
-            <h2 className="h2">
-              {t('ministries.serving_together')}
-            </h2>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 max-w-6xl mx-auto">
-            {[
-              { 
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
-                  </svg>
-                ), 
-                title: t('home.family_ministry'), 
-                desc: t('home.family_desc'), 
-                color: 'blue' as const 
-              },
-              { 
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M10.05 4.575a1.575 1.575 0 10-3.15 0v3m3.15-3v-1.5a1.575 1.575 0 013.15 0v1.5m-3.15 0l.075 5.925m3.075.75V4.575m0 0a1.575 1.575 0 013.15 0V15M6.9 7.575a1.575 1.575 0 10-3.15 0v8.175a6.75 6.75 0 006.75 6.75h2.018a5.25 5.25 0 003.712-1.538l1.732-1.732a5.25 5.25 0 001.538-3.712l.003-2.024a.668.668 0 01.198-.471 1.575 1.575 0 10-2.228-2.228 3.818 3.818 0 00-1.12 2.687M6.9 7.575V12m6.27 4.318A4.49 4.49 0 0116.35 15m.002 0h-.002" />
-                  </svg>
-                ), 
-                title: t('home.youth_ministry'), 
-                desc: t('home.youth_desc'), 
-                color: 'purple' as const 
-              },
-              { 
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
-                  </svg>
-                ), 
-                title: t('ministries.liturgy'), 
-                desc: t('ministries.liturgy_desc'), 
-                color: 'rose' as const 
-              },
-              { 
-                icon: (
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
-                  </svg>
-                ), 
-                title: t('home.choir_ministry'), 
-                desc: t('home.choir_desc'), 
-                color: 'amber' as const 
-              }
-            ].map((ministry, idx) => (
-              <div key={idx} className="card">
-                <div className="w-12 h-12 rounded-full bg-white border border-slate-200 flex items-center justify-center mb-5 text-brand-600">
-                  {ministry.icon}
-                </div>
-                <h3 className="text-base font-semibold text-slate-900 mb-1.5">{ministry.title}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{ministry.desc}</p>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-10">
-            <Link to="/ministries" className="btn btn-outline">
-              {t('home.learn_more_about')}
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
+      {/* Upcoming events — a dated list, not a card grid. */}
+      <section aria-labelledby="events-heading" className="px-4 py-16">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2 mb-6">
+            <h2 id="events-heading" className="h2">{t('home.upcoming_events')}</h2>
+            <Link to="/events" className="link inline-flex items-center min-h-11 font-semibold">
+              {t('home.view_all_events')} <span aria-hidden="true" className="ml-1">→</span>
             </Link>
           </div>
-        </div>
-      </section>
-      </LazyLoadSection>
-
-      {/* Latest Content */}
-      <LazyLoadSection placeholderHeight="600px">
-      <section className={`${UI_CONSTANTS.SECTION_PADDING} bg-white`}>
-        <div className="container-xl">
-          <div className="text-center mb-16">
-            <p className="eyebrow justify-center mb-4">{t('home.latest_content')}</p>
-            <h2 className="h2">
-              {t('home.gospel')}
-            </h2>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-2 max-w-5xl mx-auto">
-            {/* Gospel Reflections */}
-            <div className="space-y-6">
-              {latestReflections.slice(0, 2).map((reflection, index) => {
-                const isExpanded = expandedReflectionId === reflection.id;
-                const content = stripHtml(reflection.content[language] || reflection.content.vi);
-                
+          {eventsState === 'loading' ? (
+            <div className="space-y-3 animate-pulse py-4" aria-hidden="true">
+              <div className="h-5 w-3/4 bg-slate-200 rounded" />
+              <div className="h-5 w-1/2 bg-slate-200 rounded" />
+            </div>
+          ) : eventsState === 'error' ? (
+            <div className="border-t border-slate-200 pt-5">{loadError}</div>
+          ) : upcomingEvents.length > 0 ? (
+            <ul className="border-b border-slate-200">
+              {upcomingEvents.map((event) => {
+                const date = parseEventDate(event.date);
                 return (
-                  <div key={index} className="card group">
-                    <p className="eyebrow mb-3 text-xs">{t('reflections.gospel')}</p>
-                    <Link to={`/reflections/${reflection.id}`} className="block">
-                      <h4 className="text-lg font-semibold text-slate-900 mb-2 group-hover:text-brand-600 transition-colors line-clamp-2">
-                        {reflection.title[language] || reflection.title.vi}
-                      </h4>
-                    </Link>
-                    <div className={`text-slate-500 text-sm leading-relaxed mb-4 transition-all duration-300 ${isExpanded ? '' : 'line-clamp-3'}`}>
-                      {content}
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (reflection.id) {
-                          setExpandedReflectionId(isExpanded ? null : reflection.id);
-                        }
-                      }}
-                      className="inline-flex items-center gap-1.5 text-brand-600 font-semibold text-sm"
+                  <li key={event.id} className="border-t border-slate-200">
+                    <Link
+                      to={`/events/${event.id}`}
+                      className="grid grid-cols-[4.5rem_1fr] sm:grid-cols-[6rem_1fr] gap-x-5 py-5 group"
                     >
-                      {isExpanded ? (language === 'vi' ? 'Thu gọn' : 'Read less') : t('home.read_more')}
-                      <svg className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </button>
-                  </div>
+                      <time dateTime={event.date} className="nums-lining leading-tight">
+                        <span className="block text-sm text-slate-600">{date.toLocaleDateString(locale, { weekday: 'short' })}</span>
+                        <span className="block text-lg font-semibold text-slate-900">{date.toLocaleDateString(locale, { day: 'numeric', month: 'short' })}</span>
+                      </time>
+                      <div className="min-w-0">
+                        <p className="text-[19px] font-semibold text-slate-900 leading-snug line-clamp-2 group-hover:text-brand-600 transition-colors">
+                          {event.name[language]}
+                        </p>
+                        <p className="mt-1 text-sm text-slate-600 nums-lining">
+                          {[event.time, event.location].filter(Boolean).join(' · ')}
+                        </p>
+                      </div>
+                    </Link>
+                  </li>
                 );
               })}
-              <div className="text-center">
-                <Link to="/reflections" className="btn btn-primary">
-                  {t('home.view_all_gospel')}
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </Link>
-              </div>
-            </div>
-
-            {/* Connect Section */}
-            <div className="card">
-              <h3 className="text-xl font-semibold text-slate-900 mb-1.5">{t('home.connect')}</h3>
-              <p className="text-slate-500 mb-6">{t('home.follow_us')}</p>
-              <div className="space-y-1">
-                <a
-                  href={CHURCH_INFO.FACEBOOK_URL}
-                  className="flex items-center gap-4 py-4 border-t border-slate-100 group"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-brand-600 transition-colors shrink-0">
-                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-900 text-sm">Facebook</p>
-                    <p className="text-sm text-slate-500">{CHURCH_INFO.FACEBOOK_DISPLAY}</p>
-                  </div>
-                </a>
-
-                <a
-                  href={`mailto:${CHURCH_INFO.EMAIL}`}
-                  className="flex items-center gap-4 py-4 border-t border-slate-100 group"
-                >
-                  <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-brand-600 transition-colors shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-900 text-sm">Email</p>
-                    <p className="text-sm text-slate-500 break-all">{CHURCH_INFO.EMAIL}</p>
-                  </div>
-                </a>
-
-                <Link
-                  to="/contact"
-                  className="flex items-center gap-4 py-4 border-t border-b border-slate-100 group"
-                >
-                  <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-500 group-hover:text-brand-600 transition-colors shrink-0">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                  </div>
-                  <div className="flex-1">
-                    <p className="font-medium text-slate-900 text-sm">{t('home.contact_direct')}</p>
-                    <p className="text-sm text-slate-500">{CHURCH_INFO.PHONE}</p>
-                  </div>
-                </Link>
-              </div>
-            </div>
-          </div>
+            </ul>
+          ) : (
+            <p className="border-t border-slate-200 pt-5 text-slate-900 leading-relaxed">{t('home.no_events')}</p>
+          )}
         </div>
       </section>
-      </LazyLoadSection>
 
-      {/* Call to Action */}
-      <LazyLoadSection placeholderHeight="400px">
-      <section className={`${UI_CONSTANTS.SECTION_PADDING} bg-slate-900`}>
-        <div className="container-xl text-center">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-3xl md:text-5xl font-semibold text-white mb-5 tracking-tight">
-              {t('home.join_us_title')}
-            </h2>
-            <p className="text-lg text-slate-400 mb-10 leading-relaxed">
-              {t('home.join_us_desc')}
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <Link to="/contact" className="btn bg-white text-slate-900 hover:bg-slate-100">
-                {t('home.contact_now')}
-              </Link>
-              <Link to="/about" className="btn border border-white/20 text-white hover:bg-white/10">
-                {t('home.learn_more_about')}
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
-      </LazyLoadSection>
+      {/* Closing word — the community's motto (unity, love, service) in the
+          Gospel's own words, so the page ends on a blessing, not the footer. */}
+      <figure className="px-4 pt-4 pb-20 text-center">
+        <blockquote className="max-w-[640px] mx-auto font-serif font-bold text-2xl sm:text-3xl leading-snug text-slate-900 text-balance">
+          “{t('home.blessing')}”
+        </blockquote>
+        <figcaption className="mt-4 text-sm font-semibold text-slate-600">{t('home.blessing_ref')}</figcaption>
+      </figure>
     </>
   );
 };

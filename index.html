@@ -7,11 +7,18 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Cộng Đoàn Công Giáo Việt Nam Anê Thành - Melbourne, Australia. Thánh Lễ Chủ Nhật 5:00 PM tại 138 Woodhouse Grove, Box Hill North VIC 3129." />
-    <meta name="theme-color" content="#3d45db" />
+    <meta name="description" content="Cộng Đoàn Công Giáo Việt Nam Anê Thành - Melbourne, Australia. Thánh Lễ Chúa Nhật lúc 5 giờ chiều tại 138 Woodhouse Grove, Box Hill North VIC 3129." />
+    <meta name="theme-color" content="#0D324D" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+    <!-- Be Vietnam Pro (body+nav+labels+rich-text editor content) and Playfair
+         Display (700 only, display/headings) — both vetted for full Vietnamese
+         diacritic coverage. DESIGN.md's target is 400/600 Be Vietnam Pro only;
+         500/700/italic stay loaded until each page's font-medium usage is
+         migrated to font-semibold and the rich-text editor's italic toggle is
+         re-checked, to avoid an unstyled-weight regression mid-rollout.
+         See DESIGN.md § Typography. -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <title>Cộng Đoàn Công Giáo Việt Nam Anê Thành</title>
     <script>
       // SPA GitHub Pages redirect workaround

@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Church Site Runtime Architecture",
+    "output": "church-site-runtime.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/wilsonnguyen257/wilsonnguyen257.github.io",
+      "revision": "d37c74bc695a687c3570f2f79c2d6870185bd42f"
+    },
+    "views": [
+      { "id": "publish-path", "label": "Content publish path", "focus": ["browser", "authGuard", "adminUI", "contentManager", "storageLayer", "firestore", "publicPages"], "note": "The one primary flow: an admin edits content and it reaches every visitor in real time." },
+      { "id": "trust-boundaries", "label": "Trust boundaries", "focus": ["browser", "authGuard", "adminUI", "contentManager", "storageLayer", "publicPages", "firebaseAuth", "firestore", "firebaseStorage", "vercelEdge"], "note": "Only Firebase's security rules actually enforce read vs. write access." },
+      { "id": "external-deps", "label": "External dependencies", "focus": ["vercelEdge", "firebaseAuth", "firestore", "firebaseStorage"], "note": "Everything the SPA relies on outside its own bundle." }
+    ]
+  },
+  "components": [
+    { "id": "vercelEdge", "type": "cloud", "label": "Vercel Edge", "sublabel": "static hosting + SPA rewrite", "tag": "CDN", "pos": [380, 40], "size": [180, 64], "sources": [{ "path": "vercel.json" }] },
+    { "id": "browser", "type": "frontend", "label": "Browser (React SPA)", "sublabel": "Vite build · React 19", "pos": [40, 260], "size": [150, 64], "sources": [{ "path": "src/main.tsx" }, { "path": "src/App.tsx" }] },
+    { "id": "authGuard", "type": "security", "label": "Auth Guard", "sublabel": "ProtectedRoute", "pos": [220, 260], "size": [140, 64], "sources": [{ "path": "src/components/ProtectedRoute.tsx" }] },
+    { "id": "adminUI", "type": "frontend", "label": "Admin Dashboard", "sublabel": "events · reflections · gallery", "pos": [390, 260], "size": [150, 64], "sources": [{ "path": "src/pages/AdminDashboard.tsx" }] },
+    { "id": "contentManager", "type": "frontend", "label": "Content Manager", "sublabel": "useContentManager", "pos": [570, 260], "size": [150, 64], "sources": [{ "path": "src/hooks/useContentManager.ts" }] },
+    { "id": "storageLayer", "type": "backend", "label": "Storage Abstraction", "sublabel": "storage.ts", "pos": [750, 260], "size": [150, 64], "sources": [{ "path": "src/lib/storage.ts" }] },
+    { "id": "publicPages", "type": "frontend", "label": "Public Pages", "sublabel": "home · events · gallery", "pos": [930, 260], "size": [160, 64], "sources": [{ "path": "src/pages/Home.tsx" }] },
+    { "id": "firebaseAuth", "type": "external", "label": "Firebase Authentication", "sublabel": "email + password", "pos": [220, 460], "size": [160, 64] },
+    { "id": "firestore", "type": "database", "label": "Cloud Firestore", "sublabel": "site-data · audit-logs", "pos": [750, 460], "size": [150, 64], "sources": [{ "path": "firestore.rules" }] },
+    { "id": "firebaseStorage", "type": "database", "label": "Firebase Storage", "sublabel": "gallery · events · reflections", "pos": [570, 460], "size": [150, 64], "sources": [{ "path": "storage.rules" }] }
+  ],
+  "boundaries": [
+    { "kind": "region", "label": "Vercel Edge — public internet delivery, no app logic", "wraps": ["vercelEdge"], "pad": 24 },
+    { "kind": "region", "label": "Visitor / Admin's Browser — untrusted client", "wraps": ["browser", "authGuard", "adminUI", "contentManager", "storageLayer", "publicPages"], "pad": 26 },
+    { "kind": "security-group", "label": "Firebase (Google Cloud project) — security rules are the real enforcement point", "wraps": ["firebaseAuth", "firestore", "firebaseStorage"], "pad": 26 }
+  ],
+  "connections": [
+    { "id": "browser-authGuard", "from": "browser", "to": "authGuard", "label": "navigate /admin", "variant": "emphasis", "labelDy": 62 },
+    { "id": "authGuard-adminUI", "from": "authGuard", "to": "adminUI", "label": "admin authorized", "variant": "emphasis", "labelDy": 62 },
+    { "id": "adminUI-contentManager", "from": "adminUI", "to": "contentManager", "label": "edit event / reflection", "variant": "emphasis", "labelDy": 62 },
+    { "id": "contentManager-storageLayer", "from": "contentManager", "to": "storageLayer", "label": "saveItem()", "variant": "emphasis", "labelDy": 62 },
+    { "id": "storageLayer-firestore", "from": "storageLayer", "to": "firestore", "label": "write site-data", "variant": "emphasis", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "firestore-publicPages", "from": "firestore", "to": "publicPages", "label": "realtime sync (onSnapshot)", "variant": "emphasis", "fromSide": "right", "toSide": "bottom" },
+    { "id": "vercelEdge-browser", "from": "vercelEdge", "to": "browser", "label": "serves SPA bundle", "variant": "dashed", "fromSide": "left", "toSide": "top" },
+    { "id": "authGuard-firebaseAuth", "from": "authGuard", "to": "firebaseAuth", "label": "verify ID token", "variant": "security", "fromSide": "bottom", "toSide": "top", "labelDy": 24 },
+    { "id": "contentManager-firebaseStorage", "from": "contentManager", "to": "firebaseStorage", "label": "upload media", "fromSide": "bottom", "toSide": "top", "labelDy": 24 }
+  ],
+  "cards": [
+    { "dot": "violet", "title": "Content Manager pipeline", "items": ["Image Pipeline (image.ts): every upload is resized/re-encoded client-side to WebP — display 1920px, thumbnail 480px", "Sanitization (sanitizeHtml.ts + DOMPurify): strips unsafe markup from admin-authored rich text before it is ever rendered back to visitors", "Audit Logger (audit.ts): writes an immutable audit-logs entry for every create/update/delete/login"] },
+    { "dot": "cyan", "title": "Data model", "items": ["Firestore collections: site-data/{events,reflections,gallery}/items, audit-logs (immutable), admin-sessions", "Content is bilingual (EN/VI), selected client-side via LanguageContext", "Legacy single-doc read path kept for backward compatibility with older data"] },
+    { "dot": "amber", "title": "Storage Abstraction fallback chain", "items": ["Primary: Cloud Firestore sub-collection read/write", "If Firebase isn't configured: falls back to localStorage with a stubbed local auth (admin:email key)", "Cross-tab live refresh via a BroadcastChannel/localStorage version key — no server round-trip needed for same-device tabs"] },
+    { "dot": "rose", "title": "Security & trust boundaries", "items": ["All writes are gated by one hardcoded admin allowlist (admin@gmail.com), enforced server-side in Firestore/Storage rules — ProtectedRoute is UX only, not the real boundary", "Firebase Storage default-denies every path outside gallery/, events/, reflections/", "Firebase ID token lives entirely client-side; there is no custom backend session"] },
+    { "dot": "slate", "title": "Edge & delivery", "items": ["Vercel serves the static Vite build with an SPA rewrite (all routes → index.html)", "@vercel/analytics and @vercel/speed-insights beacons load client-side", "Google Fonts (Be Vietnam Pro, Playfair Display) are preconnected in index.html"] }
+  ]
+}

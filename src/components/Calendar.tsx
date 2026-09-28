@@ -201,7 +201,7 @@ export default function Calendar({ events, onDateClick, onEventClick, selectedDa
                   </div>
                 ))}
                 {dayEvents.length > 3 && (
-                  <div className="text-xs text-slate-500">
+                  <div className="text-xs text-slate-600">
                     +{dayEvents.length - 3} {t('more', 'thêm')}
                   </div>
                 )}

@@ -2,8 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { auth, signInWithEmailAndPassword, onAuthStateChanged, logout, IS_FIREBASE_CONFIGURED, type User } from '../lib/firebase';
 import { logAuditAction } from '../lib/audit';
+import { useLanguage } from '../contexts/LanguageContext';
+import logo from '../assets/logo.png';
 
 export default function Login() {
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState('');
@@ -138,7 +141,7 @@ export default function Login() {
                 </svg>
               </div>
               <h1 className="text-xl font-semibold text-slate-900 mb-2">Already Logged In</h1>
-              <p className="text-slate-500 text-sm">
+              <p className="text-slate-600 text-sm">
                 You're signed in as <strong className="text-slate-900">{currentUser.email}</strong>
               </p>
             </div>
@@ -160,9 +163,14 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-surface flex items-center justify-center px-4">
       <div className="mx-auto max-w-md w-full">
-        <div className="card">
-          <h1 className="mb-6 text-center text-xl font-semibold text-slate-900">Admin Login</h1>
+        <div className="flex flex-col items-center gap-2 mb-8 text-center">
+          <img src={logo} alt="Logo" className="h-12 w-12 rounded-full object-cover" />
+          <h1 className="font-serif font-bold text-lg text-slate-900">Anê Thành</h1>
+          <p className="eyebrow">{t('admin.login')}</p>
+        </div>
+        <div className="rule-signature mb-8" />
 
+        <div className="card">
           {error && (
             <div className="mb-6 rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-800">
               {error}
@@ -172,7 +180,7 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
-                Email Address
+                {t('admin.email')}
               </label>
               <input
                 id="email"
@@ -181,7 +189,7 @@ export default function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 autoComplete="email"
-                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600"
                 placeholder="admin@example.com"
                 disabled={loading}
               />
@@ -189,7 +197,7 @@ export default function Login() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-slate-700 mb-2">
-                Password
+                {t('admin.password')}
               </label>
               <input
                 id="password"
@@ -198,19 +206,19 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 autoComplete="current-password"
-                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                className="w-full rounded-xl border border-slate-300 px-4 py-2.5 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600"
                 placeholder="••••••••"
                 disabled={loading}
               />
             </div>
 
             <button type="submit" disabled={loading} className="btn btn-primary w-full">
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? t('admin.signing_in') : t('admin.sign_in')}
             </button>
           </form>
 
           <div className="mt-6 text-center text-sm text-slate-400">
-            <p>Authorized personnel only</p>
+            <p>{t('admin.authorized_only')}</p>
           </div>
         </div>
       </div>

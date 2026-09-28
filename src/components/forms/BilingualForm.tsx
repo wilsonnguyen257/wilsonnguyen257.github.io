@@ -83,7 +83,7 @@ export default function BilingualForm({
             type="button"
             onClick={handleAutoTranslate}
             disabled={isTranslating || !value[activeTab]?.trim()}
-            className="px-3 py-1.5 text-sm bg-brand-50 text-brand-700 rounded-lg hover:bg-brand-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1.5 text-sm bg-brand-50 text-brand-700 rounded-xl hover:bg-brand-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isTranslating ? 'Translating...' : `Translate to ${activeTab === 'vi' ? 'English' : 'Vietnamese'}`}
           </button>
@@ -91,13 +91,13 @@ export default function BilingualForm({
       </div>
 
       {/* Language Tabs */}
-      <div className="flex gap-1 p-1 bg-slate-100 rounded-lg">
+      <div className="flex gap-1 p-1 bg-slate-100 rounded-xl">
         <button
           type="button"
           onClick={() => setActiveTab('vi')}
-          className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${
+          className={`flex-1 px-4 py-2 rounded-xl font-medium transition-colors ${
             activeTab === 'vi'
-              ? 'bg-white text-brand-700 shadow-sm'
+              ? 'bg-surface text-brand-700'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -106,9 +106,9 @@ export default function BilingualForm({
         <button
           type="button"
           onClick={() => setActiveTab('en')}
-          className={`flex-1 px-4 py-2 rounded-xl font-medium transition-all ${
+          className={`flex-1 px-4 py-2 rounded-xl font-medium transition-colors ${
             activeTab === 'en'
-              ? 'bg-white text-brand-700 shadow-sm'
+              ? 'bg-surface text-brand-700'
               : 'text-slate-600 hover:text-slate-900'
           }`}
         >
@@ -125,7 +125,7 @@ export default function BilingualForm({
           <button
             type="button"
             onClick={() => formatText(activeTab)}
-            className="text-xs text-slate-500 hover:text-slate-700 transition-colors"
+            className="text-xs text-slate-600 hover:text-slate-700 transition-colors"
           >
             Format
           </button>
@@ -142,7 +142,7 @@ export default function BilingualForm({
             onChange={(e) => handleTextChange(activeTab, e.target.value)}
             placeholder={placeholder[activeTab]}
             rows={rows}
-            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all resize-none"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-surface focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-colors resize-none"
           />
         ) : (
           <input
@@ -150,13 +150,13 @@ export default function BilingualForm({
             value={value[activeTab] || ''}
             onChange={(e) => handleTextChange(activeTab, e.target.value)}
             placeholder={placeholder[activeTab]}
-            className="w-full px-4 py-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500 transition-all"
+            className="w-full px-4 py-3 rounded-xl border border-slate-200 bg-surface focus:ring-2 focus:ring-brand-600 focus:border-transparent transition-colors"
           />
         )}
         
         {/* Character count for textarea */}
         {type === 'textarea' && (
-          <div className="text-xs text-slate-500 text-right">
+          <div className="text-xs text-slate-600 text-right">
             {value[activeTab]?.length || 0} characters
           </div>
         )}
@@ -164,7 +164,7 @@ export default function BilingualForm({
 
       {/* Preview of other language */}
       {value[activeTab === 'vi' ? 'en' : 'vi'] && (
-        <div className="mt-4 p-3 bg-slate-50 rounded-lg">
+        <div className="mt-4 p-3 bg-slate-100 rounded-xl">
           <div className="text-xs font-medium text-slate-600 mb-1">
             Preview ({activeTab === 'vi' ? 'English' : 'Tiếng Việt'}):
           </div>

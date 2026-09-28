@@ -26,6 +26,20 @@ service cloud.firestore {
       allow write: if isAdmin(); // only authenticated admins can write
     }
 
+    // Contact messages: any visitor can submit one, but only an admin can
+    // read, update (mark answered), or delete them — unlike site-data above,
+    // which is admin-authored and publicly readable, a message is
+    // visitor-submitted and contains an email address, so it must not be
+    // publicly readable. See src/lib/messages.ts.
+    match /messages/{messageId} {
+      allow read, update, delete: if isAdmin();
+      allow create: if request.resource.data.keys().hasAll(['name', 'email', 'message', 'status', 'createdAt'])
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() < 200
+        && request.resource.data.email is string && request.resource.data.email.size() > 0 && request.resource.data.email.size() < 320
+        && request.resource.data.message is string && request.resource.data.message.size() > 0 && request.resource.data.message.size() < 5000
+        && request.resource.data.status == 'pending';
+    }
+
     // Audit logs - admins can write, only authenticated users can read their own logs
     match /audit-logs/{logId} {
       allow read: if request.auth != null;

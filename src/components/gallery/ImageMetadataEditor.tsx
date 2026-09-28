@@ -105,7 +105,7 @@ export default function ImageMetadataEditor({
             className="w-full h-full object-contain"
           />
         </div>
-        <div className="mt-2 text-sm text-slate-500">
+        <div className="mt-2 text-sm text-slate-600">
           {image.originalName} • {image.width} × {image.height} • {(image.size / 1024 / 1024).toFixed(2)} MB
         </div>
       </div>

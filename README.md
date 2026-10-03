@@ -1,198 +1,145 @@
-# Vietnamese Catholic Church Website (React + TypeScript + Vite)
+# Cộng Đoàn Công Giáo Việt Nam Anê Thành
 
-A multilingual church website with Vietnamese and English support, reflections and events. Admin can manage content via dashboard. Language preference is persisted in localStorage. Content (events, reflections, gallery) is stored in Firebase with real-time synchronization.
+[![Deploy to GitHub Pages](https://github.com/wilsonnguyen257/wilsonnguyen257.github.io/actions/workflows/deploy.yml/badge.svg)](https://github.com/wilsonnguyen257/wilsonnguyen257.github.io/actions/workflows/deploy.yml)
 
-## 🚀 Quick Start
+The bilingual (Vietnamese / English) website for the Anê Thành Vietnamese Catholic Community in Box Hill North, Melbourne. It covers Mass times, events, Gospel reflections, ministries and a photo gallery. Parish volunteers update all of it from a built-in admin dashboard.
 
-For production deployment and making content available online, see:
-- **[📘 DEPLOYMENT.md](./DEPLOYMENT.md)** - Complete Firebase setup guide
-- **[🔐 GITHUB_SECRETS.md](./GITHUB_SECRETS.md)** - GitHub Actions deployment setup
-- **[📊 VERCEL_ANALYTICS.md](./docs/VERCEL_ANALYTICS.md)** - Getting started with Vercel Web Analytics
+**Live site:** https://wilsonnguyen257.github.io
 
-For local development, continue reading below.
+## Contents
+
+- [Features](#features)
+- [Tech stack](#tech-stack)
+- [Getting started](#getting-started)
+- [Scripts](#scripts)
+- [Firebase setup](#firebase-setup)
+- [Deployment](#deployment)
+- [Project structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Features
 
-- Multilingual UI and content (vi/en) with smart fallback to Vietnamese.
-- Reflections list and detail pages with search, author filter, and sorting.
-- Events with localized date formatting.
-- Admin dashboard for Events, Reflections, and Gallery with bilingual fields.
-- Optional auto-translation (mock dictionary) and text formatting utilities.
-- Clean, bright UI built with Tailwind CSS.
+- **Bilingual content.** Every page and content item has Vietnamese and English fields. Missing English text falls back to Vietnamese.
+- **This Sunday's Mass.** The homepage shows the upcoming Sunday's Mass and Gospel reflection.
+- **Gospel reflections.** Search, filter by author and sort, with generated cover images and author bylines.
+- **Events and calendar.** Event pages with a countdown and dates formatted for the selected language.
+- **Ministries, gallery, giving and contact pages.**
+- **Admin dashboard** (`/admin`). Manage events, reflections, ministries, gallery photos and contact messages. Sign-in is required.
 
-## Tech Stack
+## Tech stack
 
-- React + TypeScript + Vite
-- Tailwind CSS
-- Context API for language (`src/contexts/LanguageContext.tsx`)
-- Optional Firebase Auth + Firestore backend (`src/lib/firebase.ts` + `src/lib/storage.ts`)
+| Area | Technology |
+| --- | --- |
+| UI | React 19, TypeScript 5.8, React Router 7 |
+| Styling | Tailwind CSS 3 |
+| Build | Vite 7 |
+| Backend | Firebase Auth, Firestore, Storage |
+| Testing / linting | Vitest, Testing Library, ESLint 9 |
+| Hosting | GitHub Pages (via GitHub Actions), Vercel Analytics & Speed Insights |
 
-## Getting Started
+## Getting started
 
-Prerequisites:
-- Node.js 18+ recommended
-- npm
+### Prerequisites
 
-Install dependencies:
+- [Node.js](https://nodejs.org/) 20 or newer (CI builds with Node 20)
+- npm (ships with Node)
+- A Firebase project. This is optional for local UI work. See [Firebase setup](#firebase-setup).
+
+### Install and run
+
 ```bash
+# 1. Clone the repository
+git clone https://github.com/wilsonnguyen257/wilsonnguyen257.github.io.git
+cd wilsonnguyen257.github.io
+
+# 2. Install dependencies
 npm install
-```
 
-Start dev server:
-```bash
+# 3. Start the dev server
 npm run dev
 ```
 
-Build production:
-```bash
-npm run build
-```
+Open http://localhost:3000. The port is fixed in `vite.config.ts`.
 
-Preview production build:
-```bash
-npm run preview
-```
+Without Firebase credentials, content falls back to `localStorage` and the admin pages stay open with no sign-in. That's fine for local development.
 
-Lint:
-```bash
-npm run lint
-```
+## Scripts
 
-Lint and fix issues:
-```bash
-npm run lint:fix
-```
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Start the Vite dev server on port 3000 |
+| `npm run build` | Check translations, type-check, and build to `dist/` |
+| `npm run preview` | Serve the production build locally |
+| `npm run lint` | Run ESLint |
+| `npm run lint:fix` | Run ESLint and auto-fix what it can |
+| `npm run type-check` | Run the TypeScript compiler without emitting |
+| `npm run check-translations` | Verify Vietnamese and English translation keys match |
+| `npx vitest` | Run the test suite |
 
-Type check:
-```bash
-npm run type-check
-```
+## Firebase setup
 
-## Code Quality & Standards
+1. Create a Firebase project and enable:
+   - **Authentication** with the Email/Password provider
+   - **Firestore**
+   - **Storage** (for gallery photos)
+2. Create a `.env` file in the project root with your Firebase web app config:
 
-This project follows modern TypeScript and React best practices:
+   ```bash
+   VITE_FIREBASE_API_KEY=...
+   VITE_FIREBASE_AUTH_DOMAIN=...
+   VITE_FIREBASE_PROJECT_ID=...
+   VITE_FIREBASE_STORAGE_BUCKET=...
+   VITE_FIREBASE_MESSAGING_SENDER_ID=...
+   VITE_FIREBASE_APP_ID=...
+   ```
 
-- ✅ **TypeScript strict mode** - Full type safety without `any` types
-- ✅ **ESLint configured** - Catches common errors and enforces code style
-- ✅ **React Hooks rules** - Proper hooks usage enforced
-- ✅ **Code splitting** - Lazy loading for optimal bundle sizes
-- ✅ **Manual chunks** - React and Firebase separated for better caching
-- ✅ **Security audits** - Dependencies regularly checked for vulnerabilities
+3. Restart `npm run dev`. The admin routes now require sign-in.
+4. Deploy the security rules in this repo:
 
-### Performance Optimizations
+   ```bash
+   npm i -g firebase-tools
+   firebase login
+   firebase deploy --only firestore:rules,storage
+   ```
 
-- Lazy loading for all routes except the home page
-- React vendor bundle separated (~44 KB gzipped)
-- Firebase bundle separated (~119 KB gzipped)
-- Individual page bundles (0.5-18 KB each)
-- Suspense boundaries with loading states
+5. In **Firebase Console → Authentication → Settings → Authorized domains**, add your production domain (e.g. `wilsonnguyen257.github.io`).
 
-## Project Structure
+Content is stored as one Firestore document per dataset, in `site-data/{name}`. The `src/lib/storage.ts` module handles reads, writes and live subscriptions.
 
-- `src/contexts/LanguageContext.tsx` — language state, `t()` translator, vi/en resources, default `vi` with localStorage persistence.
-- `src/components/Navbar.tsx` — language toggle and navigation.
-- `src/pages/Reflections.tsx` — search, author filter, sorting.
-- `src/pages/ReflectionDetail.tsx` — bilingual rendering with language fallback.
-- `src/pages/AdminReflections.tsx`, `src/pages/AdminEvents.tsx` — bilingual forms, mock auto-translate, formatting helpers.
-- `tailwind.config.js` — Tailwind configuration with brand colors.
+## Deployment
 
-## Internationalization (i18n)
+Every push to `main` triggers `.github/workflows/deploy.yml`, which builds the site and publishes it to GitHub Pages.
 
-Content types (Reflections, Events) use bilingual fields:
-```ts
-type Localized = { vi: string; en?: string };
-```
-When rendering: use `content[language] || content.vi` to ensure fallback.
-Dates format via `toLocaleDateString()` with `vi-VN` or `en-US` based on current language.
+For the build to connect to Firebase, add the six `VITE_FIREBASE_*` values above as **repository secrets**: Settings → Secrets and variables → Actions.
 
-## Admin Usage
+`vercel.json` is also included if you want to deploy the same build to Vercel.
 
-- Edit content via `AdminReflections` and `AdminEvents` only. Detail pages do not allow editing.
-- Each form provides Vietnamese and English fields. Auto-translation can be toggled on/off.
-- “Format” buttons clean pasted English text (normalize whitespace/punctuation).
-
-## Backend Storage
-
-You have three layers of storage, used in this order:
-
-1) Firebase Firestore (if configured)
-2) Vercel Blob via API route (`/api/site-data/[name].ts`)
-3) LocalStorage fallback (dev/offline)
-
-`src/lib/storage.ts` abstracts reads/writes/subscriptions. When Firebase is configured, data is stored in a single Firestore document per dataset at collection `site-data/{name}` with shape `{ value: [...] }` and `updatedAt` timestamp.
-
-### Enable Firebase
-
-1) Create a Firebase project and enable:
-   - Authentication: Email/Password
-   - Firestore Database (in production or test mode)
-2) Copy `.env.example` to `.env` and fill values from your Firebase Web App settings:
+## Project structure
 
 ```
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=...
-VITE_FIREBASE_PROJECT_ID=...
-VITE_FIREBASE_STORAGE_BUCKET=...
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
+src/
+├── pages/        # Route pages (public pages + Admin*.tsx)
+├── components/   # Shared UI, forms, admin and gallery components
+├── contexts/     # Language context and translations
+├── hooks/        # Custom React hooks
+├── lib/          # Firebase client, storage layer, utilities
+└── types/        # Shared TypeScript types
+public/           # Static assets, icons, manifest
+scripts/          # Build-time checks (translations)
+docs/             # Architecture diagram, analytics notes
+firestore.rules   # Firestore security rules
+storage.rules     # Storage security rules
 ```
 
-3) Restart dev server. When configured, admin routes enforce sign-in.
-4) Optional: Secure Firestore with rules that allow reads for everyone and restrict writes to authenticated admins, e.g.:
+## Contributing
 
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /site-data/{doc} {
-      allow read: if true;
-      allow write: if request.auth != null; // tighten as needed
-    }
-  }
-}
-```
+1. Create a branch from `main`.
+2. Make your change. Add any new UI text to **both** the Vietnamese and English translations.
+3. Run `npm run lint` and `npm run build` before opening a pull request. The build fails on missing translations or type errors.
+4. Open a pull request with a short description and, for UI changes, a screenshot.
 
-You can also use the provided rules files and Firebase CLI:
-
-- Install CLI: `npm i -g firebase-tools`
-- Login: `firebase login`
-- Initialize (optional): `firebase init` (choose Firestore and Storage, use existing project)
-- Deploy rules only:
-  - `firebase deploy --only firestore:rules`
-  - `firebase deploy --only storage`
-
-The repo contains example rules:
-- Firestore: `firestore.rules`
-- Storage: `storage.rules` (public read for `gallery/**`, write requires auth)
-
-Finally, in Firebase Authentication → Settings, add your production domain (e.g., `https://<username>.github.io`) to Authorized Domains so sign-in works in production.
-
-### Admin Access
-
-- Admin pages (`/admin/*`) are protected and require Firebase Authentication.
-- Sign in using Firebase Email/Password authentication through the navbar when signed out.
-- If Firebase is not configured, admin features are accessible without authentication (development mode).
-
-## Git & GitHub
-
-`.gitignore` already excludes `node_modules/` and `dist/`.
-
-Initial push:
-```bash
-git init
-git add .
-git commit -m "Initial commit: Multilingual church site"
-git branch -M main
-git remote add origin https://github.com/<YOUR_USERNAME>/wilsonnguyen257.github.io
-git push -u origin main
-```
-
-## Troubleshooting
-
-- PowerShell execution policy blocking scripts:
-  - Open PowerShell as Administrator and run: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
-  - Or run `npm run dev` from a terminal that allows script execution.
-- After changing Tailwind config, restart dev server.
+Report bugs or request features through [GitHub Issues](https://github.com/wilsonnguyen257/wilsonnguyen257.github.io/issues).
 
 ## License
 
